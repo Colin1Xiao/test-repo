@@ -1,0 +1,65 @@
+{
+  "_comment": "V5.2 Testnet \u9a8c\u8bc1\u6a21\u5f0f - \u8bc4\u4f30\u5c42\u4fee\u590d\u540e\u9996\u6b21\u771f\u5b9e\u6267\u884c",
+  "enabled": true,
+  "check_interval": 30,
+  "paper_trading": true,
+  "shadow_mode": false,
+  "leverage": 100,
+  "max_position_usd": 30,
+  "max_daily_trades": 3,
+  "min_signal_interval_seconds": 300,
+  "symbols": [
+    "ETH/USDT:USDT"
+  ],
+  "scoring": {
+    "entry_threshold": 50,
+    "weights": {
+      "trend_consistency": 30,
+      "pullback_breakout": 20,
+      "volume_confirm": 15,
+      "spread_quality": 15,
+      "volatility_range": 10,
+      "rl_filter": 10
+    },
+    "thresholds": {
+      "spread_max_bps": 5,
+      "volume_lookback": 20,
+      "volatility_min": 0.0005,
+      "volatility_max": 0.02,
+      "ema_fast_period": 9,
+      "ema_slow_period": 21
+    }
+  },
+  "exit": {
+    "_comment_100x": "100x\u4e0b\u6b62\u635f\u5fc5\u987b<\u7206\u4ed3\u7ebf\uff0c\u6b62\u76c8\u4fdd\u63010.2%",
+    "hard_stop_loss_pct": 0.005,
+    "take_profit_layers_pct": [
+      0.002
+    ],
+    "max_hold_seconds": 30,
+    "condition_fail_exit": true,
+    "liquidation_exit_pct": 0.004
+  },
+  "risk_metrics": {
+    "_comment_100x": "100x\u5f3a\u5316\u98ce\u63a7",
+    "max_single_loss_usd": 0.5,
+    "max_slippage_bps": 5,
+    "max_partial_fill_seconds": 3,
+    "max_query_failures": 2,
+    "max_unknown_orders": 0,
+    "freeze_on_anomaly": true,
+    "freeze_loss_pct": 0.003
+  },
+  "_validation": {
+    "purpose": "\u9a8c\u8bc1\u8bc4\u4f30\u5c42\u4fee\u590d\u540e\u7cfb\u7edf\u662f\u5426\u53ef\u7528",
+    "targets": [
+      "\u6ed1\u70b9<0.03%",
+      "\u5ef6\u8fdf<1s",
+      "\u6210\u4ea4\u5e72\u51c0"
+    ],
+    "max_trades": 3,
+    "stop_on_fail": true
+  },
+  "system_version": "V5.2",
+  "_original_entry_threshold": 80
+}

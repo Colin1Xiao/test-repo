@@ -1,0 +1,22 @@
+{
+  "_comment": "Telegram 告警配置模板",
+  "_security": "请复制此文件为 telegram_config.json 并填入你的配置",
+  "_permissions": "chmod 600 telegram_config.json",
+  
+  "enabled": false,
+  "bot_token": "YOUR_BOT_TOKEN_HERE",
+  "chat_id": "YOUR_CHAT_ID_HERE",
+  
+  "alert_types": {
+    "trading_signal": true,
+    "black_swan": true,
+    "price_alert": true,
+    "daily_summary": true
+  },
+  
+  "filters": {
+    "min_confidence": 0.7,
+    "min_leverage": 20,
+    "only_strong_signals": true
+  }
+}

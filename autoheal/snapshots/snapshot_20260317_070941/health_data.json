@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-03-16T22:38:16Z",
+  "date": "2026-03-17",
+  "exit_code": 20,
+  "critical_count": 1,
+  "warning_count": 0,
+  "info_count": 0,
+  "health_ok_after": true,
+  "telegram_latency_ms": 667,
+  "alerts": ["Gateway 进程未运行","基线偏移: critical_count=1 (基线: 0) health_ok_after=false"],
+  "repair_actions": ["doctor_repair"],
+  "gateway_running": false,
+  "log_file": "/Users/colin/.openclaw/workspace/autoheal/logs/health_20260317_063713.log"
+}

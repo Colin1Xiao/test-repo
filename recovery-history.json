@@ -1,0 +1,49 @@
+{
+  "schema": "openclaw.recovery.history.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-19T06:06:00+08:00",
+  "events": [],
+  "statistics": {
+    "gateway_stopped": {
+      "totalAttempts": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "successRate": 0,
+      "avgDuration": 0,
+      "bestStrategy": null,
+      "strategyStats": {}
+    },
+    "gateway_port_conflict": {
+      "totalAttempts": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "successRate": 0,
+      "avgDuration": 0,
+      "bestStrategy": null,
+      "strategyStats": {}
+    },
+    "telegram_disconnected": {
+      "totalAttempts": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "successRate": 0,
+      "avgDuration": 0,
+      "bestStrategy": null,
+      "strategyStats": {}
+    },
+    "memory_model_missing": {
+      "totalAttempts": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "successRate": 0,
+      "avgDuration": 0,
+      "bestStrategy": null,
+      "strategyStats": {}
+    }
+  },
+  "learning": {
+    "enabled": true,
+    "lastAdjustment": null,
+    "adjustments": []
+  }
+}

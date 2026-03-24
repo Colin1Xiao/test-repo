@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-03-16T22:36:30Z",
+  "date": "2026-03-17",
+  "exit_code": 20,
+  "critical_count": 1,
+  "warning_count": 0,
+  "info_count": 0,
+  "health_ok_after": false,
+  "telegram_latency_ms": 1500,
+  "alerts": ["Gateway 进程未运行"],
+  "repair_actions": ["gateway_restart"],
+  "gateway_running": false
+}

@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""
+Trade Executor Bridge - 交易执行桥
+连接 V3 信号与 okx_api_integration_v2 交易引擎
+"""
+
+import json
+from pathlib import Path
+from typing import Dict, Optional
+from datetime import datetime
+
+class TradeExecutorBridge:
+    """交易执行桥 - 将信号转换为实际交易"""
+    
+    def __init__(self, trading_engine, telegram_alert=None):
+        self.trading_engine = trading_engine
+        self.telegram_alert = telegram_alert
+        self.last_trade_time = None
+        self.daily_trade_count = 0
+        
+    def execute_signal(self, signal: Dict) -> Optional[Dict]:
+        """
+        执行交易信号
+        
+        Args:
+            signal: {
+                'symbol': 'BTC/USDT:USDT',
+                'side': 'buy' or 'sell',
+                'confidence': 0.85,
+                'price': 68500,
+                'leverage': 100,
+                'reason': '信号原因'
+            }
+        
+        Returns:
+            order_result or None
+        """
+        symbol = signal.get('symbol', 'BTC/USDT:USDT')
+        side = signal.get('side', 'buy')
+        confidence = signal.get('confidence', 0.5)
+        leverage = signal.get('leverage', 10)
+        
+        print(f"\n🎯 执行交易信号: {symbol} {side}")
+        print(f"   置信度: {confidence*100:.0f}%")
+        print(f"   杠杆: {leverage}x")
+        
+        try:
+            # 1. 账户预检查
+            print("\n【1/4】账户预检查...")
+            account = self.trading_engine.preflight_account_check(symbol)
+            if not account.get('can_trade'):
+                print("❌ 账户检查失败，拒绝交易")
+                return None
+            
+            available = account['available_usdt']
+            print(f"   ✅ 可用余额: {available:.2f} USDT")
+            
+            # 2. 风控检查
+            print("\n【2/4】风控检查...")
+            # 计算下单金额（使用配置的 max_position）
+            max_position_pct = self.trading_engine.config.get('max_position', 0.3)
+            order_amount = available * max_position_pct
+            
+            # 检查日限额
+            if not self.trading_engine._check_risk_limits(order_amount):
+                print("❌ 风控检查失败，拒绝交易")
+                return None
+            
+            print(f"   ✅ 下单金额: {order_amount:.2f} USDT")
+            
+            # 3. 下单
+            print("\n【3/4】执行下单...")
+            order_result = self.trading_engine.create_order(
+                symbol=symbol,
+                side=side,
+                amount=order_amount,
+                leverage=leverage
+            )
+            
+            if not order_result:
+                print("❌ 下单失败")
+                return None
+            
+            print(f"   ✅ 下单成功: {order_result.get('order_id')}")
+            
+            # 4. 设置止损
+            print("\n【4/4】设置止损...")
+            stop_loss_pct = self.trading_engine.config.get('stop_loss', 0.01)
+            entry_price = signal.get('price', order_result.get('price', 0))
+            
+            if side == 'buy':
+                stop_price = entry_price * (1 - stop_loss_pct)
+            else:
+                stop_price = entry_price * (1 + stop_loss_pct)
+            
+            print(f"   止损价格: {stop_price:.2f} ({stop_loss_pct*100:.1f}%)")
+            
+            # 5. 发送通知
+            if self.telegram_alert:
+                self.telegram_alert.send_system_alert({
+                    'type': 'TRADE_EXECUTED',
+                    'level': 'INFO',
+                    'timestamp': datetime.now().isoformat(),
+                    'message': f"{'买入' if side == 'buy' else '卖出'} {symbol}\n"
+                               f"金额: {order_amount:.2f} USDT\n"
+                               f"杠杆: {leverage}x\n"
+                               f"止损: {stop_price:.2f}",
+                    'details': f"订单ID: {order_result.get('order_id')}"
+                })
+            
+            self.last_trade_time = datetime.now()
+            self.daily_trade_count += 1
+            
+            return order_result
+            
+        except Exception as e:
+            print(f"❌ 执行信号失败: {e}")
+            return None
+    
+    def can_trade(self) -> bool:
+        """检查是否可以交易"""
+        # 检查是否在冷静期
+        if hasattr(self.trading_engine, 'drawdown_lock_until'):
+            if self.trading_engine.drawdown_lock_until and \
+               datetime.now() < self.trading_engine.drawdown_lock_until:
+                return False
+        return True

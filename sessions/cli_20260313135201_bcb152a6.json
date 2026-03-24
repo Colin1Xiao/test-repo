@@ -1,0 +1,22 @@
+{
+  "session_id": "cli_20260313135201_bcb152a6",
+  "channel_type": "cli",
+  "window_type": "analysis",
+  "parent_agent": "main",
+  "routing_profile": "heavy",
+  "priority_level": "P2",
+  "status": "idle",
+  "created_at": "2026-03-13T13:52:01.239486",
+  "last_active_at": "2026-03-13T13:52:01.239486",
+  "active_task_count": 0,
+  "active_chain_count": 0,
+  "resource_budget": {
+    "max_mixed_chains": 1,
+    "max_subagents": 3,
+    "max_retries": 2,
+    "max_context_size": 16000
+  },
+  "last_route_decision": null,
+  "last_error": null,
+  "history": []
+}

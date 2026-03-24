@@ -1,0 +1,22 @@
+Config        : ~/.openclaw/openclaw.json
+Agent dir     : ~/.openclaw/agents/main/agent
+Default       : bailian/kimi-k2.5
+Fallbacks (0) : -
+Image model   : bailian/kimi-k2.5
+Image fallbacks (0): -
+Aliases (8)   : MAIN -> bailian/kimi-k2.5, FAST -> bailian/qwen3-max-2026-01-23, LONG -> bailian/qwen3.5-plus, CODE -> bailian/qwen3-coder-next, CODE-PLUS -> bailian/qwen3-coder-plus, CN -> bailian/MiniMax-M2.5, REASON -> xai/grok-4-1-fast-reasoning, GROK-CODE -> xai/grok-code-fast-1
+Configured models (19): bailian/kimi-k2.5, bailian/qwen3-max-2026-01-23, bailian/qwen3.5-plus, bailian/qwen3-coder-next, bailian/qwen3-coder-plus, bailian/MiniMax-M2.5, bailian/glm-5, bailian/glm-4.7, xai/grok-4-1-fast-reasoning, xai/grok-code-fast-1, volcengine-plan/ark-code-latest, volcengine-plan/doubao-seed-code, volcengine-plan/glm-4.7, volcengine-plan/deepseek-v3.2, volcengine-plan/doubao-seed-2.0-code, volcengine-plan/doubao-seed-2.0-pro, volcengine-plan/doubao-seed-2.0-lite, volcengine-plan/minimax-m2.5, volcengine-plan/kimi-k2.5
+
+Auth overview
+Auth store    : ~/.openclaw/agents/main/agent/auth-profiles.json
+Shell env     : off
+Providers w/ OAuth/tokens (2): qwen (1), qwen-portal (1)
+- bailian effective=models.json:sk-sp-ae...073cd3f1 | models.json=sk-sp-ae...073cd3f1 | source=models.json: ~/.openclaw/agents/main/agent/models.json
+- qwen effective=profiles:~/.openclaw/agents/main/agent/auth-profiles.json | profiles=2 (oauth=1, token=0, api_key=1) | qwen:default=sk-sp-ae...073cd3f1, qwen-portal:default=OAuth
+- qwen-portal effective=profiles:~/.openclaw/agents/main/agent/auth-profiles.json | profiles=2 (oauth=1, token=0, api_key=1) | qwen:default=sk-sp-ae...073cd3f1, qwen-portal:default=OAuth
+- volcengine-plan effective=models.json:aafdef24...95c28965 | models.json=aafdef24...95c28965 | source=models.json: ~/.openclaw/agents/main/agent/models.json
+- xai effective=profiles:~/.openclaw/agents/main/agent/auth-profiles.json | profiles=1 (oauth=0, token=0, api_key=1) | xai:default=xai-iIpA...chJsxlVL
+
+OAuth/token status
+- qwen-portal
+  - qwen-portal:default ok expires in 0m

@@ -1,0 +1,22 @@
+{
+  "active_policy_version": "baseline_rule_v3x",
+  "candidate_policy_version": "rl_policy_2026_03_17_a",
+  "policy_status": "shadow",
+  "last_offline_eval_score": 0.0,
+  "last_paper_eval_score": 0.0,
+  "models": {
+    "baseline_rule_v3x": {
+      "type": "rule_based",
+      "status": "active",
+      "created_at": "2026-03-17T01:48:00"
+    },
+    "rl_policy_2026_03_17_a": {
+      "type": "reinforcement_learning",
+      "status": "shadow",
+      "created_at": "2026-03-17T01:48:00",
+      "training_enabled": false,
+      "inference_enabled": false,
+      "shadow_mode_enabled": true
+    }
+  }
+}

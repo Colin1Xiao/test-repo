@@ -1,0 +1,25 @@
+{
+  "schema": "openclaw.recovery.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-18T22:00:57Z",
+  "currentSession": {
+    "attempts": 1,
+    "lastAttempt": 1773871257,
+    "lastResult": "success",
+    "consecutiveFailures": 0
+  },
+  "config": {
+    "cooldownSeconds": 300,
+    "maxAttempts": 3,
+    "verifyWindowSeconds": 10,
+    "targetComponents": ["gateway"],
+    "minSeverity": 2
+  },
+  "stats": {
+    "totalAttempts": 1,
+    "successfulRecoveries": 1,
+    "failedRecoveries": ,
+    "lastSuccess": "2026-03-18T22:00:57Z",
+    "lastFailure": 
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "_comment": "V5.4 真实市场数据源配置 - 生产级",
+  "_version": "V5.4",
+  "_created": "2026-03-25T04:30:00+08:00",
+  
+  "data_source": {
+    "primary": "OKX",
+    "backup": "Binance",
+    "mode": "LIVE",
+    "testnet": false
+  },
+  
+  "symbols": {
+    "primary": "ETH/USDT:USDT",
+    "okx_symbol": "ETH-USDT-SWAP",
+    "contract_size": 0.1,
+    "min_contracts": 0.01,
+    "price_precision": 2,
+    "amount_precision": 4
+  },
+  
+  "market_data": {
+    "tickers": {
+      "enabled": true,
+      "interval_ms": 1000,
+      "sources": ["okx", "ccxt"]
+    },
+    "orderbook": {
+      "enabled": true,
+      "depth": 20,
+      "interval_ms": 500,
+      "min_spread_bps": 1
+    },
+    "trades": {
+      "enabled": true,
+      "buffer_size": 1000,
+      "real_time": true
+    },
+    "funding_rate": {
+      "enabled": true,
+      "check_interval_minutes": 60
+    }
+  },
+  
+  "data_validation": {
+    "price_deviation_threshold": 0.01,
+    "volume_min_threshold": 0.001,
+    "stale_data_seconds": 5,
+    "reject_outliers": true
+  },
+  
+  "state_store": {
+    "type": "v54",
+    "path": "~/.openclaw/workspace/trading_system_v5_3/data/state_store.json",
+    "backup_interval_seconds": 60,
+    "max_history_trades": 1000
+  },
+  
+  "panel_integration": {
+    "enabled": true,
+    "endpoint": "http://localhost:8781",
+    "update_interval_seconds": 5,
+    "api_path": "/api/status"
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "file": "~/.openclaw/workspace/trading_system_v5_3/logs/market_data.log",
+    "max_size_mb": 100,
+    "backup_count": 5
+  }
+}

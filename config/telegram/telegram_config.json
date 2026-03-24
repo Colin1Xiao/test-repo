@@ -1,0 +1,22 @@
+{
+  "_comment": "Telegram 告警配置 - 使用已有 Bot",
+  "_created": "2026-03-12",
+  "_security": "此文件权限已设置为 600，仅 owner 可读写",
+  
+  "enabled": true,
+  "bot_token": "8754562975:AAFPiWpWfEu7scESQZq6_N3Fl2eSanVEGLk",
+  "chat_id": "5885419859",
+  
+  "alert_types": {
+    "trading_signal": true,
+    "black_swan": true,
+    "price_alert": true,
+    "daily_summary": true
+  },
+  
+  "filters": {
+    "min_confidence": 0.7,
+    "min_leverage": 20,
+    "only_strong_signals": true
+  }
+}

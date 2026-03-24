@@ -1,0 +1,52 @@
+{
+  "current": {
+    "symbol": "BTC/USDT",
+    "funding_rate": 0.0001,
+    "funding_timestamp": 1773223720381,
+    "next_funding_time": 1773252520381,
+    "mark_price": 85200.5,
+    "index_price": 85198.2
+  },
+  "history": [
+    {
+      "fundingTimestamp": 1772935720381,
+      "fundingRate": 0.000194
+    },
+    {
+      "fundingTimestamp": 1772964520381,
+      "fundingRate": -0.000164
+    },
+    {
+      "fundingTimestamp": 1772993320381,
+      "fundingRate": 4e-05
+    },
+    {
+      "fundingTimestamp": 1773022120381,
+      "fundingRate": 0.000107
+    },
+    {
+      "fundingTimestamp": 1773050920381,
+      "fundingRate": 0.000118
+    },
+    {
+      "fundingTimestamp": 1773079720381,
+      "fundingRate": 0.000215
+    },
+    {
+      "fundingTimestamp": 1773108520381,
+      "fundingRate": -3.9e-05
+    },
+    {
+      "fundingTimestamp": 1773137320381,
+      "fundingRate": 0.000232
+    },
+    {
+      "fundingTimestamp": 1773166120381,
+      "fundingRate": 0.000199
+    },
+    {
+      "fundingTimestamp": 1773194920381,
+      "fundingRate": 7.5e-05
+    }
+  ]
+}

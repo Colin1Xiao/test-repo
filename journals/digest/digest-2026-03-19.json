@@ -1,0 +1,103 @@
+{
+  "date": "2026-03-19",
+  "author": "Colin",
+  "project": "OpenClaw",
+  "completed": [
+    {
+      "project": "OCNMPS",
+      "type": "功能",
+      "status": null,
+      "priority": null,
+      "risk_level": null,
+      "content": "Bridge v2 发布"
+    },
+    {
+      "project": "路由系统",
+      "type": "修复",
+      "status": null,
+      "priority": null,
+      "risk_level": null,
+      "content": "修复路由规则"
+    },
+    {
+      "project": "灰度系统",
+      "type": null,
+      "status": null,
+      "priority": null,
+      "risk_level": null,
+      "content": "灰度系统上线"
+    }
+  ],
+  "planned": [
+    {
+      "project": "灰度系统",
+      "type": null,
+      "status": null,
+      "priority": "高",
+      "risk_level": null,
+      "content": "灰度观察期"
+    },
+    {
+      "project": "交易系统",
+      "type": null,
+      "status": null,
+      "priority": "中",
+      "risk_level": null,
+      "content": "监控"
+    },
+    {
+      "project": "Daily Digest",
+      "type": null,
+      "status": null,
+      "priority": null,
+      "risk_level": null,
+      "content": "日报自动化"
+    }
+  ],
+  "risks": [
+    {
+      "project": "灰度系统",
+      "type": null,
+      "status": null,
+      "priority": null,
+      "risk_level": "中",
+      "content": "某意图误路由需观察"
+    },
+    {
+      "project": null,
+      "type": null,
+      "status": null,
+      "priority": null,
+      "risk_level": "低",
+      "content": "文档待补充"
+    }
+  ],
+  "decisions": [
+    {
+      "project": "灰度系统",
+      "type": "发布",
+      "status": null,
+      "priority": null,
+      "risk_level": null,
+      "content": "灰度上线"
+    },
+    {
+      "project": null,
+      "type": "暂停",
+      "status": null,
+      "priority": null,
+      "risk_level": null,
+      "content": "规则改动"
+    }
+  ],
+  "metrics": {
+    "ocnmps": {
+      "total_requests": 1,
+      "bridge_used": 1,
+      "avg_score": 0
+    },
+    "memory_files": 8,
+    "skills_count": 42
+  },
+  "file": "/Users/colin/.openclaw/workspace/journals/digest/digest-2026-03-19.md"
+}

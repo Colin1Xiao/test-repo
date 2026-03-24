@@ -1,0 +1,118 @@
+=== Gateway 日志 ===
+2026-03-17T02:33:51.882+08:00 [ws] ⇄ res ✓ chat.history 51ms conn=8f7b455f…0c36 id=e3367209…d52e
+2026-03-17T02:34:51.879+08:00 [ws] ⇄ res ✓ chat.history 56ms conn=8f7b455f…0c36 id=ce6ba617…6332
+2026-03-17T02:36:21.862+08:00 [ws] ⇄ res ✓ config.get 2646ms conn=a529ab92…0e21 id=3e3ca3d6…be6b
+2026-03-17T02:36:31.457+08:00 [ws] ⇄ res ✗ config.patch 13ms errorCode=INVALID_REQUEST errorMessage=invalid config: gateway.auth: Unrecognized key: "***" conn=1de7fb9e…761f id=5eadd10c…c2f0
+2026-03-17T02:36:48.232+08:00 [gateway] signal SIGTERM received
+2026-03-17T02:36:48.236+08:00 [gateway] received SIGTERM; shutting down
+2026-03-17T02:36:48.311+08:00 [gmail-watcher] gmail watcher stopped
+2026-03-17T02:36:48.342+08:00 [ws] webchat disconnected code=1012 reason=service restart conn=8f7b455f-c12d-4152-bd20-d6998f330c36
+2026-03-17T02:42:51.483+08:00 [canvas] host mounted at http://127.0.0.1:18789/__openclaw__/canvas/ (root /Users/colin/.openclaw/canvas)
+2026-03-17T02:42:51.578+08:00 [heartbeat] started
+2026-03-17T02:42:51.599+08:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-03-17T02:42:51.610+08:00 [gateway] agent model: bailian/kimi-k2.5
+2026-03-17T02:42:51.613+08:00 [gateway] listening on ws://127.0.0.1:18789, ws://[::1]:18789 (PID 13541)
+2026-03-17T02:42:51.617+08:00 [gateway] log file: /tmp/openclaw/openclaw-2026-03-17.log
+2026-03-17T02:42:51.625+08:00 [telegram] autoSelectFamily=true (default-node22)
+2026-03-17T02:42:51.627+08:00 [telegram] dnsResultOrder=ipv4first (default-node22)
+2026-03-17T02:42:51.723+08:00 [browser/server] Browser control listening on http://127.0.0.1:18791/ (auth=token)
+2026-03-17T02:42:52.593+08:00 [telegram] [default] starting provider (@AlanColin_Xiao_bot)
+2026-03-17T02:42:52.602+08:00 [telegram] autoSelectFamily=true (default-node22)
+2026-03-17T02:42:52.605+08:00 [telegram] dnsResultOrder=ipv4first (default-node22)
+2026-03-17T02:42:53.063+08:00 [ws] ⇄ res ✓ health 839ms conn=e1462297…dbe9 id=c2a2a4b2…9932
+2026-03-17T02:42:53.541+08:00 [ws] ⇄ res ✓ channels.status 436ms conn=e0148cc2…fe0d id=f083d54b…3430
+2026-03-17T02:42:55.233+08:00 [ws] ⇄ res ✓ doctor.memory.status 1682ms conn=4acba036…2992 id=e5519403…a0c8
+2026-03-17T02:42:58.292+08:00 [ws] webchat connected conn=49ea067e-44e8-4e4e-95fc-2b702f4e3757 remote=127.0.0.1 client=openclaw-control-ui webchat v2026.3.13
+2026-03-17T02:42:58.354+08:00 [ws] ⇄ res ✓ chat.history 50ms conn=49ea067e…3757 id=3c0b2401…4161
+2026-03-17T02:43:11.768+08:00 [ws] ⇄ res ✓ chat.history 188ms conn=49ea067e…3757 id=ce983a10…8c57
+2026-03-17T02:44:12.476+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=23ec0f86…3dd4 id=92cc01a0…4ebf
+2026-03-17T02:44:12.479+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=23ec0f86…3dd4 id=79c7d9a7…d944
+2026-03-17T02:44:12.482+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=23ec0f86…3dd4 id=10017983…f549
+2026-03-17T02:44:33.593+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=1536a3b6…0098 id=ccdde754…bd10
+2026-03-17T02:44:33.597+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=1536a3b6…0098 id=09e551ab…3828
+2026-03-17T02:44:33.601+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=1536a3b6…0098 id=8d31e523…dcc2
+2026-03-17T02:45:08.419+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=bac18067…17f3 id=d8d48fc2…75ca
+2026-03-17T02:45:08.423+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=bac18067…17f3 id=e9c8892e…1bd3
+2026-03-17T02:45:08.427+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=bac18067…17f3 id=b38a8943…0d68
+2026-03-17T02:45:25.823+08:00 [ws] ⇄ res ✓ channels.status 1307ms conn=dd9acca0…5eaf id=4033efd8…52e6
+2026-03-17T02:45:27.312+08:00 [ws] ⇄ res ✓ doctor.memory.status 1477ms conn=0f62f4ca…f554 id=8362ef43…86f2
+2026-03-17T02:52:22.729+08:00 [telegram] autoSelectFamily=true (default-node22)
+2026-03-17T02:52:22.732+08:00 [telegram] dnsResultOrder=ipv4first (default-node22)
+2026-03-17T03:00:27.921+08:00 [ws] ⇄ res ✓ chat.history 50ms conn=49ea067e…3757 id=f3323da8…1f89
+2026-03-17T03:10:33.528+08:00 [ws] ⇄ res ✓ chat.history 54ms conn=49ea067e…3757 id=d03169c1…d065
+2026-03-17T03:12:39.707+08:00 [ws] ⇄ res ✓ chat.history 65ms conn=49ea067e…3757 id=19198781…76e8
+2026-03-17T03:13:44.513+08:00 [ws] ⇄ res ✓ agent.identity.get 106ms conn=49ea067e…3757 id=832e8ade…d92e
+2026-03-17T03:13:44.710+08:00 [ws] ⇄ res ✓ chat.history 186ms conn=49ea067e…3757 id=58447adb…115f
+2026-03-17T03:14:53.300+08:00 [ws] ⇄ res ✓ chat.history 204ms conn=49ea067e…3757 id=ad15aed6…5b2f
+2026-03-17T03:16:18.212+08:00 [ws] ⇄ res ✓ chat.history 72ms conn=49ea067e…3757 id=9a3b0e3c…216b
+2026-03-17T03:16:52.211+08:00 [ws] ⇄ res ✓ chat.history 62ms conn=49ea067e…3757 id=c830ff90…5609
+2026-03-17T03:18:47.108+08:00 [ws] ⇄ res ✓ chat.history 69ms conn=49ea067e…3757 id=74223366…1f58
+2026-03-17T03:20:42.497+08:00 [ws] ⇄ res ✓ chat.history 57ms conn=49ea067e…3757 id=762fac25…5b71
+2026-03-17T03:26:31.612+08:00 [ws] webchat disconnected code=1001 reason=n/a conn=49ea067e-44e8-4e4e-95fc-2b702f4e3757
+2026-03-17T03:47:36.523+08:00 [telegram] sendMessage ok chat=5885419859 message=1270
+2026-03-17T04:00:09.614+08:00 [ws] ⇄ res ✗ status 1ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=db686b98…d998 id=c3c86a10…63ae
+2026-03-17T04:00:09.618+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=db686b98…d998 id=9420dc39…0164
+2026-03-17T04:00:09.621+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=db686b98…d998 id=92466760…3d5a
+2026-03-17T04:00:22.827+08:00 [ws] ⇄ res ✓ channels.status 887ms conn=7ab464a3…dd81 id=1db5397f…3fd2
+2026-03-17T04:00:22.911+08:00 [ws] ⇄ res ✓ doctor.memory.status 76ms conn=de0a58d4…9e3f id=98096113…ff80
+2026-03-17T04:02:03.643+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T04:03:13.361+08:00 [telegram] sendMessage ok chat=5885419859 message=1276
+2026-03-17T04:46:18.770+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T04:51:43.106+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T05:14:11.276+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T05:29:11.928+08:00 [ws] webchat connected conn=024c285d-b90e-482d-a21a-cc3e5acc09a6 remote=127.0.0.1 client=openclaw-control-ui webchat v2026.3.13
+2026-03-17T05:30:19.002+08:00 [telegram] sendMessage ok chat=5885419859 message=1308
+2026-03-17T05:40:50.189+08:00 [telegram] sendMessage ok chat=5885419859 message=1310
+2026-03-17T05:50:38.540+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T06:00:57.992+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T06:06:49.792+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T06:12:24.207+08:00 [telegram] sendMessage ok chat=5885419859 message=1323
+2026-03-17T06:16:19.831+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=23acb795…f9f5 id=a1fcb63b…574a
+2026-03-17T06:16:19.833+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=23acb795…f9f5 id=eb89f165…aac1
+2026-03-17T06:16:19.837+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=23acb795…f9f5 id=324341ac…569a
+2026-03-17T06:20:19.622+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=605ee514…8804 id=9cd72764…9354
+2026-03-17T06:20:19.624+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=605ee514…8804 id=440fb74d…a055
+2026-03-17T06:20:19.628+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=605ee514…8804 id=186cbf08…1b29
+2026-03-17T06:23:39.638+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=ceca17b4…084c id=18dbd850…277f
+2026-03-17T06:23:39.641+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=ceca17b4…084c id=4b1c8952…df06
+2026-03-17T06:23:39.644+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=ceca17b4…084c id=40f2c03d…2bcd
+2026-03-17T06:27:09.176+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=231d89c1…322f id=e71eb30e…339f
+2026-03-17T06:27:09.180+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=231d89c1…322f id=7bfa61e3…4921
+2026-03-17T06:27:09.184+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=231d89c1…322f id=692b5acb…d8a5
+2026-03-17T06:27:29.801+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=a7eb94ce…b444 id=84989f62…73e4
+2026-03-17T06:27:29.804+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=a7eb94ce…b444 id=224dd6c3…4fde
+2026-03-17T06:27:29.807+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=a7eb94ce…b444 id=f0bc728d…3602
+2026-03-17T06:28:25.419+08:00 [ws] ⇄ res ✓ chat.history 100ms conn=024c285d…09a6 id=28d21ede…8301
+2026-03-17T06:30:59.292+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=705ab12d…7acf id=7bd8d37f…6d03
+2026-03-17T06:30:59.296+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=705ab12d…7acf id=a281a863…cc8c
+2026-03-17T06:30:59.299+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=705ab12d…7acf id=b48ae611…9492
+2026-03-17T06:31:21.524+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=b4f9e4b4…a225 id=93e829f2…fc30
+2026-03-17T06:31:21.527+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=b4f9e4b4…a225 id=71e2a7c6…eed3
+2026-03-17T06:31:21.530+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=b4f9e4b4…a225 id=7189d531…a0ee
+2026-03-17T06:31:28.017+08:00 typing TTL reached (2m); stopping typing indicator
+2026-03-17T06:31:58.211+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=cc50e2c5…cf4e id=b03ea3af…4f3e
+2026-03-17T06:31:58.215+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=cc50e2c5…cf4e id=fae6c807…76be
+2026-03-17T06:31:58.219+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=cc50e2c5…cf4e id=9ed8c7d8…06b2
+2026-03-17T06:32:10.308+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=b45d8072…62e6 id=3035cb32…c540
+2026-03-17T06:32:10.310+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=b45d8072…62e6 id=4e3a6701…82b3
+2026-03-17T06:32:10.315+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=b45d8072…62e6 id=6b351e79…e2e5
+2026-03-17T06:33:21.744+08:00 [ws] ⇄ res ✗ status 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=26ac17b2…3361 id=70b1e107…709d
+2026-03-17T06:33:21.747+08:00 [ws] ⇄ res ✗ system-presence 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=26ac17b2…3361 id=8bf7497e…ec4c
+2026-03-17T06:33:21.752+08:00 [ws] ⇄ res ✗ config.get 0ms errorCode=INVALID_REQUEST errorMessage=missing scope: operator.read conn=26ac17b2…3361 id=a8c6beb5…db68
+
+=== Auto-Heal 日志 ===
+==> /Users/colin/.openclaw/workspace/autoheal/logs/health_20260317_063134.log <==
+
+=== Auto-Heal 值班助手 v2.0 ===
+[2026-03-17 06:31:34] 开始检查: Tue Mar 17 06:31:34 CST 2026
+
+=== 检查 Gateway 状态 ===
+[2026-03-17 06:31:34] \033[0;31m❌ Gateway 进程未运行\033[0m
+
+==> /Users/colin/.openclaw/workspace/autoheal/logs/health_20260317_063146.log <==
+
+=== Auto-Heal 值班助手 v2.0 ===
+[2026-03-17 06:31:46] 开始检查: Tue Mar 17 06:31:46 CST 2026
+
+=== 检查 Gateway 状态 ===
+[2026-03-17 06:31:46] \033[0;31m❌ Gateway 进程未运行\033[0m

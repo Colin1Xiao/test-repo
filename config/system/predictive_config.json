@@ -1,0 +1,21 @@
+{
+  "technical_prediction": {
+    "rsi_divergence": true,
+    "macd_crossover": true,
+    "bollinger_squeeze": true,
+    "volume_spike": true
+  },
+  "orderbook_prediction": {
+    "large_wall": true,
+    "imbalance": true,
+    "spread_change": true
+  },
+  "funding_prediction": {
+    "extreme_funding": true,
+    "funding_change": true
+  },
+  "sentiment_prediction": {
+    "fear_greed_extreme": true,
+    "open_interest_change": true
+  }
+}

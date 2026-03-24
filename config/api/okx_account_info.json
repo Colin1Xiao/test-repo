@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-03-12T07:28:32.467828",
+  "initial_capital": 500,
+  "current_capital": 500,
+  "pnl": 0,
+  "pnl_pct": 0,
+  "mode": "实盘",
+  "leverage": "20x",
+  "position": "30%",
+  "stop_loss": "1%",
+  "target": 100000,
+  "target_days": 30
+}

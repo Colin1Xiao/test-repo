@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-03-12T13:41:20.332501",
+  "check_count": 1,
+  "repair_count": 0,
+  "uptime": "0:00:00.679138",
+  "issues": [
+    {
+      "type": "notion_api",
+      "critical": false
+    }
+  ],
+  "status": "ISSUES_FOUND"
+}

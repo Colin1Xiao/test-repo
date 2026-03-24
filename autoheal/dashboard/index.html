@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 作战室 vNext</title>
+    <meta http-equiv="refresh" content="30">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header .meta {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .header .mode {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .header .time {
+            color: #94a3b8;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .card.wide {
+            grid-column: span 2;
+        }
+        
+        .card.full {
+            grid-column: span 3;
+        }
+        
+        .card h2 {
+            font-size: 0.9em;
+            color: #94a3b8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card h2 .icon {
+            font-size: 1.2em;
+        }
+        
+        /* 基线状态卡片 */
+        .baseline-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .baseline-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .baseline-item .status {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .baseline-item .label {
+            font-size: 0.75em;
+            color: #64748b;
+        }
+        
+        .baseline-item .value {
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        
+        .status-ok { color: #22c55e; }
+        .status-warn { color: #eab308; }
+        .status-error { color: #ef4444; }
+        
+        /* 事件时间线 */
+        .timeline {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 15px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 3px solid;
+            transition: background 0.2s;
+        }
+        
+        .timeline-item:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .timeline-item.severity-critical {
+            border-left-color: #ef4444;
+        }
+        
+        .timeline-item.severity-error {
+            border-left-color: #f97316;
+        }
+        
+        .timeline-item.severity-warning {
+            border-left-color: #eab308;
+        }
+        
+        .timeline-item.severity-info {
+            border-left-color: #22c55e;
+        }
+        
+        .timeline-item .time {
+            font-size: 0.8em;
+            color: #64748b;
+            min-width: 60px;
+        }
+        
+        .timeline-item .content {
+            flex: 1;
+        }
+        
+        .timeline-item .type {
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .timeline-item .summary {
+            font-size: 0.8em;
+            color: #94a3b8;
+        }
+        
+        .timeline-item .severity-badge {
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .badge-critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-error { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .badge-warning { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .badge-info { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        
+        /* Judge 决策卡片 */
+        .decision-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .decision-item {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .decision-item .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .decision-item .decision-type {
+            font-weight: 500;
+        }
+        
+        .decision-item .confidence {
+            font-size: 0.85em;
+            color: #94a3b8;
+        }
+        
+        .decision-item .reason {
+            font-size: 0.8em;
+            color: #64748b;
+        }
+        
+        /* Manual Review 队列 */
+        .review-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .review-item {
+            padding: 10px;
+            background: rgba(234, 179, 8, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #eab308;
+        }
+        
+        .review-item .alert {
+            font-size: 0.85em;
+        }
+        
+        .review-item .time {
+            font-size: 0.75em;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .stat-item {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .stat-item .label {
+            font-size: 0.75em;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        /* 趋势图 */
+        .trend-chart {
+            height: 80px;
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            padding: 10px 0;
+        }
+        
+        .trend-bar {
+            flex: 1;
+            border-radius: 2px 2px 0 0;
+            min-height: 4px;
+            transition: height 0.3s;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .card.wide, .card.full {
+                grid-column: span 2;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .card.wide, .card.full {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐉 OpenClaw 作战室 vNext</h1>
+        <div class="meta">
+            <span class="mode" id="currentMode">NORMAL</span>
+            <span class="time" id="currentTime"></span>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <!-- 基线状态 -->
+        <div class="card">
+            <h2><span class="icon">📊</span> 基线状态</h2>
+            <div class="baseline-grid">
+                <div class="baseline-item">
+                    <div class="status" id="gatewayStatus">✅</div>
+                    <div class="label">Gateway</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="status" id="ocnmpsStatus">✅</div>
+                    <div class="label">OCNMPS</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="status" id="telegramStatus">✅</div>
+                    <div class="label">Telegram</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="status" id="healthStatus">✅</div>
+                    <div class="label">Health</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="value status-ok" id="criticalCount">0</div>
+                    <div class="label">Critical</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="value status-ok" id="warningCount">0</div>
+                    <div class="label">Warning</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="value" id="telegramLatency">--</div>
+                    <div class="label">延迟</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="value status-ok" id="finalExit">0</div>
+                    <div class="label">Exit</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Judge 决策摘要 -->
+        <div class="card">
+            <h2><span class="icon">⚖️</span> Judge 决策</h2>
+            <div id="judgeDecisions">
+                <div class="empty-state">暂无裁决记录</div>
+            </div>
+        </div>
+        
+        <!-- Manual Review 队列 -->
+        <div class="card">
+            <h2><span class="icon">👁️</span> Manual Review</h2>
+            <div id="reviewQueue">
+                <div class="empty-state">队列为空</div>
+            </div>
+        </div>
+        
+        <!-- 事件时间线 -->
+        <div class="card full">
+            <h2><span class="icon">📋</span> 事件时间线 (最近 20 条)</h2>
+            <div class="timeline" id="eventTimeline">
+                <div class="empty-state">加载中...</div>
+            </div>
+        </div>
+        
+        <!-- 今日统计 -->
+        <div class="card">
+            <h2><span class="icon">📈</span> 今日统计</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="value" id="eventsToday">0</div>
+                    <div class="label">事件数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value" id="repairsToday">0</div>
+                    <div class="label">修复次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value" id="snapshotsToday">0</div>
+                    <div class="label">快照数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value" id="alertsToday">0</div>
+                    <div class="label">告警数</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Judge 统计 -->
+        <div class="card">
+            <h2><span class="icon">📊</span> Judge 统计 (7天)</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="value" id="judgeTotal">0</div>
+                    <div class="label">总裁决</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value status-ok" id="judgeAutoRepair">0</div>
+                    <div class="label">自动修复</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value status-warn" id="judgeManual">0</div>
+                    <div class="label">人工审核</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value" id="judgeAvgConf">--</div>
+                    <div class="label">平均置信度</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 7天趋势 -->
+        <div class="card">
+            <h2><span class="icon">📉</span> 7天趋势</h2>
+            <div class="trend-chart" id="trendChart"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleString('zh-CN', { 
+                    month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 加载事件时间线
+        async function loadTimeline() {
+            try {
+                const response = await fetch('data/events_timeline.json');
+                if (response.ok) {
+                    const events = await response.json();
+                    renderTimeline(events);
+                } else {
+                    // 使用模拟数据
+                    renderTimeline(generateMockEvents());
+                }
+            } catch (e) {
+                renderTimeline(generateMockEvents());
+            }
+        }
+        
+        // 渲染时间线
+        function renderTimeline(events) {
+            const container = document.getElementById('eventTimeline');
+            
+            if (!events || events.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无事件</div>';
+                return;
+            }
+            
+            container.innerHTML = events.slice(0, 20).map(event => {
+                const severityClass = `severity-${event.severity || 'info'}`;
+                const badgeClass = `badge-${event.severity || 'info'}`;
+                const time = new Date(event.ts).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="timeline-item ${severityClass}">
+                        <div class="time">${time}</div>
+                        <div class="content">
+                            <div class="type">${event.type}</div>
+                            <div class="summary">${event.summary || ''}</div>
+                        </div>
+                        <span class="severity-badge ${badgeClass}">${event.severity}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 生成模拟事件
+        function generateMockEvents() {
+            return [
+                { id: '1', ts: new Date().toISOString(), type: 'health.check.completed', severity: 'info', summary: '健康检查完成' },
+                { id: '2', ts: new Date(Date.now() - 3600000).toISOString(), type: 'snapshot.created', severity: 'info', summary: '快照创建成功' },
+                { id: '3', ts: new Date(Date.now() - 7200000).toISOString(), type: 'judge.decision.made', severity: 'info', summary: '裁决: auto_repair (置信度: 0.85)' }
+            ];
+        }
+        
+        // 加载基线状态
+        async function loadBaseline() {
+            try {
+                const response = await fetch('data/health_latest.json');
+                if (response.ok) {
+                    const health = await response.json();
+                    updateBaselineUI(health);
+                }
+            } catch (e) {
+                console.log('使用默认基线状态');
+            }
+        }
+        
+        // 更新基线 UI
+        function updateBaselineUI(health) {
+            if (health.critical_count !== undefined) {
+                const el = document.getElementById('criticalCount');
+                el.textContent = health.critical_count;
+                el.className = 'value ' + (health.critical_count > 0 ? 'status-error' : 'status-ok');
+            }
+            
+            if (health.warning_count !== undefined) {
+                const el = document.getElementById('warningCount');
+                el.textContent = health.warning_count;
+                el.className = 'value ' + (health.warning_count > 3 ? 'status-warn' : 'status-ok');
+            }
+            
+            if (health.telegram_latency_ms !== undefined) {
+                const el = document.getElementById('telegramLatency');
+                el.textContent = health.telegram_latency_ms + 'ms';
+                el.className = 'value ' + (health.telegram_latency_ms > 2000 ? 'status-warn' : 'status-ok');
+            }
+            
+            if (health.exit_code !== undefined) {
+                const el = document.getElementById('finalExit');
+                el.textContent = health.exit_code;
+                el.className = 'value ' + (health.exit_code > 0 ? 'status-warn' : 'status-ok');
+            }
+            
+            if (health.gateway_running !== undefined) {
+                document.getElementById('gatewayStatus').textContent = health.gateway_running ? '✅' : '❌';
+            }
+        }
+        
+        // 加载 Judge 统计
+        async function loadJudgeStats() {
+            try {
+                const response = await fetch('data/judge_summary.json');
+                if (response.ok) {
+                    const stats = await response.json();
+                    updateJudgeUI(stats);
+                }
+            } catch (e) {
+                console.log('使用默认 Judge 统计');
+            }
+        }
+        
+        // 更新 Judge UI
+        function updateJudgeUI(stats) {
+            if (stats.total !== undefined) {
+                document.getElementById('judgeTotal').textContent = stats.total;
+            }
+            if (stats.auto_repair !== undefined) {
+                document.getElementById('judgeAutoRepair').textContent = stats.auto_repair;
+            }
+            if (stats.manual_review !== undefined) {
+                document.getElementById('judgeManual').textContent = stats.manual_review;
+            }
+            if (stats.avg_confidence !== undefined) {
+                document.getElementById('judgeAvgConf').textContent = stats.avg_confidence.toFixed(2);
+            }
+        }
+        
+        // 初始化
+        loadTimeline();
+        loadBaseline();
+        loadJudgeStats();
+        
+        // 定时刷新
+        setInterval(() => {
+            loadTimeline();
+            loadBaseline();
+            loadJudgeStats();
+        }, 30000);
+    </script>
+</body>
+</html>

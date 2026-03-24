@@ -1,0 +1,33 @@
+📊 开始回测 BTC/USDT 5m
+策略：combo | 初始资金：10000.0 USDT | 杠杆：10x
+============================================================
+加载本地数据：/Users/colin/.openclaw/workspace/crypto_test_data/btc_5m_ta.csv
+共 98 条 K 线
+计算技术指标...
+运行回测...
+{
+  "strategy": "combo",
+  "symbol": "UNKNOWN",
+  "timeframe": "UNKNOWN",
+  "initial_balance": 10000.0,
+  "final_balance": 14036.00238632532,
+  "total_pnl": 4036.002386325319,
+  "total_pnl_pct": 40.36002386325319,
+  "total_trades": 1,
+  "winning_trades": 1,
+  "win_rate": 1.0,
+  "max_drawdown": 0,
+  "leverage": 10,
+  "trades": [
+    {
+      "entry_time": "2024-03-09T20:15:00",
+      "exit_time": "2024-03-09T23:50:00",
+      "side": "long",
+      "entry_price": 70680.5,
+      "exit_price": 72820.0,
+      "pnl": 4036.002386325319,
+      "pnl_pct": 3.027001789743989,
+      "balance": 14036.00238632532
+    }
+  ]
+}

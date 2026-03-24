@@ -1,0 +1,13 @@
+{
+  "schema": "openclaw.silent-anomalies.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-19T06:30:00+08:00",
+  "anomalies": [],
+  "statistics": {
+    "totalAnomalies": 0,
+    "degradedNoRecovery": 0,
+    "criticalSelfRecovered": 0,
+    "transientIssues": 0
+  },
+  "dailyStats": {}
+}

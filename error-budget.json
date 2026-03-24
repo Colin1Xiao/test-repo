@@ -1,0 +1,29 @@
+{
+  "schema": "openclaw.errorbudget.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-19T06:25:00+08:00",
+  "budget": {
+    "daily": {
+      "critical": 1,
+      "degraded": 5,
+      "falsePredictions": 2,
+      "recoveryFailures": 1
+    },
+    "weekly": {
+      "critical": 2,
+      "degraded": 20,
+      "falsePredictions": 5,
+      "recoveryFailures": 3
+    }
+  },
+  "current": {
+    "date": null,
+    "critical": 0,
+    "degraded": 0,
+    "falsePredictions": 0,
+    "recoveryFailures": 0,
+    "budgetRemaining": 100
+  },
+  "history": [],
+  "alerts": []
+}

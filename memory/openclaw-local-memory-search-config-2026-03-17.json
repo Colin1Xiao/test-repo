@@ -1,0 +1,30 @@
+{
+  "agents": {
+    "main": {
+      "memorySearch": {
+        "enabled": true,
+        "provider": "local",
+        "fallback": "none",
+        "local": {
+          "modelPath": "/Users/colin/.openclaw/memory/models/embeddinggemma-300M-Q8_0.gguf",
+          "modelCacheDir": "/Users/colin/.openclaw/memory/models"
+        },
+        "query": {
+          "hybrid": {
+            "enabled": true,
+            "vectorWeight": 0.7,
+            "textWeight": 0.3,
+            "candidateMultiplier": 4
+          }
+        },
+        "cache": {
+          "enabled": true,
+          "maxEntries": 50000
+        },
+        "sync": {
+          "watch": true
+        }
+      }
+    }
+  }
+}

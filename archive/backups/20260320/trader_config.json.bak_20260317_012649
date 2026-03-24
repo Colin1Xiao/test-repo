@@ -1,0 +1,24 @@
+{
+  "enabled": false,
+  "max_position_usd": 3,
+  "leverage": 10,
+  "stop_loss_pct": null,
+  "take_profit_pct": null,
+  "min_signal_confidence": 0.7,
+  "max_trades_per_day": 1,
+  "symbols": [
+    "BTC/USDT:USDT"
+  ],
+  "stop_loss_mode": "dynamic",
+  "take_profit_mode": "dynamic",
+  "dynamic_stop_loss": {
+    "atr_multiplier": 2.0,
+    "trailing_stop": true,
+    "min_stop_distance": 0.005
+  },
+  "dynamic_take_profit": {
+    "atr_multiplier": 3.0,
+    "trailing_profit": true,
+    "risk_reward_ratio": 2.0
+  }
+}

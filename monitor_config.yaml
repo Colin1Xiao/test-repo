@@ -1,0 +1,50 @@
+# 自动监控系统配置文件
+
+# 基础设置
+check_interval: 30              # 检查间隔（秒）
+price_alert_threshold: 0.02     # 价格告警阈值（2%）
+volume_alert_threshold: 1.5     # 成交量告警阈值（1.5 倍）
+
+# 情绪指数阈值
+csi_extreme_low: 20             # 极度恐惧
+csi_extreme_high: 80            # 极度贪婪
+
+# ML 预测阈值
+ml_confidence_threshold: 0.8    # 置信度阈值
+
+# 告警方式
+enable_telegram: false          # Telegram 告警
+enable_email: false             # 邮件告警
+enable_sound: true              # 声音告警
+enable_push: false              # Push 推送
+
+# 告警限制
+alert_cooldown: 300             # 同类告警冷却时间（秒）
+max_alerts_per_hour: 20         # 每小时最多告警数
+
+# 监控币种
+symbols:
+  - BTC/USDT
+  - ETH/USDT
+  - SOL/USDT
+
+# Telegram 配置（如启用）
+telegram:
+  bot_token: "YOUR_BOT_TOKEN"
+  chat_id: "YOUR_CHAT_ID"
+
+# 邮件配置（如启用）
+email:
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+  username: "your@email.com"
+  password: "your_password"
+  from: "your@email.com"
+  to:
+    - "your@email.com"
+
+# Push 配置（如启用）
+push:
+  service: "pushover"
+  api_key: "YOUR_API_KEY"
+  user_key: "YOUR_USER_KEY"

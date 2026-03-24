@@ -1,0 +1,34 @@
+{
+  "price_strategy": {
+    "offset_pct": 0.001,
+    "dynamic_offset": true,
+    "min_offset": 0.0005,
+    "max_offset": 0.003
+  },
+  "time_strategy": {
+    "max_wait_time": 300,
+    "reprice_interval": 60,
+    "cancel_threshold": 180
+  },
+  "batch_orders": {
+    "enabled": true,
+    "levels": 3,
+    "price_spacing": 0.002,
+    "size_distribution": [
+      0.5,
+      0.3,
+      0.2
+    ]
+  },
+  "cancel_strategy": {
+    "auto_cancel": true,
+    "signal_invalid": true,
+    "market_change": true,
+    "change_threshold": 0.01
+  },
+  "fill_strategy": {
+    "partial_fill": true,
+    "remain_cancel": false,
+    "chase_price": false
+  }
+}

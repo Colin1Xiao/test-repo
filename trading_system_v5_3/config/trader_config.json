@@ -1,0 +1,68 @@
+{
+  "_comment": "V5.2 MAINNET 实盘模式 - 100x杠杆受控实验",
+  "_mode": "LIVE_CONTROLLED_EXPERIMENT",
+  "_risk_level": "MEDIUM",
+  "_created": "2026-03-21T14:25:00+08:00",
+  
+  "enabled": true,
+  "check_interval": 30,
+  "paper_trading": false,
+  "shadow_mode": false,
+  "testnet": false,
+  
+  "leverage": 100,
+  "max_position_usd": 1.0,
+  "max_daily_trades": 3,
+  "min_signal_interval_seconds": 300,
+  
+  "symbols": ["ETH/USDT:USDT"],
+  
+  "scoring": {
+    "entry_threshold": 50,
+    "weights": {
+      "trend_consistency": 30,
+      "pullback_breakout": 20,
+      "volume_confirm": 15,
+      "spread_quality": 15,
+      "volatility_range": 10,
+      "rl_filter": 10
+    },
+    "thresholds": {
+      "spread_max_bps": 5,
+      "volume_lookback": 20,
+      "volatility_min": 0.0005,
+      "volatility_max": 0.02,
+      "ema_fast_period": 9,
+      "ema_slow_period": 21
+    }
+  },
+  
+  "exit": {
+    "_comment_100x": "100x下止损必须<爆仓线，止盈保持0.2%",
+    "hard_stop_loss_pct": 0.005,
+    "take_profit_layers_pct": [0.002],
+    "max_hold_seconds": 30,
+    "condition_fail_exit": true,
+    "liquidation_exit_pct": 0.004
+  },
+  
+  "risk_metrics": {
+    "_comment_100x": "100x强化风控",
+    "max_single_loss_usd": 0.5,
+    "max_slippage_bps": 5,
+    "max_partial_fill_seconds": 3,
+    "max_query_failures": 2,
+    "max_unknown_orders": 0,
+    "freeze_on_anomaly": true,
+    "freeze_loss_pct": 0.003
+  },
+  
+  "_safety_locks": {
+    "max_total_trades": 10,
+    "max_consecutive_failures": 3,
+    "kill_switch_enabled": true,
+    "api_permissions": ["read", "trade"]
+  },
+  
+  "system_version": "V5.2"
+}

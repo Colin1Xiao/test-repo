@@ -1,0 +1,22 @@
+{
+  "proxy": {
+    "enabled": true,
+    "type": "clashx",
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890",
+    "socks5": "socks5://127.0.0.1:7891",
+    "no_proxy": [
+      "localhost",
+      "127.0.0.1",
+      ".local",
+      ".lan",
+      "okx.com",
+      "binance.com"
+    ]
+  },
+  "ssl": {
+    "verify": false,
+    "ca_bundle": null
+  },
+  "auto_detect": true
+}

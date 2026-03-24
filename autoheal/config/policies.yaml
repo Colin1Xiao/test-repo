@@ -1,0 +1,269 @@
+# OpenClaw vNext 策略配置
+# 所有运维行为从脚本中抽离，统一在此配置
+
+# ============================================================
+# 运行模式
+# ============================================================
+modes:
+  normal:
+    auto_repair: true
+    verbose_logging: false
+    telegram_notify: true
+    snapshot_on_critical: true
+    agent_analysis: true
+    description: "正常模式 - 自动修复开启"
+    
+  safe:
+    auto_repair: false
+    verbose_logging: true
+    telegram_notify: true
+    snapshot_on_critical: true
+    agent_analysis: true
+    description: "安全模式 - 仅巡检不修复"
+    
+  debug:
+    auto_repair: false
+    verbose_logging: true
+    telegram_notify: true
+    snapshot_on_critical: true
+    agent_analysis: true
+    full_agent_output: true
+    description: "调试模式 - 详细日志"
+
+# 默认模式
+default_mode: normal
+
+# ============================================================
+# 基线定义
+# ============================================================
+baseline:
+  critical_count: 0
+  warning_count_max: 3
+  health_ok_after: true
+  telegram_latency_ms_max: 2000
+  gateway_required: true
+  ocnmps_required: true
+  
+  # 快照数量阈值
+  snapshot_count_max: 10
+  
+  # 模型可用率阈值
+  model_availability_min: 0.99
+  
+  # 7天内修复次数阈值
+  repair_7d_max: 5
+
+# ============================================================
+# 告警策略
+# ============================================================
+alerts:
+  critical:
+    notify: [macos, telegram]
+    snapshot: true
+    cooldown_minutes: 30
+    dedupe: true
+    max_per_hour: 10
+    auto_escalate: true
+    
+  warning:
+    notify: [telegram]
+    snapshot: false
+    cooldown_minutes: 60
+    dedupe: true
+    max_per_hour: 20
+    
+  info:
+    notify: []
+    snapshot: false
+    cooldown_minutes: 120
+    dedupe: true
+
+# ============================================================
+# 自动修复策略
+# ============================================================
+healing:
+  gateway_unhealthy:
+    enabled: true
+    max_attempts: 2
+    actions:
+      - restart_gateway
+      - recheck_health
+    requires_judge: false
+    
+  stale_status_cache:
+    enabled: true
+    max_attempts: 1
+    actions:
+      - refresh_status
+      - regenerate_summary
+    requires_judge: false
+    
+  doctor_fixable:
+    enabled: true
+    max_attempts: 1
+    actions:
+      - doctor_repair
+    requires_judge: false
+    
+  model_unavailable:
+    enabled: true
+    max_attempts: 1
+    actions:
+      - fallback_model
+      - alert_admin
+    requires_judge: true
+    
+  telegram_unreachable:
+    enabled: false
+    max_attempts: 0
+    actions: []
+    requires_judge: false
+
+# ============================================================
+# 高风险动作 (禁止自动执行)
+# ============================================================
+manual_only:
+  - modify_permissions
+  - change_operator_scope
+  - unquarantine_skill
+  - replace_model_config
+  - rotate_credentials
+  - modify_trusted_proxies
+  - install_system_component
+  - change_gateway_bind
+  - modify_security_policy
+
+# ============================================================
+# Agent 协作策略
+# ============================================================
+agents:
+  # 触发多代理协作的条件
+  triggers:
+    - critical.detected
+    - baseline.drift.detected
+    - health.check.failed
+    
+  # Agent 执行顺序
+  sequence:
+    - sre        # SRE 先诊断
+    - security   # Security 检查安全问题
+    - code       # Code 生成修复建议
+    - judge      # Judge 统一裁决
+    
+  # Judge 置信度阈值
+  judge:
+    confidence_threshold: 0.75
+    low_confidence_action: manual_review
+    
+  # 超时设置
+  timeout_seconds: 60
+
+# ============================================================
+# 快照策略
+# ============================================================
+snapshot:
+  triggers:
+    - critical.detected
+    - health.check.failed
+    - judge.decision.manual_review
+    
+  retention:
+    max_count: 10
+    max_age_days: 7
+    
+  include:
+    - system_status
+    - health_data
+    - recent_logs
+    - config_summary
+    - agent_reports
+
+# ============================================================
+# 通知策略
+# ============================================================
+notifications:
+  channels:
+    macos:
+      enabled: true
+      sound: true
+      
+    telegram:
+      enabled: true
+      parse_mode: HTML
+      
+  quiet_hours:
+    start: "23:00"
+    end: "08:00"
+    critical_always_notify: true
+    
+  daily_digest:
+    enabled: true
+    time: "04:05"
+    channel: telegram
+    
+  weekly_digest:
+    enabled: true
+    day: Sunday
+    time: "09:00"
+    channel: telegram
+
+# ============================================================
+# 事件处理策略
+# ============================================================
+events:
+  retention:
+    inbox_max_age_hours: 24
+    processed_max_age_days: 7
+    archive_max_age_days: 30
+    
+  batch_size: 100
+
+# ============================================================
+# 模型降级策略
+# ============================================================
+models:
+  # 主模型
+  primary: "bailian/kimi-k2.5"
+  
+  # 备用模型
+  fallback: "bailian/glm-5"
+  
+  # 降级条件
+  degradation:
+    consecutive_failures: 3
+    success_rate_threshold: 0.95
+    
+  # 自动恢复
+  auto_recovery:
+    enabled: true
+    check_interval_minutes: 5
+
+# ============================================================
+# Dashboard 配置
+# ============================================================
+dashboard:
+  refresh_interval_seconds: 30
+  show_event_count: 20
+  show_trend_days: 7
+
+# ============================================================
+# Telegram 命令权限
+# ============================================================
+telegram:
+  allowed_commands:
+    safe:
+      - /health
+      - /summary
+      - /alerts
+      - /models
+      - /sessions
+      - /review
+      - /snapshot
+      - /mode
+      
+    restricted:
+      - /restart_gateway
+      - /repair
+      
+  # 高风险命令只返回建议
+  restricted_returns_suggestion: true

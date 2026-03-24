@@ -1,0 +1,8 @@
+{
+  "_comment": "强制验证模式配置",
+  "force_execution": false,
+  "temp_score_threshold": 80,
+  "temp_volume_threshold": 1.2,
+  "verification_mode": false,
+  "_warning": "开启 force_execution 会忽略条件强制执行，仅用于验证"
+}

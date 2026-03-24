@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-03-12T05:18:41.100222",
+  "modules": {
+    "integrated_signal.py": {
+      "exists": true,
+      "size_kb": 13.5
+    },
+    "unified_pipeline.py": {
+      "exists": true,
+      "size_kb": 10.2
+    },
+    "auto_monitor.py": {
+      "exists": true,
+      "size_kb": 16.4
+    },
+    "dashboard.py": {
+      "exists": true,
+      "size_kb": 7.7
+    },
+    "monitor_config.yaml": {
+      "exists": true,
+      "size_kb": 1.2
+    },
+    "setup_clashx_proxy.sh": {
+      "exists": true,
+      "size_kb": 3.4
+    }
+  },
+  "data_sources": {
+    "proxy": {
+      "configured": true,
+      "url": "http://127.0.0.1:7890"
+    },
+    "okx": {
+      "status": "error"
+    },
+    "fear_greed": {
+      "status": "ok",
+      "value": 15,
+      "classification": "Extreme Fear"
+    },
+    "macro_events": {
+      "status": "ok",
+      "count": 2
+    }
+  },
+  "integration": {
+    "signal_generator": {
+      "status": "ok",
+      "config": {
+        "base_risk": 0.02,
+        "max_position": 0.8,
+        "max_leverage": 50,
+        "signal_thresholds": {
+          "strong_buy": 0.75,
+          "buy": 0.6,
+          "sell": -0.6,
+          "strong_sell": -0.75
+        },
+        "confidence_thresholds": {
+          "high": 0.7,
+          "medium": 0.5,
+          "low": 0.3
+        }
+      }
+    },
+    "monitor": {
+      "status": "partial",
+      "features": 1,
+      "total": 4
+    }
+  },
+  "performance": {
+    "signal_generation": {
+      "iterations": 100,
+      "total_ms": 0.3,
+      "per_call_ms": 0.0
+    },
+    "cache": {
+      "iterations": 100,
+      "total_ms": 0.2,
+      "status": "ok"
+    }
+  },
+  "config": {
+    "monitor_config.yaml": {
+      "exists": true
+    },
+    "proxy_config.json": {
+      "exists": true
+    }
+  },
+  "issues": [],
+  "recommendations": []
+}

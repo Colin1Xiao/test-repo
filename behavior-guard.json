@@ -1,0 +1,51 @@
+{
+  "schema": "openclaw.behavior-guard.v1",
+  "version": "3.9.0",
+  "lastUpdated": "2026-03-19T06:48:00+08:00",
+  "boundaries": {
+    "confidence": {
+      "default": 0.85,
+      "minAllowed": 0.75,
+      "current": 0.85,
+      "description": "置信度阈值最低不能低于 75%"
+    },
+    "momentumFrequency": {
+      "maxPerHour": 2,
+      "maxPerDay": 5,
+      "currentHour": {
+        "hour": null,
+        "count": 0
+      },
+      "currentDay": {
+        "date": null,
+        "count": 0
+      }
+    },
+    "consecutiveRelaxation": {
+      "maxAllowed": 3,
+      "current": 0,
+      "description": "连续放宽超过 3 次强制恢复 strict 模式"
+    }
+  },
+  "behaviorHealth": {
+    "executeRate": 0,
+    "skipRate": 100,
+    "momentumRate": 0,
+    "status": "balanced",
+    "lastCalculated": "2026-03-18T22:50:00.813Z"
+  },
+  "rollback": {
+    "enabled": true,
+    "triggers": {
+      "momentumRateAbove": 0.3,
+      "executeRateAbove": 0.6,
+      "consecutiveRelaxationAbove": 3
+    },
+    "history": []
+  },
+  "statistics": {
+    "totalResets": 0,
+    "boundaryHits": 0,
+    "behaviorWarnings": 0
+  }
+}

@@ -1,0 +1,885 @@
+# =============================================================================
+# 预测性智能交易系统 - 配置模板
+# =============================================================================
+# 说明：复制此文件为 config.yaml 并根据实际环境修改配置
+# 注意：敏感信息请使用环境变量或密钥管理服务
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 基础配置
+# -----------------------------------------------------------------------------
+environment: production  # dev | staging | production
+debug: false
+timezone: Asia/Shanghai
+
+# 应用配置
+app:
+  name: 预测性智能交易系统
+  version: 1.0.0
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  worker_class: uvicorn.workers.UvicornWorker
+  reload: false  # 仅开发环境启用
+
+# -----------------------------------------------------------------------------
+# 安全配置
+# -----------------------------------------------------------------------------
+security:
+  # JWT 配置
+  jwt:
+    secret_key: ${JWT_SECRET}  # 必须使用环境变量
+    algorithm: HS256
+    access_token_expire_minutes: 60
+    refresh_token_expire_days: 7
+  
+  # CORS 配置
+  cors:
+    allowed_origins:
+      - http://localhost:3000
+      - https://dashboard.trading-system.com
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed_headers:
+      - Authorization
+      - Content-Type
+    allow_credentials: true
+    max_age: 600
+  
+  # 速率限制
+  rate_limit:
+    enabled: true
+    default_limit: 100  # 每分钟请求数
+    trading_limit: 20
+    data_limit: 200
+  
+  # API 密钥加密
+  encryption:
+    algorithm: AES-256-GCM
+    key_derivation: PBKDF2
+    iterations: 100000
+
+# -----------------------------------------------------------------------------
+# 数据源配置
+# -----------------------------------------------------------------------------
+data_sources:
+  # 交易所配置
+  exchanges:
+    okx:
+      enabled: true
+      name: OKX
+      api_key: ${OKX_API_KEY}
+      api_secret: ${OKX_API_SECRET}
+      api_passphrase: ${OKX_API_PASSPHRASE}
+      api_url: https://www.okx.com
+      ws_url: wss://ws.okx.com:8443/ws/v5/public
+      testnet: false
+      rate_limit:
+        requests_per_second: 10
+        weight_per_minute: 1200
+      
+    binance:
+      enabled: true
+      name: Binance
+      api_key: ${BINANCE_API_KEY}
+      api_secret: ${BINANCE_API_SECRET}
+      api_url: https://fapi.binance.com
+      ws_url: wss://fstream.binance.com/ws
+      testnet: false
+      rate_limit:
+        requests_per_second: 10
+        weight_per_minute: 1200
+
+  # 宏观数据源
+  macro:
+    enabled: true
+    providers:
+      tradingeconomics:
+        enabled: true
+        api_key: ${TRADINGECONOMICS_API_KEY}
+        base_url: https://api.tradingeconomics.com
+      
+      forex_factory:
+        enabled: true
+        api_key: ${FOREXFACTORY_API_KEY}
+        base_url: https://nfs.faireconomy.media/ff_calendar_thisweek.json
+      
+      federal_reserve:
+        enabled: true
+        base_url: https://api.stlouisfed.org/fred
+        api_key: ${FRED_API_KEY}
+
+  # 情绪数据源
+  sentiment:
+    enabled: true
+    providers:
+      twitter:
+        enabled: true
+        api_key: ${TWITTER_API_KEY}
+        api_secret: ${TWITTER_API_SECRET}
+        bearer_token: ${TWITTER_BEARER_TOKEN}
+        rate_limit:
+          tweets_per_day: 50000
+      
+      newsapi:
+        enabled: true
+        api_key: ${NEWSAPI_API_KEY}
+        base_url: https://newsapi.org/v2
+        rate_limit:
+          requests_per_day: 1000
+      
+      alternative_me:
+        enabled: true
+        api_key: ${ALTERNATIVE_ME_API_KEY}
+        base_url: https://api.alternative.me/fng
+      
+      google_trends:
+        enabled: false  # 需要特殊配置
+        proxy_required: true
+
+  # 链上数据源
+  onchain:
+    enabled: true
+    providers:
+      glassnode:
+        enabled: true
+        api_key: ${GLASSNODE_API_KEY}
+        base_url: https://api.glassnode.com/v2
+      
+      dune:
+        enabled: true
+        api_key: ${DUNE_API_KEY}
+        base_url: https://api.dune.com/api/v1
+
+# -----------------------------------------------------------------------------
+# 数据库配置
+# -----------------------------------------------------------------------------
+database:
+  # PostgreSQL - 关系型数据
+  postgresql:
+    host: ${DB_HOST:-localhost}
+    port: ${DB_PORT:-5432}
+    name: ${DB_NAME:-trading}
+    user: ${DB_USER:-trading}
+    password: ${DB_PASSWORD}
+    url: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+    
+    # 连接池配置
+    pool:
+      pool_size: 20
+      max_overflow: 10
+      pool_timeout: 30
+      pool_recycle: 3600
+      pool_pre_ping: true
+    
+    # SSL 配置
+    ssl:
+      enabled: false
+      ca_cert: /path/to/ca-cert.pem
+      client_cert: /path/to/client-cert.pem
+      client_key: /path/to/client-key.pem
+    
+    # 读写分离 (可选)
+    replicas:
+      - host: replica1.trading.local
+        port: 5432
+        weight: 0.5
+      - host: replica2.trading.local
+        port: 5432
+        weight: 0.5
+
+  # InfluxDB - 时序数据
+  influxdb:
+    host: ${INFLUXDB_HOST:-localhost}
+    port: ${INFLUXDB_PORT:-8086}
+    url: http://${INFLUXDB_HOST}:${INFLUXDB_PORT}
+    token: ${INFLUXDB_TOKEN}
+    org: trading
+    bucket: market_data
+    
+    # 保留策略
+    retention_policies:
+      - name: rp_1h
+        duration: 1h
+        shard_duration: 10m
+        replication: 1
+        default: true
+      - name: rp_1d
+        duration: 1d
+        shard_duration: 1h
+        replication: 1
+      - name: rp_7d
+        duration: 7d
+        shard_duration: 1h
+        replication: 1
+      - name: rp_30d
+        duration: 30d
+        shard_duration: 1d
+        replication: 1
+        default: false
+    
+    # 连续查询 (数据降采样)
+    continuous_queries:
+      - name: cq_5m
+        query: |
+          SELECT mean("close") AS "close", 
+                 max("high") AS "high", 
+                 min("low") AS "low", 
+                 sum("volume") AS "volume"
+          INTO "market_data"."rp_7d"."klines_5m"
+          FROM "market_data"."rp_1h"."klines_1m"
+          GROUP BY time(5m), "symbol", "exchange"
+
+  # Redis - 缓存和消息队列
+  redis:
+    host: ${REDIS_HOST:-localhost}
+    port: ${REDIS_PORT:-6379}
+    password: ${REDIS_PASSWORD}
+    db: 0
+    url: redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/0
+    
+    # 连接池
+    pool:
+      max_connections: 50
+      min_idle_connections: 10
+      connection_timeout: 5
+      socket_timeout: 5
+    
+    # 键前缀
+    key_prefix: trading:
+    
+    # 默认 TTL
+    default_ttl: 3600
+
+# -----------------------------------------------------------------------------
+# 消息队列配置
+# -----------------------------------------------------------------------------
+message_queue:
+  broker: redis  # redis | rabbitmq | kafka
+  
+  # Celery 配置
+  celery:
+    broker_url: redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/1
+    result_backend: redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/2
+    
+    # 任务配置
+    task_serializer: json
+    result_serializer: json
+    accept_content:
+      - json
+    timezone: Asia/Shanghai
+    enable_utc: true
+    
+    # 任务路由
+    task_routes:
+      'tasks.data_collection.*':
+        queue: data_queue
+      'tasks.analysis.*':
+        queue: analysis_queue
+      'tasks.trading.*':
+        queue: trading_queue
+      'tasks.notifications.*':
+        queue: notification_queue
+    
+    # Worker 配置
+    worker_prefetch_multiplier: 1
+    worker_max_tasks_per_child: 1000
+    worker_concurrency: 4
+    
+    # 任务超时
+    task_time_limit: 300
+    task_soft_time_limit: 240
+    
+    # 重试配置
+    task_acks_late: true
+    task_reject_on_worker_lost: true
+    task_default_retry_delay: 60
+    task_max_retries: 3
+
+# -----------------------------------------------------------------------------
+# 分析引擎配置
+# -----------------------------------------------------------------------------
+analysis:
+  # ML 模型配置
+  ml_models:
+    # 价格方向预测模型
+    price_prediction:
+      enabled: true
+      model_path: ./models/price_prediction_v1.pkl
+      model_type: lstm
+      input_features:
+        - kline_sequence  # 100 条 K 线
+        - technical_indicators  # 20 个指标
+        - sentiment_index
+        - event_vector
+      output_classes:
+        - up
+        - down
+        - neutral
+      update_frequency: daily
+      update_time: "02:00"
+      min_training_samples: 10000
+      validation_split: 0.2
+      early_stopping_patience: 10
+      
+    # 波动率预测模型
+    volatility_prediction:
+      enabled: true
+      model_path: ./models/volatility_prediction_v1.pkl
+      model_type: gru
+      input_features:
+        - historical_volatility
+        - vix_index
+        - funding_rate
+        - open_interest_change
+      output_type: regression
+      update_frequency: weekly
+      update_day: sunday
+      update_time: "03:00"
+      
+    # 趋势强度预测模型
+    trend_strength:
+      enabled: true
+      model_path: ./models/trend_strength_v1.pkl
+      model_type: xgboost
+      input_features:
+        - adx
+        - aroon
+        - trend_slope
+        - volume_distribution
+      output_type: regression
+      output_range:
+        min: 0
+        max: 1
+      update_frequency: weekly
+      update_day: sunday
+      update_time: "03:00"
+      hyperparameters:
+        n_estimators: 500
+        max_depth: 8
+        learning_rate: 0.01
+        subsample: 0.8
+        colsample_bytree: 0.8
+
+  # 信号生成配置
+  signal_generation:
+    # 信号权重
+    weights:
+      event: 0.25
+      ml: 0.30
+      sentiment: 0.25
+      technical: 0.20
+    
+    # 最小置信度
+    min_confidence: 0.6
+    
+    # 信号强度阈值
+    strength_thresholds:
+      weak: 0.3
+      medium: 0.5
+      strong: 0.7
+    
+    # 信号过期时间 (秒)
+    expiry_seconds:
+      scalping: 300      # 5 分钟
+      day_trading: 3600  # 1 小时
+      swing: 86400       # 24 小时
+    
+    # 信号过滤
+    filters:
+      min_volume_24h: 1000000  # 最小 24 小时成交量 (USDT)
+      exclude_stablecoins: true
+      exclude_leveraged_tokens: true
+
+  # 技术指标配置
+  technical_indicators:
+    # 趋势指标
+    trend:
+      - name: EMA
+        periods: [9, 21, 50, 200]
+      - name: SMA
+        periods: [20, 50, 200]
+      - name: MACD
+        fast_period: 12
+        slow_period: 26
+        signal_period: 9
+      - name: ADX
+        period: 14
+      - name: Aroon
+        period: 25
+    
+    # 动量指标
+    momentum:
+      - name: RSI
+        period: 14
+        overbought: 70
+        oversold: 30
+      - name: KDJ
+        n: 9
+        m1: 3
+        m2: 3
+      - name: Stochastic
+        k_period: 14
+        d_period: 3
+        smooth_k: 3
+    
+    # 波动率指标
+    volatility:
+      - name: BollingerBands
+        period: 20
+        std_dev: 2
+      - name: ATR
+        period: 14
+      - name: KeltnerChannel
+        period: 20
+        atr_period: 10
+        atr_multiplier: 2
+    
+    # 成交量指标
+    volume:
+      - name: OBV
+      - name: VolumeMA
+        period: 20
+      - name: VWAP
+        period: 14
+
+  # 市场状态识别
+  market_state:
+    # 状态定义
+    states:
+      - name: strong_uptrend
+        conditions:
+          adx: "> 25"
+          di_plus_minus: "> 10"
+          price_vs_ma200: "> 0"
+          ma20_vs_ma50: "> 0"
+      
+      - name: weak_uptrend
+        conditions:
+          adx: "< 25"
+          price_vs_ma200: "> 0"
+          ma20_vs_ma50: ">= 0"
+      
+      - name: ranging
+        conditions:
+          adx: "< 20"
+          price_vs_ma200: "abs < 0.05"
+      
+      - name: weak_downtrend
+        conditions:
+          adx: "< 25"
+          price_vs_ma200: "< 0"
+          ma20_vs_ma50: "<= 0"
+      
+      - name: strong_downtrend
+        conditions:
+          adx: "> 25"
+          di_minus_plus: "> 10"
+          price_vs_ma200: "< 0"
+          ma20_vs_ma50: "< 0"
+    
+    # 状态转换检测
+    transition:
+      min_duration: 3  # 最小持续 K 线数
+      confirmation_required: true
+
+# -----------------------------------------------------------------------------
+# 风险管理配置
+# -----------------------------------------------------------------------------
+risk_management:
+  # 仓位限制
+  position_limits:
+    max_position_size: 0.20      # 单笔最大仓位 20%
+    max_total_exposure: 0.50     # 总仓位上限 50%
+    max_leverage: 10             # 最大杠杆 10x
+    max_positions: 10            # 最大持仓数量
+    max_positions_per_symbol: 1
+  
+  # 亏损限制
+  loss_limits:
+    max_daily_loss: 0.05         # 日最大亏损 5%
+    max_weekly_loss: 0.10        # 周最大亏损 10%
+    max_monthly_loss: 0.15       # 月最大亏损 15%
+    max_drawdown: 0.15           # 最大回撤 15%
+  
+  # 熔断机制
+  circuit_breaker:
+    enabled: true
+    loss_threshold: 0.03         # 亏损 3% 触发熔断
+    cooldown_minutes: 60         # 熔断后冷却 60 分钟
+    auto_reset: true
+    manual_override: true
+  
+  # 止损配置
+  stop_loss:
+    type: atr_based              # atr_based | percentage | technical
+    atr_multiplier: 2.5          # ATR 倍数
+    max_loss_percentage: 0.05    # 最大亏损 5%
+    trailing:
+      enabled: true
+      activation_threshold: 0.02  # 盈利 2% 后启动追踪
+      trailing_distance: 0.015    # 追踪距离 1.5%
+  
+  # 止盈配置
+  take_profit:
+    levels:
+      - percentage: 0.02         # 2%
+        close_percentage: 0.30   # 平仓 30%
+      - percentage: 0.04         # 4%
+        close_percentage: 0.30   # 平仓 30%
+      - percentage: 0.06         # 6%
+        close_percentage: 0.40   # 平仓 40%
+    trailing:
+      enabled: true
+      activation_threshold: 0.03
+  
+  # 风险系数
+  coefficients:
+    event:
+      min: 0.5
+      max: 1.5
+      default: 1.0
+    
+    sentiment:
+      min: 0.5
+      max: 1.3
+      default: 1.0
+    
+    volatility:
+      min: 0.3
+      max: 1.0
+      default: 1.0
+      calculation:
+        method: historical
+        lookback_days: 30
+        percentile: 50
+    
+    confidence:
+      min: 0.5
+      max: 1.5
+      default: 1.0
+
+# -----------------------------------------------------------------------------
+# 执行配置
+# -----------------------------------------------------------------------------
+execution:
+  # 订单配置
+  order:
+    default_time_in_force: GTC   # GTC | IOC | FOK
+    default_slippage: 0.001      # 默认滑点 0.1%
+    max_slippage: 0.005          # 最大滑点 0.5%
+    timeout_seconds: 300         # 订单超时 5 分钟
+    retry_attempts: 3            # 重试次数
+    retry_delay_seconds: 5       # 重试间隔
+  
+  # 智能下单
+  smart_order_routing:
+    enabled: true
+    
+    # 小订单策略
+    small_order:
+      threshold_percentage: 0.01  # < 1% 深度
+      strategy: market_order
+      slippage_tolerance: 0.001
+    
+    # 中等订单策略
+    medium_order:
+      threshold_percentage: 0.05  # 1-5% 深度
+      strategy: limit_twap
+      time_window_seconds: 300
+      slices: 10
+      price_improvement_target: 0.0005
+    
+    # 大订单策略
+    large_order:
+      threshold_percentage: 0.05  # > 5% 深度
+      strategy: vwap
+      time_window_seconds: 1800
+      participation_rate: 0.15
+      price_improvement_target: 0.001
+  
+  # 费用优化
+  fee_optimization:
+    enabled: true
+    use_platform_tokens: true    # 使用平台币抵扣
+    maker_rebate_optimization: true
+    batch_orders: true
+
+# -----------------------------------------------------------------------------
+# 监控配置
+# -----------------------------------------------------------------------------
+monitoring:
+  # Prometheus
+  prometheus:
+    enabled: true
+    host: 0.0.0.0
+    port: 9090
+    scrape_interval: 15s
+    evaluation_interval: 15s
+  
+  # Grafana
+  grafana:
+    enabled: true
+    host: 0.0.0.0
+    port: 3000
+    admin_user: admin
+    admin_password: ${GRAFANA_ADMIN_PASSWORD:-admin}
+  
+  # 预警配置
+  alerts:
+    # 价格异常预警
+    price_anomaly:
+      enabled: true
+      threshold: 0.05            # 5% 价格异动
+      window_seconds: 300
+    
+    # 波动率异常预警
+    volatility_spike:
+      enabled: true
+      threshold: 2.0             # 波动率翻倍
+      window_seconds: 900
+    
+    # 情绪极端预警
+    extreme_sentiment:
+      enabled: true
+      fear_threshold: 20         # 恐惧指数 < 20
+      greed_threshold: 80        # 贪婪指数 > 80
+    
+    # 风险突破预警
+    risk_breach:
+      enabled: true
+      position_limit: 0.20
+      daily_loss_limit: 0.05
+      drawdown_limit: 0.15
+    
+    # 系统故障预警
+    system_fault:
+      enabled: true
+      api_latency_threshold_ms: 1000
+      data_freshness_threshold_s: 60
+      error_rate_threshold: 0.05
+  
+  # 通知渠道
+  notifications:
+    email:
+      enabled: false
+      smtp_host: smtp.gmail.com
+      smtp_port: 587
+      smtp_user: ${SMTP_USER}
+      smtp_password: ${SMTP_PASSWORD}
+      from_address: alerts@trading-system.com
+      recipients:
+        - admin@trading-system.com
+    
+    telegram:
+      enabled: false
+      bot_token: ${TELEGRAM_BOT_TOKEN}
+      chat_id: ${TELEGRAM_CHAT_ID}
+    
+    slack:
+      enabled: false
+      webhook_url: ${SLACK_WEBHOOK_URL}
+      channel: "#trading-alerts"
+    
+    webhook:
+      enabled: false
+      url: ${CUSTOM_WEBHOOK_URL}
+      headers:
+        Authorization: Bearer ${WEBHOOK_TOKEN}
+
+# -----------------------------------------------------------------------------
+# 日志配置
+# -----------------------------------------------------------------------------
+logging:
+  level: INFO  # DEBUG | INFO | WARNING | ERROR | CRITICAL
+  format: json  # json | text
+  
+  # 文件日志
+  file:
+    enabled: true
+    path: ./logs/trading.log
+    max_size_mb: 100
+    backup_count: 10
+    rotation: daily
+  
+  # 控制台日志
+  console:
+    enabled: true
+    colored: true
+  
+  # 结构化日志字段
+  fields:
+    - timestamp
+    - level
+    - service
+    - trace_id
+    - span_id
+    - user_id
+    - action
+    - duration_ms
+    - status
+
+# -----------------------------------------------------------------------------
+# 学习层配置
+# -----------------------------------------------------------------------------
+learning:
+  # 性能分析
+  performance_analysis:
+    enabled: true
+    report_schedule:
+      daily: "08:00"
+      weekly: "monday 09:00"
+      monthly: "1st 10:00"
+    
+    metrics:
+      - total_return
+      - sharpe_ratio
+      - sortino_ratio
+      - max_drawdown
+      - win_rate
+      - profit_factor
+    
+  # 模型更新
+  model_update:
+    auto_retrain: true
+    retrain_schedule:
+      price_prediction: "daily 02:00"
+      volatility_prediction: "sunday 03:00"
+      trend_strength: "sunday 03:00"
+    
+    online_learning:
+      enabled: true
+      batch_size: 100
+      learning_rate: 0.001
+    
+    version_control:
+      enabled: true
+      max_versions: 10
+      auto_cleanup: true
+    
+    ab_testing:
+      enabled: true
+      traffic_split: 0.1  # 10% 流量用于测试
+      min_samples: 1000
+      significance_level: 0.05
+  
+  # 知识库
+  knowledge_base:
+    enabled: true
+    storage_path: ./data/knowledge_base
+    
+    # 交易案例库
+    trade_cases:
+      enabled: true
+      min_confidence: 0.7
+      auto_tag: true
+    
+    # 事件影响库
+    event_impacts:
+      enabled: true
+      auto_update: true
+    
+    # 策略效果库
+    strategy_results:
+      enabled: true
+      aggregation_period: daily
+
+# -----------------------------------------------------------------------------
+# 交易模式配置
+# -----------------------------------------------------------------------------
+trading:
+  # 交易开关
+  enabled: false              # 全局交易开关
+  auto_execute: false         # 自动执行信号
+  paper_trading: true         # 模拟交易模式
+  
+  # 交易时间
+  trading_hours:
+    enabled: false            # 是否限制交易时间
+    start: "00:00"
+    end: "23:59"
+    timezone: UTC
+    exclude_weekends: false
+  
+  # 交易对配置
+  symbols:
+    whitelist:
+      - BTC-USDT
+      - ETH-USDT
+      - SOL-USDT
+      - BNB-USDT
+      - XRP-USDT
+    
+    blacklist:
+      - .*-PERP              # 排除永续合约 (如果不需要)
+      - .*DOWN               # 排除看跌代币
+      - .*UP                 # 排除看涨代币
+    
+    min_volume_24h: 1000000  # 最小 24 小时成交量
+    max_spread: 0.001        # 最大买卖价差
+  
+  # 默认策略
+  default_strategy:
+    name: momentum
+    parameters:
+      lookback_period: 20
+      entry_threshold: 0.6
+      exit_threshold: 0.4
+
+# -----------------------------------------------------------------------------
+# 部署配置
+# -----------------------------------------------------------------------------
+deployment:
+  # Docker 配置
+  docker:
+    registry: trading-system
+    tag: latest
+    network: trading-network
+  
+  # Kubernetes 配置
+  kubernetes:
+    namespace: trading
+    replicas: 3
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    
+    # 健康检查
+    health_check:
+      liveness:
+        path: /health
+        port: 8000
+        initial_delay_seconds: 30
+        period_seconds: 10
+      readiness:
+        path: /ready
+        port: 8000
+        initial_delay_seconds: 5
+        period_seconds: 5
+    
+    # 自动扩缩容
+    autoscaling:
+      enabled: true
+      min_replicas: 2
+      max_replicas: 10
+      target_cpu_utilization: 70
+      target_memory_utilization: 80
+
+# -----------------------------------------------------------------------------
+# 特性开关
+# -----------------------------------------------------------------------------
+feature_flags:
+  new_ml_model: false
+  advanced_risk_management: true
+  smart_order_routing: true
+  sentiment_analysis_v2: false
+  auto_rebalancing: false
+  portfolio_optimization: false

@@ -1,0 +1,11 @@
+{
+  "default_order_type": "limit",
+  "emergency_order_type": "market",
+  "price_offset_pct": 0.001,
+  "emergency_scenarios": [
+    "stop_loss",
+    "liquidation_risk",
+    "black_swan",
+    "immediate_exit"
+  ]
+}

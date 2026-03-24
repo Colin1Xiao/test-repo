@@ -1,0 +1,64 @@
+{
+  "schema": "openclaw.control.v1",
+  "version": "3.6.0",
+  "lastUpdated": "2026-03-19T06:33:00+08:00",
+  "hysteresis": {
+    "enabled": true,
+    "stableThresholdSeconds": 10,
+    "description": "状态必须稳定 N 秒才确认恢复"
+  },
+  "recoveryGate": {
+    "enabled": true,
+    "rules": [
+      {
+        "id": "min_duration",
+        "description": "degraded 持续时间 < 10 秒则不恢复",
+        "threshold": 10,
+        "action": "skip"
+      },
+      {
+        "id": "self_healing_pattern",
+        "description": "历史显示该场景常自恢复则延迟恢复",
+        "minOccurrences": 3,
+        "action": "delay"
+      }
+    ]
+  },
+  "predictiveExecution": {
+    "mode": "hybrid",
+    "rules": {
+      "execute": {
+        "minConfidence": 0.85,
+        "description": "置信度 ≥ 85% 自动执行"
+      },
+      "record": {
+        "minConfidence": 0.70,
+        "description": "置信度 70-85% 只记录"
+      },
+      "ignore": {
+        "maxConfidence": 0.70,
+        "description": "置信度 < 70% 忽略"
+      }
+    }
+  },
+  "rateLimit": {
+    "maxActionsPerHour": 5,
+    "maxActionsPerDay": 20,
+    "currentHour": {
+      "hour": null,
+      "count": 0
+    },
+    "currentDay": {
+      "date": null,
+      "count": 0
+    }
+  },
+  "actionLog": [],
+  "statistics": {
+    "recoveryExecuted": 0,
+    "recoverySkipped": 0,
+    "predictiveTriggered": 0,
+    "predictiveSkipped": 0,
+    "rateLimitHits": 0
+  }
+}

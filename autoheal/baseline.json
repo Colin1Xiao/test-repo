@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "updated": "2026-03-17T06:36:00Z",
+  "description": "OpenClaw 系统正式基线 - 所有健康判断围绕此基线",
+  
+  "baseline": {
+    "critical_count": 0,
+    "warning_count_max": 3,
+    "health_ok_after": true,
+    "exit_code": 0,
+    "telegram_latency_ms_max": 2000,
+    "snapshot_count_max": 10,
+    "repair_actions_max": 0
+  },
+  
+  "services": {
+    "gateway": {
+      "expected": "online",
+      "check_command": "pgrep -f openclaw-gateway",
+      "restart_command": "openclaw gateway restart"
+    },
+    "ocnmps": {
+      "expected": "online",
+      "check_command": "openclaw status | grep -q running"
+    },
+    "telegram": {
+      "expected": "reachable",
+      "check_command": "curl -s --max-time 3 https://api.telegram.org",
+      "latency_warning_ms": 2000,
+      "latency_critical_ms": 5000
+    }
+  },
+  
+  "models": {
+    "required": ["bailian/kimi-k2.5"],
+    "availability_threshold": 0.99,
+    "failure_rate_7d_max": 0.01
+  },
+  
+  "alerts": {
+    "cooldown_critical_min": 30,
+    "cooldown_warning_min": 60,
+    "cooldown_info_min": 120,
+    "max_active_alerts": 10
+  },
+  
+  "trends": {
+    "warning_increase_7d_max": 5,
+    "repair_increase_7d_max": 3,
+    "latency_increase_pct_max": 50
+  },
+  
+  "maintenance": {
+    "normal_mode": "自动修复开启",
+    "maintenance_mode": "只巡检不修复",
+    "debug_mode": "保留更多日志"
+  },
+  
+  "notifications": {
+    "channels": ["macos", "telegram"],
+    "quiet_hours_start": "23:00",
+    "quiet_hours_end": "08:00",
+    "critical_always_notify": true
+  }
+}

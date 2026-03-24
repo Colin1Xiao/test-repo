@@ -1,0 +1,22 @@
+{
+  "session_id": "openclaw_20260319005602_521ace3a",
+  "channel_type": "openclaw",
+  "window_type": "interactive",
+  "parent_agent": "main",
+  "routing_profile": "standard",
+  "priority_level": "P1",
+  "status": "idle",
+  "created_at": "2026-03-19T00:56:02.250033",
+  "last_active_at": "2026-03-19T00:56:02.250033",
+  "active_task_count": 0,
+  "active_chain_count": 0,
+  "resource_budget": {
+    "max_mixed_chains": 1,
+    "max_subagents": 2,
+    "max_retries": 2,
+    "max_context_size": 8000
+  },
+  "last_route_decision": null,
+  "last_error": null,
+  "history": []
+}

@@ -1,0 +1,53 @@
+OpenClaw status
+
+Overview
+┌─────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Item            │ Value                                                                                              │
+├─────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Dashboard       │ http://127.0.0.1:18789/                                                                            │
+│ OS              │ macos 26.3.1 (x64) · node 22.22.1                                                                  │
+│ Tailscale       │ off                                                                                                │
+│ Channel         │ stable (default)                                                                                   │
+│ Update          │ pnpm · npm latest 2026.3.13 · deps ok                                                              │
+│ Gateway         │ local · ws://127.0.0.1:18789 (local loopback) · unreachable (missing scope: operator.read)         │
+│ Gateway service │ LaunchAgent installed · loaded · running (pid 76419, state active)                                 │
+│ Node service    │ LaunchAgent not installed                                                                          │
+│ Agents          │ 1 · 1 bootstrap file present · sessions 2 · default main active 1m ago                             │
+│ Memory          │ 5 files · 13 chunks · sources memory · plugin memory-core · vector ready · fts ready · cache on    │
+│                 │ (16)                                                                                               │
+│ Probes          │ skipped (use --deep)                                                                               │
+│ Events          │ none                                                                                               │
+│ Heartbeat       │ 30m (main)                                                                                         │
+│ Sessions        │ 2 active · default kimi-k2.5 (262k ctx) · ~/.openclaw/agents/main/sessions/sessions.json           │
+└─────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Security audit
+Summary: 0 critical · 1 warn · 1 info
+  WARN Reverse proxy headers are not trusted
+    gateway.bind is loopback and gateway.trustedProxies is empty. If you expose the Control UI through a reverse proxy, configure trusted proxies so local-client c…
+    Fix: Set gateway.trustedProxies to your proxy IPs or keep the Control UI local-only.
+Full report: openclaw security audit
+Deep probe: openclaw security audit --deep
+
+Channels
+┌──────────┬─────────┬────────┬────────────────────────────────────────────────────────────────────────────────────────┐
+│ Channel  │ Enabled │ State  │ Detail                                                                                 │
+├──────────┼─────────┼────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ Telegram │ ON      │ OK     │ token config (8754…EGLk · len 46) · accounts 1/1                                       │
+└──────────┴─────────┴────────┴────────────────────────────────────────────────────────────────────────────────────────┘
+
+Sessions
+┌────────────────────────────────────────────────────────────────┬────────┬─────────┬──────────────┬───────────────────┐
+│ Key                                                            │ Kind   │ Age     │ Model        │ Tokens            │
+├────────────────────────────────────────────────────────────────┼────────┼─────────┼──────────────┼───────────────────┤
+│ agent:main:main                                                │ direct │ 1m ago  │ glm-5        │ unknown/203k (?%) │
+│ agent:main:subagent:54cf12b2-64…                               │ direct │ 1m ago  │ glm-5        │ unknown/203k (?%) │
+└────────────────────────────────────────────────────────────────┴────────┴─────────┴──────────────┴───────────────────┘
+
+FAQ: https://docs.openclaw.ai/faq
+Troubleshooting: https://docs.openclaw.ai/troubleshooting
+
+Next steps:
+  Need to share?      openclaw status --all
+  Need to debug live? openclaw logs --follow
+  Fix reachability first: openclaw gateway probe

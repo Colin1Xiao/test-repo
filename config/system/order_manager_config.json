@@ -1,0 +1,26 @@
+{
+  "stop_loss": {
+    "enabled": true,
+    "default_stop_loss_pct": 0.005,
+    "hard_stop_loss": true,
+    "auto_update": true
+  },
+  "network_protection": {
+    "retry_count": 3,
+    "retry_delay": 5,
+    "timeout": 30,
+    "emergency_close": true,
+    "emergency_threshold": 60
+  },
+  "order_validation": {
+    "check_before_submit": true,
+    "check_stop_loss": true,
+    "reject_no_stop_loss": true
+  },
+  "risk_monitor": {
+    "enabled": true,
+    "check_interval": 10,
+    "margin_ratio_alert": 0.9,
+    "auto_reduce_position": true
+  }
+}

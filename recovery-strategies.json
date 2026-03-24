@@ -1,0 +1,123 @@
+{
+  "schema": "openclaw.recovery.strategies.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-19T06:06:00+08:00",
+  "strategies": {
+    "gateway_stopped": {
+      "id": "gateway_stopped",
+      "description": "Gateway 服务停止",
+      "severity": 2,
+      "actions": [
+        {
+          "id": "restart_gateway",
+          "name": "标准重启",
+          "description": "执行 wrapper 启动脚本",
+          "priority": 1,
+          "cooldown": 60,
+          "script": "${HOME}/.openclaw/workspace/openclaw-start.sh",
+          "verify": "port_check",
+          "fallback": "kill_port_then_restart"
+        },
+        {
+          "id": "kill_port_then_restart",
+          "name": "清理端口后重启",
+          "description": "强制释放端口 18789 后重启",
+          "priority": 2,
+          "cooldown": 120,
+          "script": "${HOME}/.openclaw/workspace/scripts/kill-port-and-restart.sh",
+          "verify": "port_check",
+          "fallback": "full_reset"
+        },
+        {
+          "id": "full_reset",
+          "name": "完全重置",
+          "description": "停止所有 OpenClaw 进程并重新初始化",
+          "priority": 3,
+          "cooldown": 300,
+          "script": "${HOME}/.openclaw/workspace/scripts/full-reset.sh",
+          "verify": "port_check",
+          "fallback": null,
+          "warning": "此操作会中断所有会话"
+        }
+      ]
+    },
+    "gateway_port_conflict": {
+      "id": "gateway_port_conflict",
+      "description": "Gateway 端口被占用",
+      "severity": 2,
+      "actions": [
+        {
+          "id": "kill_port_18789",
+          "name": "释放端口",
+          "description": "强制终止占用 18789 端口的进程",
+          "priority": 1,
+          "cooldown": 30,
+          "script": "${HOME}/.openclaw/workspace/scripts/kill-port-18789.sh",
+          "verify": "port_free",
+          "fallback": "restart_gateway"
+        }
+      ]
+    },
+    "telegram_disconnected": {
+      "id": "telegram_disconnected",
+      "description": "Telegram 连接断开",
+      "severity": 1,
+      "actions": [
+        {
+          "id": "reconnect_telegram",
+          "name": "重连 Telegram",
+          "description": "尝试重新建立 Telegram 连接",
+          "priority": 1,
+          "cooldown": 60,
+          "script": "${HOME}/.openclaw/workspace/scripts/reconnect-telegram.sh",
+          "verify": "telegram_ping",
+          "fallback": "restart_gateway"
+        },
+        {
+          "id": "restart_gateway",
+          "name": "重启 Gateway",
+          "description": "通过重启 Gateway 恢复 Telegram 连接",
+          "priority": 2,
+          "cooldown": 120,
+          "script": "${HOME}/.openclaw/workspace/openclaw-start.sh",
+          "verify": "telegram_ping",
+          "fallback": null
+        }
+      ]
+    },
+    "memory_model_missing": {
+      "id": "memory_model_missing",
+      "description": "Memory Search 模型缺失",
+      "severity": 2,
+      "actions": [
+        {
+          "id": "restore_from_backup",
+          "name": "从备份恢复",
+          "description": "从备份目录恢复模型文件",
+          "priority": 1,
+          "cooldown": 60,
+          "script": "${HOME}/.openclaw/workspace/scripts/restore-memory-model.sh",
+          "verify": "model_exists",
+          "fallback": "disable_memory_search"
+        },
+        {
+          "id": "disable_memory_search",
+          "name": "禁用记忆搜索",
+          "description": "临时禁用记忆搜索功能",
+          "priority": 2,
+          "cooldown": 0,
+          "script": "${HOME}/.openclaw/workspace/scripts/disable-memory-search.sh",
+          "verify": "config_updated",
+          "fallback": null,
+          "note": "降级处理，不影响核心功能"
+        }
+      ]
+    }
+  },
+  "global": {
+    "maxAttemptsPerStrategy": 2,
+    "strategyCooldownMultiplier": 1.5,
+    "learningEnabled": true,
+    "autoAdjustPriority": true
+  }
+}

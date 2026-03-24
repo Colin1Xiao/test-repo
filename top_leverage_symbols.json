@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-03-12T06:43:01.075522",
+  "total_count": 85,
+  "top_20": [
+    {
+      "symbol": "WIF",
+      "full_symbol": "WIF/USDT:USDT",
+      "price": 0.1662,
+      "change_24h": 1.7758726270667482,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 147022995.0
+    },
+    {
+      "symbol": "SUSHI",
+      "full_symbol": "SUSHI/USDT:USDT",
+      "price": 0.2034,
+      "change_24h": 3.40620233858668,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 5438103.0
+    },
+    {
+      "symbol": "XLM",
+      "full_symbol": "XLM/USDT:USDT",
+      "price": 0.15936,
+      "change_24h": 0.144535914032552,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 914769.2
+    },
+    {
+      "symbol": "DASH",
+      "full_symbol": "DASH/USDT:USDT",
+      "price": 32.58,
+      "change_24h": 0.9919404835709857,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 10838879.0
+    },
+    {
+      "symbol": "UNI",
+      "full_symbol": "UNI/USDT:USDT",
+      "price": 3.914,
+      "change_24h": 1.7680707228289132,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 5383607.0
+    },
+    {
+      "symbol": "STRK",
+      "full_symbol": "STRK/USDT:USDT",
+      "price": 0.04019,
+      "change_24h": 1.6439049064238744,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 73098996.0
+    },
+    {
+      "symbol": "ZKP",
+      "full_symbol": "ZKP/USDT:USDT",
+      "price": 0.08446,
+      "change_24h": -1.4239028944911296,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 1711661.0
+    },
+    {
+      "symbol": "INJ",
+      "full_symbol": "INJ/USDT:USDT",
+      "price": 2.999,
+      "change_24h": 2.354948805460751,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 4970569.0
+    },
+    {
+      "symbol": "APT",
+      "full_symbol": "APT/USDT:USDT",
+      "price": 0.9421,
+      "change_24h": -1.050309841403214,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 9841841.0
+    },
+    {
+      "symbol": "LIT",
+      "full_symbol": "LIT/USDT:USDT",
+      "price": 1.049,
+      "change_24h": 0.5752636625119846,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 7104915.0
+    },
+    {
+      "symbol": "AVAX",
+      "full_symbol": "AVAX/USDT:USDT",
+      "price": 9.592,
+      "change_24h": 0.5029337803855825,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 3253454.9
+    },
+    {
+      "symbol": "DOGE",
+      "full_symbol": "DOGE/USDT:USDT",
+      "price": 0.09345,
+      "change_24h": -1.027324719339123,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 5607865.77
+    },
+    {
+      "symbol": "GIGGLE",
+      "full_symbol": "GIGGLE/USDT:USDT",
+      "price": 28.11,
+      "change_24h": 0.3570153516601213,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 11293411.0
+    },
+    {
+      "symbol": "ETH",
+      "full_symbol": "ETH/USDT:USDT",
+      "price": 2061.11,
+      "change_24h": 1.637654716702007,
+      "leverage_max": 100,
+      "volume_usdt": 0,
+      "volume_base": 41257584.43
+    },
+    {
+      "symbol": "SHIB",
+      "full_symbol": "SHIB/USDT:USDT",
+      "price": 5.734e-06,
+      "change_24h": 1.5226628895184136,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 4790681.0
+    },
+    {
+      "symbol": "ARB",
+      "full_symbol": "ARB/USDT:USDT",
+      "price": 0.10031,
+      "change_24h": 2.1694846200855573,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 12448365.9
+    },
+    {
+      "symbol": "LINEA",
+      "full_symbol": "LINEA/USDT:USDT",
+      "price": 0.003272,
+      "change_24h": 1.6464740602671637,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 8110264.0
+    },
+    {
+      "symbol": "PUMP",
+      "full_symbol": "PUMP/USDT:USDT",
+      "price": 0.002025,
+      "change_24h": 1.3006503251625812,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 27707173.0
+    },
+    {
+      "symbol": "XTZ",
+      "full_symbol": "XTZ/USDT:USDT",
+      "price": 0.3646,
+      "change_24h": 0.997229916897507,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 3603061.0
+    },
+    {
+      "symbol": "SUI",
+      "full_symbol": "SUI/USDT:USDT",
+      "price": 0.9823,
+      "change_24h": 3.0204509701101205,
+      "leverage_max": 50,
+      "volume_usdt": 0,
+      "volume_base": 69466586.0
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "session_id": "webchat_20260313133855_d876e5e5",
+  "channel_type": "webchat",
+  "window_type": "interactive",
+  "parent_agent": "main",
+  "routing_profile": "light",
+  "priority_level": "P1",
+  "status": "idle",
+  "created_at": "2026-03-13T13:38:55.738782",
+  "last_active_at": "2026-03-13T13:38:55.738782",
+  "active_task_count": 0,
+  "active_chain_count": 0,
+  "resource_budget": {
+    "max_mixed_chains": 0,
+    "max_subagents": 0,
+    "max_retries": 1,
+    "max_context_size": 4000
+  },
+  "last_route_decision": null,
+  "last_error": null,
+  "history": []
+}

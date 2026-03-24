@@ -1,0 +1,227 @@
+{
+  "schema": "openclaw.selfheal.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-19T05:44:00+08:00",
+  "scenarios": {
+    "gateway_stopped": {
+      "id": "gateway_stopped",
+      "severity": 1,
+      "emoji": "🟡",
+      "title": "Gateway 未运行",
+      "description": "OpenClaw Gateway 服务未在端口 18789 上运行",
+      "impact": [
+        "Telegram 消息发送可能受限",
+        "Cron 任务执行可能受影响",
+        "部分工具调用可能失败"
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "title": "启动 Gateway",
+          "command": "openclaw gateway start",
+          "description": "尝试启动 Gateway 服务",
+          "safe": true
+        },
+        {
+          "priority": 2,
+          "title": "检查端口占用",
+          "command": "lsof -i :18789",
+          "description": "查看是否有其他进程占用 18789 端口",
+          "safe": true
+        },
+        {
+          "priority": 3,
+          "title": "强制重启",
+          "command": "pkill -f 'openclaw gateway' && sleep 2 && openclaw gateway start",
+          "description": "终止现有进程并重新启动",
+          "safe": false,
+          "requires_approval": true
+        }
+      ],
+      "workarounds": [
+        "使用 Telegram Web 界面继续对话",
+        "等待 Gateway 恢复后重试操作"
+      ]
+    },
+    "gateway_critical": {
+      "id": "gateway_critical",
+      "severity": 2,
+      "emoji": "🔴",
+      "title": "Gateway 严重错误",
+      "description": "Gateway 运行但出现严重错误",
+      "impact": [
+        "所有 Gateway 相关功能不可用",
+        "必须立即修复"
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "title": "查看日志",
+          "command": "openclaw gateway logs --tail 50",
+          "description": "查看 Gateway 错误日志",
+          "safe": true
+        },
+        {
+          "priority": 2,
+          "title": "重启 Gateway",
+          "command": "openclaw gateway restart",
+          "description": "重启 Gateway 服务",
+          "safe": false,
+          "requires_approval": true
+        },
+        {
+          "priority": 3,
+          "title": "重置配置",
+          "command": "openclaw configure --reset",
+          "description": "重置 Gateway 配置（会丢失部分设置）",
+          "safe": false,
+          "requires_approval": true,
+          "warning": "此操作会重置配置，请谨慎"
+        }
+      ]
+    },
+    "memory_model_missing": {
+      "id": "memory_model_missing",
+      "severity": 2,
+      "emoji": "🔴",
+      "title": "Memory Search 模型缺失",
+      "description": "本地记忆搜索模型文件不存在",
+      "impact": [
+        "记忆搜索功能完全不可用",
+        "跨会话记忆检索失败"
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "title": "检查模型目录",
+          "command": "ls -la ~/.openclaw/memory/models/",
+          "description": "查看模型文件是否存在",
+          "safe": true
+        },
+        {
+          "priority": 2,
+          "title": "从备份恢复",
+          "command": "cp ~/.openclaw/memory/models/backup/*.gguf ~/.openclaw/memory/models/",
+          "description": "从备份目录恢复模型文件",
+          "safe": false,
+          "requires_approval": true
+        },
+        {
+          "priority": 3,
+          "title": "重新下载模型",
+          "command": "openclaw memory init --download",
+          "description": "重新下载记忆搜索模型",
+          "safe": false,
+          "requires_approval": true
+        }
+      ],
+      "workarounds": [
+        "临时禁用记忆搜索（在配置中设置 memorySearch.enabled=false）",
+        "依赖 MEMORY.md 和每日记忆文件进行手动检索"
+      ]
+    },
+    "telegram_not_configured": {
+      "id": "telegram_not_configured",
+      "severity": 1,
+      "emoji": "🟡",
+      "title": "Telegram 未配置",
+      "description": "Telegram bot token 或配置缺失",
+      "impact": [
+        "无法发送 Telegram 消息",
+        "无法接收 Telegram 消息"
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "title": "检查配置",
+          "command": "cat ~/.openclaw/openclaw.json | grep -A5 telegram",
+          "description": "查看 Telegram 配置是否存在",
+          "safe": true
+        },
+        {
+          "priority": 2,
+          "title": "重新配置",
+          "command": "openclaw configure",
+          "description": "运行配置向导重新设置 Telegram",
+          "safe": false,
+          "requires_approval": true
+        }
+      ]
+    },
+    "telegram_disconnected": {
+      "id": "telegram_disconnected",
+      "severity": 1,
+      "emoji": "🟡",
+      "title": "Telegram 连接断开",
+      "description": "Telegram bot 无法连接到服务器",
+      "impact": [
+        "消息发送延迟或失败",
+        "可能错过消息"
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "title": "验证 token",
+          "command": "curl -s \"https://api.telegram.org/bot<TOKEN>/getMe\"",
+          "description": "验证 bot token 是否有效",
+          "safe": true
+        },
+        {
+          "priority": 2,
+          "title": "检查网络",
+          "command": "ping -c 3 api.telegram.org",
+          "description": "检查到 Telegram API 的网络连接",
+          "safe": true
+        },
+        {
+          "priority": 3,
+          "title": "重启 Gateway",
+          "command": "openclaw gateway restart",
+          "description": "重启 Gateway 重新建立连接",
+          "safe": false,
+          "requires_approval": true
+        }
+      ]
+    },
+    "cron_not_initialized": {
+      "id": "cron_not_initialized",
+      "severity": 0,
+      "emoji": "🟢",
+      "title": "Cron 未初始化",
+      "description": "Cron 任务存储目录不存在或为空",
+      "impact": [
+        "无影响（可选功能）",
+        "定时任务不会执行"
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "title": "初始化 Cron",
+          "command": "mkdir -p ~/.openclaw/state/cron",
+          "description": "创建 Cron 任务目录",
+          "safe": true
+        }
+      ],
+      "note": "这不是错误，只是表示没有配置定时任务"
+    }
+  },
+  "general_recovery": {
+    "title": "通用恢复流程",
+    "steps": [
+      "1. 识别异常组件和严重程度",
+      "2. 查看具体错误信息",
+      "3. 按优先级尝试修复操作",
+      "4. 验证修复结果",
+      "5. 如果失败，尝试备选方案"
+    ],
+    "escalation": {
+      "title": "何时需要人工干预",
+      "conditions": [
+        "连续 3 次自动修复失败",
+        "涉及数据丢失风险",
+        "需要修改系统配置",
+        "需要重新安装组件"
+      ]
+    }
+  }
+}

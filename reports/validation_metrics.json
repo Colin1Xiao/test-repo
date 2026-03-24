@@ -1,0 +1,44 @@
+{
+  "date": "2026-03-19",
+  "period_days": 7,
+  "daily_metrics": {
+    "2026-03-19": {
+      "structured_rate": 1.0
+    }
+  },
+  "summary": {
+    "structured_adoption": {
+      "avg": 1.0,
+      "trend": [
+        1.0
+      ],
+      "target_day1_2": "≥50%",
+      "target_day5_7": "≥80%",
+      "status": "⏳ 观察中"
+    },
+    "question_response": {
+      "rate": 0.0,
+      "total_questions": 2,
+      "responded": 0,
+      "target": "≥70%",
+      "status": "未达标"
+    },
+    "behavior_change": {
+      "rate": 0,
+      "total_issues": 0,
+      "changed": 0,
+      "target": "≥40%",
+      "status": "未达标"
+    },
+    "duplicate_reduction": {
+      "rate": 1.0,
+      "target": "接近0%",
+      "status": "需人工确认",
+      "note": "检查是否还在手动维护 Memory 或其他日报"
+    },
+    "overall": {
+      "status": "🔴 需调整",
+      "action": "降维重做"
+    }
+  }
+}

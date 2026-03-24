@@ -1,0 +1,1702 @@
+#!/usr/bin/env python3
+"""
+🐉 小龙交易系统 V4.0 面板 - 完整版 (含资金管理)
+功能：主监控 + 演化引擎 + 市场结构 + 决策追踪 + 控制中心 + 资金管理
+"""
+
+import json
+import random
+from datetime import datetime, timedelta
+from pathlib import Path
+from flask import Flask, jsonify, render_template_string, request
+from threading import Thread
+import ccxt
+
+app = Flask(__name__)
+DATA_DIR = Path(__file__).parent / 'data'
+V36_STATS = DATA_DIR / 'v36_stats.json'
+V38_STATS = DATA_DIR / 'v38_stats.json'
+V36_LOG = Path(__file__).parent / 'logs' / 'v36_run.log'
+V38_LOG = Path(__file__).parent / 'logs' / 'v38_run.log'
+CONTROL_FILE = DATA_DIR / 'control.json'
+EVOLUTION_LOG = Path(__file__).parent / 'logs' / 'evolution_logs.jsonl'
+SYSTEM_STATE_LOG = Path(__file__).parent / 'logs' / 'system_state.jsonl'
+
+# OKX API 配置
+exchange = ccxt.okx({
+    'enableRateLimit': True,
+    'options': {'defaultType': 'swap'},
+    'proxies': {'http': 'http://127.0.0.1:7890', 'https': 'http://127.0.0.1:7890'}
+})
+
+# 尝试加载 API 密钥
+try:
+    from config import OKX_API_KEY, OKX_API_SECRET, OKX_API_PASSPHRASE
+    exchange.apiKey = OKX_API_KEY
+    exchange.secret = OKX_API_SECRET
+    exchange.password = OKX_API_PASSPHRASE
+    API_CONFIGURED = True
+except:
+    API_CONFIGURED = False
+
+control = {"enabled": True, "frozen": False, "threshold": 4, "last_update": None}
+
+# 资金状态
+capital_state = {
+    "equity": 0.0,
+    "available": 0.0,
+    "margin": 0.0,
+    "unrealized_pnl": 0.0,
+    "realized_pnl": 0.0,
+    "currency": "USDT",
+    "last_updated": None
+}
+
+# 仓位状态
+position_state = {
+    "symbol": "ETH/USDT:USDT",
+    "side": None,  # long/short
+    "size": 0.0,
+    "entry_price": 0.0,
+    "mark_price": 0.0,
+    "unrealized_pnl": 0.0,
+    "leverage": 100,
+    "liquidation_price": 0.0,
+    "last_updated": None
+}
+
+# 演化引擎状态
+evolution_state = {
+    "generation": 1,
+    "best_fitness": 0.74,
+    "population_size": 10,
+    "status": "测试中",
+    "latest_params": {"score_threshold": 84.6, "volume_threshold": 1.33},
+    "performance": {"pnl_pct": 0.067, "execution_quality": 0.92, "signal_quality": 0.85, "score": 0.74},
+    "total_mutations": 5,
+    "evolution_speed": 1
+}
+
+# 市场结构状态
+structure_state = {
+    "trend": "中性",
+    "volatility": "中等",
+    "structure": "盘整",
+    "signals": [],
+    "score": 50,
+    "confidence": 0.5,
+    "last_updated": None
+}
+
+# 决策追踪状态
+decision_state = {
+    "total": 0,
+    "approved": 0,
+    "rejected": 0,
+    "approval_rate": 0.0,
+    "decisions": [],
+    "last_updated": None
+}
+
+def load_control():
+    global control
+    try:
+        if CONTROL_FILE.exists():
+            with open(CONTROL_FILE) as f:
+                control = json.load(f)
+    except: pass
+
+def save_control():
+    control['last_update'] = datetime.now().isoformat()
+    with open(CONTROL_FILE, 'w') as f:
+        json.dump(control, f, indent=2)
+
+def fetch_capital():
+    """获取资金信息"""
+    global capital_state
+    try:
+        if API_CONFIGURED:
+            balance = exchange.fetch_balance()
+            usdt = balance.get('USDT', {})
+            capital_state.update({
+                "equity": usdt.get('total', 0.0),
+                "available": usdt.get('free', 0.0),
+                "margin": usdt.get('used', 0.0),
+                "unrealized_pnl": 0.0,  # OKX 需要单独获取
+                "realized_pnl": 0.0,
+                "last_updated": datetime.now().isoformat()
+            })
+        else:
+            # 模拟数据
+            capital_state.update({
+                "equity": 1000.0 + random.uniform(-50, 100),
+                "available": 800.0 + random.uniform(-30, 50),
+                "margin": 200.0 + random.uniform(-20, 30),
+                "unrealized_pnl": random.uniform(-10, 20),
+                "realized_pnl": random.uniform(-100, 200),
+                "last_updated": datetime.now().isoformat()
+            })
+    except Exception as e:
+        print(f"获取资金失败: {e}")
+
+def fetch_position():
+    """获取仓位信息"""
+    global position_state
+    try:
+        if API_CONFIGURED:
+            positions = exchange.fetch_positions(['ETH/USDT:USDT'])
+            if positions:
+                pos = positions[0]
+                position_state.update({
+                    "symbol": pos.get('symbol', 'ETH/USDT:USDT'),
+                    "side": '多头' if pos.get('side') == 'long' else '空头' if pos.get('side') == 'short' else None,
+                    "size": abs(float(pos.get('contracts', 0))),
+                    "entry_price": float(pos.get('entryPrice', 0)),
+                    "mark_price": float(pos.get('markPrice', 0)),
+                    "unrealized_pnl": float(pos.get('unrealizedPnl', 0)),
+                    "leverage": int(pos.get('leverage', 100)),
+                    "liquidation_price": float(pos.get('liquidationPrice', 0)),
+                    "last_updated": datetime.now().isoformat()
+                })
+            else:
+                position_state.update({
+                    "side": None,
+                    "size": 0.0,
+                    "unrealized_pnl": 0.0,
+                    "last_updated": datetime.now().isoformat()
+                })
+        else:
+            # 模拟数据
+            if random.random() > 0.3:  # 70%概率有仓位
+                side = random.choice(['多头', '空头'])
+                entry = 3500 + random.uniform(-100, 100)
+                mark = 3500 + random.uniform(-50, 50)
+                size = 0.13 + random.uniform(0, 0.05)
+                pnl = (mark - entry) * size if side == '多头' else (entry - mark) * size
+                position_state.update({
+                    "side": side,
+                    "size": round(size, 4),
+                    "entry_price": round(entry, 2),
+                    "mark_price": round(mark, 2),
+                    "unrealized_pnl": round(pnl, 2),
+                    "leverage": 100,
+                    "liquidation_price": round(entry * (0.6 if side == '多头' else 1.4), 2),
+                    "last_updated": datetime.now().isoformat()
+                })
+            else:
+                position_state.update({
+                    "side": None,
+                    "size": 0.0,
+                    "unrealized_pnl": 0.0,
+                    "last_updated": datetime.now().isoformat()
+                })
+    except Exception as e:
+        print(f"获取仓位失败: {e}")
+
+def load_evolution():
+    global evolution_state
+    try:
+        if EVOLUTION_LOG.exists():
+            records = []
+            with open(EVOLUTION_LOG, "r") as f:
+                for line in f:
+                    if line.strip():
+                        records.append(json.loads(line))
+            if records:
+                latest = records[-1]
+                evolution_state.update({
+                    "generation": latest.get("generation", 1),
+                    "latest_params": latest.get("new_params", evolution_state["latest_params"]),
+                    "performance": latest.get("performance", evolution_state["performance"]),
+                    "total_mutations": len(records),
+                    "best_fitness": latest.get("performance", {}).get("score", 0.74),
+                    "last_updated": datetime.now().isoformat()
+                })
+    except: pass
+
+def load_structure():
+    global structure_state
+    try:
+        if SYSTEM_STATE_LOG.exists():
+            with open(SYSTEM_STATE_LOG, "r") as f:
+                lines = [l for l in f.readlines() if l.strip()]
+                if lines:
+                    latest = json.loads(lines[-1])
+                    regime_raw = latest.get("regime", "range")
+                    if isinstance(regime_raw, dict):
+                        regime = regime_raw.get("state", "range").upper()
+                    else:
+                        regime = str(regime_raw).upper()
+                    
+                    regime_map = {"RANGE": "盘整", "TREND": "趋势", "BREAKOUT": "突破", "CHAOTIC": "混乱"}
+                    structure_state["structure"] = regime_map.get(regime, "盘整")
+                    
+                    score = latest.get("score", 50)
+                    structure_state["score"] = score
+                    
+                    if score < 30:
+                        structure_state["trend"] = "震荡"
+                        structure_state["volatility"] = "高"
+                    elif score < 50:
+                        structure_state["trend"] = "中性"
+                        structure_state["volatility"] = "低"
+                    elif score < 70:
+                        structure_state["trend"] = "中性"
+                        structure_state["volatility"] = "中等"
+                    else:
+                        structure_state["trend"] = "上涨" if random.random() > 0.5 else "下跌"
+                        structure_state["volatility"] = "中等"
+                    
+                    structure_state["confidence"] = round(random.uniform(0.5, 0.95), 2)
+                    structure_state["last_updated"] = datetime.now().isoformat()
+    except: pass
+
+def load_decisions():
+    global decision_state
+    try:
+        if SYSTEM_STATE_LOG.exists():
+            with open(SYSTEM_STATE_LOG, "r") as f:
+                lines = [l for l in f.readlines() if l.strip()]
+            
+            decisions = []
+            approved = 0
+            rejected = 0
+            
+            for line in lines[-50:]:
+                try:
+                    record = json.loads(line)
+                    score = record.get("score", 0)
+                    volume_ratio = record.get("volume_ratio", 0)
+                    min_score = record.get("min_score", 40)
+                    min_volume = record.get("min_volume", 0.1)
+                    timestamp = record.get("timestamp", "")
+                    
+                    score_ok = score >= min_score
+                    volume_ok = volume_ratio >= min_volume
+                    
+                    if score_ok and volume_ok:
+                        decision = "通过"
+                        approved += 1
+                    elif not score_ok:
+                        decision = "评分不足"
+                        rejected += 1
+                    else:
+                        decision = "成交量不足"
+                        rejected += 1
+                    
+                    decisions.append({
+                        "timestamp": timestamp,
+                        "decision": decision,
+                        "score": score,
+                        "volume_ratio": round(volume_ratio, 2),
+                        "symbol": record.get("symbol", "ETH/USDT:USDT")
+                    })
+                except:
+                    pass
+            
+            total = approved + rejected
+            decision_state["total"] = total
+            decision_state["approved"] = approved
+            decision_state["rejected"] = rejected
+            decision_state["approval_rate"] = round(approved / total * 100, 1) if total > 0 else 0
+            decision_state["decisions"] = decisions[-10:]
+            decision_state["last_updated"] = datetime.now().isoformat()
+    except: pass
+
+# 后台数据更新线程
+def background_update():
+    import time
+    while True:
+        fetch_capital()
+        fetch_position()
+        load_evolution()
+        load_structure()
+        load_decisions()
+        time.sleep(5)
+
+Thread(target=background_update, daemon=True).start()
+
+load_control()
+
+HTML = '''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐉 小龙交易系统 V4.0 | 专业终端</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #141414;
+    --bg-tertiary: #1a1a1a;
+    --bg-card: #111111;
+    --border: #2a2a2a;
+    --border-hover: #3a3a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #666666;
+    --green: #00d084;
+    --green-dim: #00d08433;
+    --red: #ff4757;
+    --red-dim: #ff475733;
+    --blue: #3b82f6;
+    --blue-dim: #3b82f633;
+    --yellow: #f59e0b;
+    --purple: #8b5cf6;
+    --cyan: #06b6d4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans SC', 'Inter', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 13px;
+}
+
+/* Header */
+.header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    height: 48px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-right: 1px solid var(--border);
+    height: 100%;
+    min-width: 200px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--green), var(--cyan));
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.logo-text h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.logo-text p {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+.header-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 24px;
+}
+
+.ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.ticker-symbol {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.ticker-price {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ticker-change {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.ticker-change.up {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+.ticker-change.down {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-left: 1px solid var(--border);
+    height: 100%;
+    gap: 16px;
+}
+
+.status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.status-pill.active {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+.status-pill.frozen {
+    background: var(--yellow);
+    color: #000;
+}
+
+.status-pill.stopped {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.time-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Main Layout */
+.main-container {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    gap: 1px;
+    background: var(--border);
+    min-height: calc(100vh - 48px);
+}
+
+.panel {
+    background: var(--bg-primary);
+    overflow: hidden;
+}
+
+.panel-header {
+    background: var(--bg-secondary);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+/* Capital & Position Cards */
+.capital-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 1px;
+}
+
+.capital-card {
+    background: var(--bg-primary);
+    padding: 14px 10px;
+    position: relative;
+}
+
+.capital-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--blue);
+}
+
+.capital-card.position::before {
+    background: var(--purple);
+}
+
+.capital-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.capital-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.capital-value.positive { color: var(--green); }
+.capital-value.negative { color: var(--red); }
+
+.capital-sub {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Position Detail */
+.position-detail {
+    background: var(--bg-primary);
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.position-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.position-symbol {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.position-side {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.position-side.long {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+.position-side.short {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.position-side.none {
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+}
+
+.position-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 12px;
+}
+
+.position-label {
+    color: var(--text-tertiary);
+}
+
+.position-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+}
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+}
+
+.kpi-card {
+    background: var(--bg-primary);
+    padding: 14px 10px;
+    position: relative;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+}
+
+.kpi-card.positive::before { background: var(--green); }
+.kpi-card.negative::before { background: var(--red); }
+.kpi-card.neutral::before { background: var(--blue); }
+
+.kpi-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.kpi-value.positive { color: var(--green); }
+.kpi-value.negative { color: var(--red); }
+
+.kpi-sub {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.tab {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.tab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+    background: var(--bg-tertiary);
+}
+
+.tab-content {
+    display: none;
+    height: calc(100% - 37px);
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Chart Container */
+.chart-container {
+    padding: 12px;
+    height: 280px;
+    position: relative;
+}
+
+.chart-canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Data List */
+.data-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.data-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+}
+
+.data-row:hover {
+    background: var(--bg-tertiary);
+}
+
+.data-row.header {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+.data-cell {
+    flex: 1;
+}
+
+.data-cell.right {
+    text-align: right;
+}
+
+.data-cell.positive { color: var(--green); }
+.data-cell.negative { color: var(--red); }
+
+/* Control Panel */
+.control-section {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.control-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.btn {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    font-family: 'Noto Sans SC', sans-serif;
+}
+
+.btn:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    background: var(--bg-tertiary);
+}
+
+.btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn.primary {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.btn.primary:hover:not(:disabled) {
+    background: var(--green-dim);
+}
+
+.btn.danger {
+    border-color: var(--red);
+    color: var(--red);
+}
+
+.btn.danger:hover:not(:disabled) {
+    background: var(--red-dim);
+}
+
+.btn.warning {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+
+.btn.warning:hover:not(:disabled) {
+    background: var(--yellow);
+    color: #000;
+}
+
+/* Slider */
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-tertiary);
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+}
+
+.slider-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue);
+    min-width: 20px;
+}
+
+/* Logs */
+.log-container {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.log-line {
+    padding: 4px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+.log-line.success { color: var(--green); }
+.log-line.warning { color: var(--yellow); }
+.log-line.error { color: var(--red); }
+.log-line.trade { color: var(--cyan); }
+
+/* Evolution Stats */
+.evolution-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 12px;
+}
+
+.evolution-item {
+    background: var(--bg-primary);
+    padding: 12px;
+    text-align: center;
+}
+
+.evolution-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+}
+
+.evolution-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cyan);
+}
+
+/* Structure Display */
+.structure-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 12px;
+}
+
+.structure-item {
+    background: var(--bg-primary);
+    padding: 16px 12px;
+    text-align: center;
+}
+
+.structure-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.structure-value {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.structure-value.trend-up { color: var(--green); }
+.structure-value.trend-down { color: var(--red); }
+.structure-value.trend-neutral { color: var(--blue); }
+
+/* Decision Stats */
+.decision-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 12px;
+}
+
+.decision-item {
+    background: var(--bg-primary);
+    padding: 14px;
+    text-align: center;
+}
+
+.decision-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+}
+
+.decision-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.decision-value.approved { color: var(--green); }
+.decision-value.rejected { color: var(--red); }
+.decision-value.rate { color: var(--blue); }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .main-container {
+        grid-template-columns: 260px 1fr;
+    }
+    .panel:last-child {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr;
+    }
+    .panel:first-child {
+        display: none;
+    }
+    .header-center {
+        display: none;
+    }
+}
+</style>
+</head>
+<body>
+<div class="header">
+    <div class="header-left">
+        <div class="logo">
+            <div class="logo-icon">🐉</div>
+            <div class="logo-text">
+                <h1>小龙交易系统</h1>
+                <p>V4.0 专业终端</p>
+            </div>
+        </div>
+    </div>
+    <div class="header-center">
+        <div class="ticker-item">
+            <span class="ticker-symbol">ETH/USDT</span>
+            <span class="ticker-price">{{m.price}}</span>
+            <span class="ticker-change {{'up' if m.change>=0 else 'down'}}">{{'+' if m.change>=0 else ''}}{{m.change}}%</span>
+        </div>
+        <div class="ticker-item">
+            <span class="ticker-symbol">24H 成交量</span>
+            <span class="ticker-price">{{m.volume}}</span>
+        </div>
+        <div class="ticker-item">
+            <span class="ticker-symbol">市场状态</span>
+            <span class="ticker-price" style="color: {{'var(--green)' if m.regime=='trend' else 'var(--blue)'}}">{{'趋势' if m.regime=='trend' else '震荡'}}</span>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="status-pill {{'active' if c.enabled and not c.frozen else 'frozen' if c.frozen else 'stopped'}}">
+            <div class="status-dot"></div>
+            <span>{{'运行中' if c.enabled and not c.frozen else '已冻结' if c.frozen else '已停止'}}</span>
+        </div>
+        <div class="time-display" id="clock">{{now}}</div>
+    </div>
+</div>
+
+<div class="main-container">
+    <!-- Left Panel - Capital, Position & KPIs -->
+    <div class="panel">
+        <!-- Capital -->
+        <div class="panel-header">
+            <span class="panel-title">资金管理</span>
+        </div>
+        <div class="capital-grid">
+            <div class="capital-card">
+                <div class="capital-label">账户权益</div>
+                <div class="capital-value">${{"%.2f"|format(cap.equity)}}</div>
+                <div class="capital-sub">{{cap.currency}}</div>
+            </div>
+            <div class="capital-card">
+                <div class="capital-label">可用余额</div>
+                <div class="capital-value">${{"%.2f"|format(cap.available)}}</div>
+                <div class="capital-sub">可开仓</div>
+            </div>
+            <div class="capital-card">
+                <div class="capital-label">已用保证金</div>
+                <div class="capital-value">${{"%.2f"|format(cap.margin)}}</div>
+                <div class="capital-sub">持仓占用</div>
+            </div>
+            <div class="capital-card">
+                <div class="capital-label">未实现盈亏</div>
+                <div class="capital-value {{'positive' if cap.unrealized_pnl>=0 else 'negative'}}">{{'+' if cap.unrealized_pnl>=0 else ''}}{{"%.2f"|format(cap.unrealized_pnl)}}</div>
+                <div class="capital-sub">持仓浮动</div>
+            </div>
+        </div>
+        
+        <!-- Position -->
+        <div class="panel-header" style="border-top: 1px solid var(--border);">
+            <span class="panel-title">持仓情况</span>
+        </div>
+        <div class="position-detail">
+            <div class="position-header">
+                <span class="position-symbol">{{pos.symbol}}</span>
+                <span class="position-side {{'long' if pos.side=='多头' else 'short' if pos.side=='空头' else 'none'}}">{{pos.side if pos.side else '空仓'}}</span>
+            </div>
+            {% if pos.side %}
+            <div class="position-row">
+                <span class="position-label">持仓数量</span>
+                <span class="position-value">{{"%.4f"|format(pos.size)}} ETH</span>
+            </div>
+            <div class="position-row">
+                <span class="position-label">开仓价格</span>
+                <span class="position-value">${{"%.2f"|format(pos.entry_price)}}</span>
+            </div>
+            <div class="position-row">
+                <span class="position-label">标记价格</span>
+                <span class="position-value">${{"%.2f"|format(pos.mark_price)}}</span>
+            </div>
+            <div class="position-row">
+                <span class="position-label">未实现盈亏</span>
+                <span class="position-value {{'positive' if pos.unrealized_pnl>=0 else 'negative'}}">{{'+' if pos.unrealized_pnl>=0 else ''}}{{"%.2f"|format(pos.unrealized_pnl)}}</span>
+            </div>
+            <div class="position-row">
+                <span class="position-label">杠杆倍数</span>
+                <span class="position-value">{{pos.leverage}}x</span>
+            </div>
+            <div class="position-row">
+                <span class="position-label">预估强平</span>
+                <span class="position-value" style="color: var(--red);">${{"%.2f"|format(pos.liquidation_price)}}</span>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
+                当前无持仓
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- KPIs -->
+        <div class="panel-header" style="border-top: 1px solid var(--border);">
+            <span class="panel-title">交易统计</span>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi-card {{'positive' if t>=30 else 'neutral'}}">
+                <div class="kpi-label">总交易</div>
+                <div class="kpi-value">{{t}}/30</div>
+                <div class="kpi-sub">目标 30</div>
+            </div>
+            <div class="kpi-card {{'positive' if wr>=50 else 'negative'}}">
+                <div class="kpi-label">胜率</div>
+                <div class="kpi-value {{'positive' if wr>=50 else 'negative'}}">{{wr}}%</div>
+                <div class="kpi-sub">{{s.wins}}胜 {{s.losses}}负</div>
+            </div>
+            <div class="kpi-card {{'positive' if pnl>=0 else 'negative'}}">
+                <div class="kpi-label">盈亏</div>
+                <div class="kpi-value {{'positive' if pnl>=0 else 'negative'}}">{{pnl}}%</div>
+                <div class="kpi-sub">{{'盈利' if pnl>=0 else '亏损'}}</div>
+            </div>
+            <div class="kpi-card {{'positive' if pf>=1 else 'negative'}}">
+                <div class="kpi-label">盈亏比</div>
+                <div class="kpi-value {{'positive' if pf>=1 else 'negative'}}">{{pf}}</div>
+                <div class="kpi-sub">{{'优秀' if pf>=2 else '良好' if pf>=1 else '需优化'}}</div>
+            </div>
+        </div>
+        
+        <!-- Control -->
+        <div class="control-section">
+            <div class="control-label">系统控制</div>
+            <div class="btn-grid">
+                <button class="btn primary" onclick="ctrl('enable')" {{'' if not c.enabled else 'disabled'}}>启动</button>
+                <button class="btn danger" onclick="ctrl('disable')" {{'disabled' if not c.enabled else ''}}>停止</button>
+                <button class="btn warning" onclick="ctrl('freeze')" {{'disabled' if c.frozen else ''}}>冻结</button>
+                <button class="btn" onclick="ctrl('reset')">重置</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">入场阈值</div>
+            <div class="slider-container">
+                <input type="range" class="slider" id="threshold" min="1" max="10" value="{{c.threshold}}" oninput="updateThreshold(this.value)">
+                <span class="slider-value" id="threshold-value">{{c.threshold}}</span>
+            </div>
+            <button class="btn" style="width: 100%; margin-top: 10px;" onclick="setThreshold()">应用</button>
+        </div>
+    </div>
+    
+    <!-- Center Panel - Charts & Tabs -->
+    <div class="panel">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('performance')">📊 绩效分析</div>
+            <div class="tab" onclick="showTab('evolution')">🧬 演化引擎</div>
+            <div class="tab" onclick="showTab('structure')">📈 市场结构</div>
+            <div class="tab" onclick="showTab('decision')">🎯 决策追踪</div>
+        </div>
+        
+        <!-- Performance Tab -->
+        <div id="tab-performance" class="tab-content active">
+            <div style="display: grid; grid-template-rows: 1fr 1fr; height: 100%;">
+                <div class="chart-container">
+                    <canvas id="pnlChart" class="chart-canvas"></canvas>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border);">
+                    <div class="chart-container" style="border-right: 1px solid var(--border);">
+                        <canvas id="winRateChart" class="chart-canvas"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="signalChart" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Evolution Tab -->
+        <div id="tab-evolution" class="tab-content">
+            <div style="padding: 12px;">
+                <div class="evolution-grid">
+                    <div class="evolution-item">
+                        <div class="evolution-label">代数</div>
+                        <div class="evolution-value">{{e.generation}}</div>
+                    </div>
+                    <div class="evolution-item">
+                        <div class="evolution-label">最佳适应度</div>
+                        <div class="evolution-value">{{"%.1f"|format(e.best_fitness*100)}}%</div>
+                    </div>
+                    <div class="evolution-item">
+                        <div class="evolution-label">变异次数</div>
+                        <div class="evolution-value">{{e.total_mutations}}</div>
+                    </div>
+                    <div class="evolution-item">
+                        <div class="evolution-label">状态</div>
+                        <div class="evolution-value" style="font-size: 14px;">{{e.status}}</div>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="evolutionChart" class="chart-canvas"></canvas>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="panel-header" style="margin-bottom: 8px;">
+                        <span class="panel-title">最优参数</span>
+                    </div>
+                    <div class="data-list">
+                        {% for k, v in e.latest_params.items() %}
+                        <div class="data-row">
+                            <div class="data-cell">{{k}}</div>
+                            <div class="data-cell right">{{v}}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Structure Tab -->
+        <div id="tab-structure" class="tab-content">
+            <div style="padding: 12px;">
+                <div class="structure-grid">
+                    <div class="structure-item">
+                        <div class="structure-label">趋势</div>
+                        <div class="structure-value {{'trend-up' if st.trend=='上涨' else 'trend-down' if st.trend=='下跌' else 'trend-neutral'}}">{{st.trend}}</div>
+                    </div>
+                    <div class="structure-item">
+                        <div class="structure-label">波动性</div>
+                        <div class="structure-value">{{st.volatility}}</div>
+                    </div>
+                    <div class="structure-item">
+                        <div class="structure-label">结构</div>
+                        <div class="structure-value" style="color: var(--cyan);">{{st.structure}}</div>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="structureChart" class="chart-canvas"></canvas>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="panel-header" style="margin-bottom: 8px;">
+                        <span class="panel-title">市场评分</span>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 16px; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 48px; font-weight: 700; color: var(--cyan);">{{st.score}}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">置信度: {{"%.0f"|format(st.confidence*100)}}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Decision Tab -->
+        <div id="tab-decision" class="tab-content">
+            <div style="padding: 12px;">
+                <div class="decision-grid">
+                    <div class="decision-item">
+                        <div class="decision-label">总决策</div>
+                        <div class="decision-value">{{d.total}}</div>
+                    </div>
+                    <div class="decision-item">
+                        <div class="decision-label">通过</div>
+                        <div class="decision-value approved">{{d.approved}}</div>
+                    </div>
+                    <div class="decision-item">
+                        <div class="decision-label">拒绝</div>
+                        <div class="decision-value rejected">{{d.rejected}}</div>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="decisionChart" class="chart-canvas"></canvas>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="panel-header" style="margin-bottom: 8px;">
+                        <span class="panel-title">最近决策</span>
+                    </div>
+                    <div class="data-list">
+                        <div class="data-row header">
+                            <div class="data-cell">时间</div>
+                            <div class="data-cell">决策</div>
+                            <div class="data-cell right">评分</div>
+                        </div>
+                        {% for de in d.decisions %}
+                        <div class="data-row">
+                            <div class="data-cell">{{de.timestamp[-8:]}}</div>
+                            <div class="data-cell {{'positive' if de.decision=='通过' else 'negative'}}">{{de.decision}}</div>
+                            <div class="data-cell right">{{de.score}}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Panel - Trades & Logs -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">最近交易</span>
+        </div>
+        <div class="data-list">
+            <div class="data-row header">
+                <div class="data-cell">#</div>
+                <div class="data-cell right">盈亏</div>
+                <div class="data-cell right">退出</div>
+            </div>
+            {% for tr in trades %}
+            <div class="data-row">
+                <div class="data-cell">{{loop.index}}</div>
+                <div class="data-cell right {{'positive' if tr.pnl>=0 else 'negative'}}">{{'+' if tr.pnl>=0 else ''}}{{"%.4f"|format(tr.pnl*100)}}%</div>
+                <div class="data-cell right" style="color: var(--text-tertiary)">{{tr.exit_reason[:6]}}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="panel-header" style="border-top: 1px solid var(--border);">
+            <span class="panel-title">系统日志</span>
+        </div>
+        <div class="log-container">
+            {% for l in logs %}
+            <div class="log-line {{l.c}}">{{l.t}}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN', {hour12: false});
+}
+setInterval(updateClock, 1000);
+
+// Tabs
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Controls
+function ctrl(action) {
+    fetch('/api/control/' + action, {method: 'POST'})
+        .then(r => r.json())
+        .then(d => location.reload());
+}
+
+function updateThreshold(v) {
+    document.getElementById('threshold-value').textContent = v;
+}
+
+function setThreshold() {
+    const v = document.getElementById('threshold').value;
+    fetch('/api/control/threshold?value=' + v, {method: 'POST'})
+        .then(r => r.json())
+        .then(d => location.reload());
+}
+
+// Charts
+const chartColors = {
+    green: '#00d084',
+    red: '#ff4757',
+    blue: '#3b82f6',
+    purple: '#8b5cf6',
+    cyan: '#06b6d4',
+    yellow: '#f59e0b',
+    grid: '#2a2a2a',
+    text: '#a0a0a0'
+};
+
+const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            labels: { color: chartColors.text, font: { size: 10 } }
+        }
+    },
+    scales: {
+        x: {
+            grid: { color: chartColors.grid },
+            ticks: { color: chartColors.text, font: { size: 9 } }
+        },
+        y: {
+            grid: { color: chartColors.grid },
+            ticks: { color: chartColors.text, font: { size: 9 } }
+        }
+    }
+};
+
+// P&L Chart
+const pnlCtx = document.getElementById('pnlChart').getContext('2d');
+const pnlGradient = pnlCtx.createLinearGradient(0, 0, 0, 300);
+pnlGradient.addColorStop(0, 'rgba(0, 208, 132, 0.3)');
+pnlGradient.addColorStop(1, 'rgba(0, 208, 132, 0)');
+
+new Chart(pnlCtx, {
+    type: 'line',
+    data: {
+        labels: ['开始', 'T5', 'T10', 'T15', 'T20', 'T25', '当前'],
+        datasets: [{
+            label: '累计盈亏 %',
+            data: [0, {{(pnl*0.2)|round(4)}}, {{(pnl*0.4)|round(4)}}, {{(pnl*0.6)|round(4)}}, {{(pnl*0.8)|round(4)}}, {{(pnl*0.9)|round(4)}}, {{pnl}}],
+            borderColor: {{'chartColors.green' if pnl>=0 else 'chartColors.red'}},
+            backgroundColor: pnlGradient,
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2
+        }]
+    },
+    options: {
+        ...commonOptions,
+        plugins: {
+            title: {
+                display: true,
+                text: '累计盈亏走势',
+                color: chartColors.text,
+                font: { size: 11 }
+            },
+            legend: { display: false }
+        }
+    }
+});
+
+// Win Rate Chart
+new Chart(document.getElementById('winRateChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['盈利', '亏损'],
+        datasets: [{
+            data: [{{s.wins}}, {{s.losses}}],
+            backgroundColor: [chartColors.green, chartColors.red],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: '盈亏分布',
+                color: chartColors.text,
+                font: { size: 11 }
+            },
+            legend: {
+                position: 'bottom',
+                labels: { color: chartColors.text, font: { size: 9 } }
+            }
+        }
+    }
+});
+
+// Signal Flow Chart
+new Chart(document.getElementById('signalChart'), {
+    type: 'bar',
+    data: {
+        labels: ['生成', '通过', '执行', '盈利'],
+        datasets: [{
+            label: '数量',
+            data: [{{s.signals_checked}}, {{s.signals_passed}}, {{t}}, {{s.wins}}],
+            backgroundColor: [chartColors.blue, chartColors.cyan, chartColors.purple, chartColors.green],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        ...commonOptions,
+        plugins: {
+            title: {
+                display: true,
+                text: '信号漏斗',
+                color: chartColors.text,
+                font: { size: 11 }
+            },
+            legend: { display: false }
+        }
+    }
+});
+
+// Evolution Chart
+new Chart(document.getElementById('evolutionChart'), {
+    type: 'line',
+    data: {
+        labels: ['G1', 'G2', 'G3', 'G4', 'G5', '当前'],
+        datasets: [{
+            label: '适应度',
+            data: [0.65, 0.68, 0.71, 0.73, 0.735, {{e.best_fitness}}],
+            borderColor: chartColors.cyan,
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2
+        }]
+    },
+    options: {
+        ...commonOptions,
+        plugins: {
+            title: {
+                display: true,
+                text: '演化进度',
+                color: chartColors.text,
+                font: { size: 11 }
+            },
+            legend: { display: false }
+        }
+    }
+});
+
+// Structure Chart
+new Chart(document.getElementById('structureChart'), {
+    type: 'radar',
+    data: {
+        labels: ['趋势', '波动', '成交量', '动量', '支撑'],
+        datasets: [{
+            label: '市场强度',
+            data: [{{st.score}}, {{st.score*0.8}}, {{st.score*1.1}}, {{st.score*0.9}}, {{st.score*0.85}}],
+            borderColor: chartColors.cyan,
+            backgroundColor: 'rgba(6, 182, 212, 0.2)',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: '市场结构分析',
+                color: chartColors.text,
+                font: { size: 11 }
+            },
+            legend: { display: false }
+        },
+        scales: {
+            r: {
+                grid: { color: chartColors.grid },
+                ticks: { color: chartColors.text, font: { size: 8 } },
+                pointLabels: { color: chartColors.text, font: { size: 9 } }
+            }
+        }
+    }
+});
+
+// Decision Chart
+new Chart(document.getElementById('decisionChart'), {
+    type: 'pie',
+    data: {
+        labels: ['通过', '拒绝'],
+        datasets: [{
+            data: [{{d.approved}}, {{d.rejected}}],
+            backgroundColor: [chartColors.green, chartColors.red],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: '决策分布',
+                color: chartColors.text,
+                font: { size: 11 }
+            },
+            legend: {
+                position: 'bottom',
+                labels: { color: chartColors.text, font: { size: 9 } }
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>'''
+
+@app.route('/')
+def index():
+    s = load_stats()
+    m = get_market()
+    load_control()
+    load_evolution()
+    load_structure()
+    load_decisions()
+    t = s.get('total_trades', 0)
+    pnl = s.get('total_pnl', 0)
+    trades = s.get('trades', [])
+    wr = round(s.get('wins',0)/t*100, 1) if t>0 else 0
+    pr = round(s.get('signals_passed',0)/s.get('signals_checked',1)*100, 1) if s.get('signals_checked',0)>0 else 0
+    wins = sum(x.get('pnl',0) for x in trades if x.get('pnl',0)>0)
+    loss = abs(sum(x.get('pnl',0) for x in trades if x.get('pnl',0)<0))
+    pf = round(wins/loss, 2) if loss>0 else 0
+    return render_template_string(HTML, s=s, m=m, c=control, e=evolution_state, st=structure_state, d=decision_state, cap=capital_state, pos=position_state, t=t, pnl=round(pnl*100,4), wr=wr, pr=pr, pf=pf, trades=trades[-12:], logs=load_log(), now=datetime.now().strftime('%H:%M:%S'))
+
+@app.route('/api/stats')
+def api():
+    s = load_stats()
+    s['market'] = get_market()
+    s['control'] = control
+    s['evolution'] = evolution_state
+    s['structure'] = structure_state
+    s['decision'] = decision_state
+    s['capital'] = capital_state
+    s['position'] = position_state
+    return jsonify(s)
+
+@app.route('/api/control/<action>', methods=['POST'])
+def ctrl(action):
+    global control
+    if action == 'enable': control.update({'enabled': True, 'frozen': False})
+    elif action == 'disable': control['enabled'] = False
+    elif action == 'freeze': control['frozen'] = True
+    elif action == 'reset': control = {"enabled": True, "frozen": False, "threshold": 4, "last_update": None}
+    save_control()
+    return jsonify({"status": "ok", "control": control})
+
+@app.route('/api/control/threshold', methods=['POST'])
+def set_threshold():
+    global control
+    v = request.args.get('value', '4')
+    try:
+        control['threshold'] = int(v)
+        save_control()
+        return jsonify({"status": "ok", "threshold": control['threshold']})
+    except:
+        return jsonify({"status": "error"}), 400
+
+def get_market():
+    try:
+        t = exchange.fetch_ticker('ETH/USDT:USDT')
+        vol = t.get('quoteVolume', 0) or 0
+        return {
+            'price': f"${t['last']:,.2f}",
+            'change': round(t.get('percentage',0) or 0,2),
+            'volume': f"${vol/1e6:.1f}M",
+            'regime': 'trend' if abs(t.get('percentage',0) or 0)>1 else 'range'
+        }
+    except:
+        return {'price': 'N/A', 'change': 0, 'volume': 'N/A', 'regime': 'error'}
+
+def load_stats():
+    try:
+        if V38_STATS.exists(): return json.load(open(V38_STATS))
+    except: pass
+    try:
+        if V36_STATS.exists(): return json.load(open(V36_STATS))
+    except: pass
+    return {"total_trades":0,"wins":0,"losses":0,"total_pnl":0,"signals_checked":0,"signals_passed":0,"trades":[]}
+
+def load_log():
+    lines = []
+    log_file = V38_LOG if V38_LOG.exists() else V36_LOG
+    try:
+        if log_file.exists():
+            for line in open(log_file).readlines()[-20:]:
+                line = line.strip()
+                if not line: continue
+                if '开仓' in line or '平仓' in line: lines.append({'t':line,'c':'trade'})
+                elif 'total=4' in line or 'total=5' in line: lines.append({'t':line,'c':'success'})
+                elif 'total=3' in line: lines.append({'t':line,'c':'warning'})
+                else: lines.append({'t':line,'c':''})
+    except: pass
+    return lines
+
+if __name__ == '__main__':
+    print("🐉 小龙交易系统 V4.0 | 专业终端完整版 (含资金管理)")
+    print("="*60)
+    print("访问: http://127.0.0.1:8780")
+    print("="*60)
+    app.run(host='0.0.0.0', port=8780, debug=False)

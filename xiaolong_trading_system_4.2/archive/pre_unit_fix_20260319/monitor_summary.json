@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-03-19T07:00:50.634167",
+  "snapshot_count": 866,
+  "recent_stats": {
+    "avg_execution_quality": 1.0,
+    "avg_signal_quality": 0.8604678671108132,
+    "avg_win_rate": 0.5,
+    "last_regime": "range",
+    "total_trades": 19
+  },
+  "alert_thresholds": {
+    "execution_quality": 0.7,
+    "signal_quality": 0.3,
+    "win_rate": 0.4,
+    "max_latency": 1.0,
+    "max_slippage": 0.0005
+  }
+}

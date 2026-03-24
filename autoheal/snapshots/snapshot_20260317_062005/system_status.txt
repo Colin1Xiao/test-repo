@@ -1,0 +1,129 @@
+=== 系统快照 ===
+时间: Tue Mar 17 06:20:05 CST 2026
+原因: test
+
+=== Gateway 状态 ===
+Service: LaunchAgent (loaded)
+File logs: /tmp/openclaw/openclaw-2026-03-17.log
+Command: /usr/local/opt/node@22/bin/node /usr/local/lib/node_modules/openclaw/dist/index.js gateway --port 18789
+Service file: ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+Service env: OPENCLAW_GATEWAY_PORT=18789
+
+Config (cli): ~/.openclaw/openclaw.json
+Config (service): ~/.openclaw/openclaw.json
+
+Gateway: bind=loopback (127.0.0.1), port=18789 (service args)
+Probe target: ws://127.0.0.1:18789
+Dashboard: http://127.0.0.1:18789/
+Probe note: Loopback-only gateway; only local clients can connect.
+
+Runtime: running (pid 13541, state active)
+RPC probe: ok
+
+Listening: 127.0.0.1:18789
+Other gateway-like services detected (best effort):
+- com.colin.ocnmps (user, plist: /Users/colin/Library/LaunchAgents/com.colin.ocnmps.plist)
+- com.colin.openclaw.autoheal (user, plist: /Users/colin/Library/LaunchAgents/com.colin.openclaw.autoheal.plist)
+Cleanup hint: launchctl bootout gui/$UID/ai.openclaw.gateway
+Cleanup hint: rm ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+
+Recommendation: run a single gateway per machine for most setups. One gateway supports multiple agents (see docs: /gateway#multiple-gateways-same-host).
+If you need multiple gateways (e.g., a rescue bot on the same host), isolate ports + config/state (see docs: /gateway#multiple-gateways-same-host).
+
+Troubles: run openclaw status
+Troubleshooting: https://docs.openclaw.ai/troubleshooting
+
+=== OCNMPS 状态 ===
+OpenClaw status
+
+Overview
+┌─────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Item            │ Value                                                                                              │
+├─────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Dashboard       │ http://127.0.0.1:18789/                                                                            │
+│ OS              │ macos 26.3.1 (x64) · node 22.22.1                                                                  │
+│ Tailscale       │ off                                                                                                │
+│ Channel         │ stable (default)                                                                                   │
+│ Update          │ pnpm · npm latest 2026.3.13 · deps ok                                                              │
+│ Gateway         │ local · ws://127.0.0.1:18789 (local loopback) · unreachable (missing scope: operator.read)         │
+│ Gateway service │ LaunchAgent installed · loaded · running (pid 13541, state active)                                 │
+│ Node service    │ LaunchAgent not installed                                                                          │
+│ Agents          │ 1 · 1 bootstrap file present · sessions 2 · default main active 1m ago                             │
+│ Memory          │ 5 files · 13 chunks · sources memory · plugin memory-core · vector ready · fts ready · cache on    │
+│                 │ (16)                                                                                               │
+│ Probes          │ skipped (use --deep)                                                                               │
+│ Events          │ none                                                                                               │
+│ Heartbeat       │ 30m (main)                                                                                         │
+│ Sessions        │ 2 active · default kimi-k2.5 (262k ctx) · ~/.openclaw/agents/main/sessions/sessions.json           │
+└─────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Security audit
+Summary: 0 critical · 1 warn · 1 info
+  WARN Reverse proxy headers are not trusted
+    gateway.bind is loopback and gateway.trustedProxies is empty. If you expose the Control UI through a reverse proxy, configure trusted proxies so local-client c…
+    Fix: Set gateway.trustedProxies to your proxy IPs or keep the Control UI local-only.
+Full report: openclaw security audit
+Deep probe: openclaw security audit --deep
+
+Channels
+┌──────────┬─────────┬────────┬────────────────────────────────────────────────────────────────────────────────────────┐
+│ Channel  │ Enabled │ State  │ Detail                                                                                 │
+├──────────┼─────────┼────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ Telegram │ ON      │ OK     │ token config (8754…EGLk · len 46) · accounts 1/1                                       │
+└──────────┴─────────┴────────┴────────────────────────────────────────────────────────────────────────────────────────┘
+
+Sessions
+┌───────────────────────────────────────────────────────────────┬────────┬─────────┬──────────────┬────────────────────┐
+│ Key                                                           │ Kind   │ Age     │ Model        │ Tokens             │
+├───────────────────────────────────────────────────────────────┼────────┼─────────┼──────────────┼────────────────────┤
+│ agent:main:main                                               │ direct │ 1m ago  │ qwen3.5-plus │ unknown/1000k (?%) │
+│ agent:main:subagent:54cf12b2-64…                              │ direct │ 1m ago  │ glm-5        │ unknown/203k (?%)  │
+└───────────────────────────────────────────────────────────────┴────────┴─────────┴──────────────┴────────────────────┘
+
+FAQ: https://docs.openclaw.ai/faq
+Troubleshooting: https://docs.openclaw.ai/troubleshooting
+
+Next steps:
+  Need to share?      openclaw status --all
+  Need to debug live? openclaw logs --follow
+  Fix reachability first: openclaw gateway probe
+
+=== 进程列表 ===
+colin            13541   2.2  2.9 56499556 487760   ??  S     2:42AM   2:52.51 openclaw-gateway    
+colin            57724   0.0  0.0 34132920   1224   ??  S     6:20AM   0:00.01 /bin/bash /Users/colin/.openclaw/workspace/autoheal/snapshot.sh create test
+colin             9858   0.0  0.0 34122680    548   ??  S     2:27AM   0:00.01 /bin/bash /Users/colin/.openclaw/workspace/ocnmps/start_ocnmps.sh
+
+=== 网络连接 ===
+
+=== 磁盘空间 ===
+Filesystem        Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk1s1s1   932Gi    12Gi   403Gi     3%    455k  4.2G    0%   /
+/dev/disk1s2     932Gi   510Gi   403Gi    56%    3.3M  4.2G    0%   /System/Volumes/Data
+
+=== 内存使用 ===
+Mach Virtual Memory Statistics: (page size of 4096 bytes)
+Pages free:                              127775.
+Pages active:                           1401171.
+Pages inactive:                         1397293.
+Pages speculative:                         3966.
+Pages throttled:                              0.
+Pages wired down:                        869874.
+Pages purgeable:                          87011.
+"Translation faults":                2111144769.
+Pages copy-on-write:                   29798566.
+Pages zero filled:                   1727668401.
+Pages reactivated:                     37520503.
+Pages purged:                           3337613.
+File-backed pages:                       874350.
+Anonymous pages:                        1928080.
+Pages stored in compressor:             1716825.
+Pages occupied by compressor:            392993.
+Decompressions:                        25782561.
+Compressions:                          39491557.
+Pageins:                                9715082.
+Pageouts:                                185027.
+Swapins:                               30329955.
+Swapouts:                              32516111.
+
+=== 最近日志 (OpenClaw) ===
+无日志文件

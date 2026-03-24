@@ -1,0 +1,491 @@
+#!/usr/bin/env python3
+"""
+OKX API Integration Module v2
+OKX API 集成模块 - 安全封装（增强版）
+
+功能:
+- 安全加载 API 配置
+- 自动测试网/实盘切换
+- 权限检查
+- 交易限制（新增周限额、月限额、最大回撤）
+- 自动止损
+"""
+
+import json
+import sys
+from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Dict, Optional
+import time
+
+try:
+    import ccxt
+except ImportError as e:
+    print(f"错误：缺少依赖包 ccxt - {e}", file=sys.stderr)
+    sys.exit(1)
+
+
+class OKXAPIClient:
+    """OKX API 安全客户端 v2"""
+    
+    def __init__(self, config_path: str = None):
+        self.config = self._load_config(config_path)
+        self.exchange = None
+        self.is_testnet = self.config.get('testnet', True)
+        self.permissions = self.config.get('permissions', ['read'])
+        
+        # 安全限制
+        self.max_position = self.config.get('max_position', 0.2)
+        self.max_leverage = self.config.get('max_leverage', 5)
+        self.stop_loss = self.config.get('stop_loss', 0.02)
+        self.daily_limit = self.config.get('daily_limit', 500)  # 默认改为500美元
+        self.weekly_limit = self.config.get('weekly_limit', 2000)  # 新增：周限额
+        self.monthly_limit = self.config.get('monthly_limit', 8000)  # 新增：月限额
+        self.max_drawdown = self.config.get('max_drawdown', 0.10)  # 新增：最大回撤限制10%
+        
+        # 冷静期相关
+        self.drawdown_lock_until = None  # 回撤触发后的锁定时间
+        
+        # 交易记录
+        self.daily_trades = []
+        self.weekly_pnl = {}  # 按周记录盈亏
+        self.monthly_pnl = {}  # 按月记录盈亏
+        self.total_pnl = 0  # 总盈亏
+        
+        print("="*70)
+        print("🔐 OKX API 客户端 v2 - 增强风控版")
+        print("="*70)
+        print(f"模式：{'✅ 测试网' if self.is_testnet else '⚠️  实盘'}")
+        print(f"权限：{', '.join(self.permissions)}")
+        print(f"最大仓位：{self.max_position*100:.0f}%")
+        print(f"最大杠杆：{self.max_leverage}x")
+        print(f"止损：{self.stop_loss*100:.1f}%")
+        print(f"日限额：${self.daily_limit}")
+        print(f"周限额：${self.weekly_limit}")
+        print(f"月限额：${self.monthly_limit}")
+        print(f"最大回撤：{self.max_drawdown*100:.1f}%")
+        print("="*70)
+        
+        self._init_exchange()
+    
+    def _load_config(self, config_path: str = None) -> Dict:
+        """加载配置"""
+        if config_path is None:
+            config_path = Path.home() / '.openclaw' / 'secrets' / 'okx_api.json'
+        
+        if not Path(config_path).exists():
+            raise FileNotFoundError(f"配置文件不存在：{config_path}")
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        return config.get('okx', {})
+    
+    def _init_exchange(self):
+        """初始化交易所连接"""
+        try:
+            self.exchange = ccxt.okx({
+                'apiKey': self.config.get('api_key', ''),
+                'secret': self.config.get('secret_key', ''),
+                'password': self.config.get('passphrase', ''),
+                'enableRateLimit': True,
+            })
+            
+            if self.is_testnet:
+                self.exchange.set_sandbox_mode(True)
+                print("✅ 测试网连接成功")
+            else:
+                print("⚠️  实盘连接成功")
+            
+        except Exception as e:
+            print(f"❌ 连接失败：{e}")
+            raise
+    
+    def _check_permission(self, required_permission: str) -> bool:
+        """检查权限"""
+        if required_permission not in self.permissions:
+            print(f"❌ 权限不足：需要 {required_permission}")
+            return False
+        return True
+    
+    def _get_current_week_key(self) -> str:
+        """获取当前周的键值（年-第几周）"""
+        now = datetime.now()
+        year = now.year
+        week_num = now.isocalendar()[1]
+        return f"{year}-W{week_num:02d}"
+    
+    def _get_current_month_key(self) -> str:
+        """获取当前月的键值（年-月）"""
+        now = datetime.now()
+        return f"{now.year}-{now.month:02d}"
+    
+    def _check_risk_limits(self, amount: float) -> bool:
+        """检查所有风控限制"""
+        # 检查冷静期
+        if self.drawdown_lock_until and datetime.now() < self.drawdown_lock_until:
+            remaining_time = self.drawdown_lock_until - datetime.now()
+            hours, remainder = divmod(remaining_time.seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
+            print(f"❌ 回撤触发，处于冷静期中，剩余时间：{hours}小时{minutes}分钟")
+            return False
+        
+        # 检查日限额
+        if not self._check_daily_limit(amount):
+            return False
+        
+        # 检查周限额
+        if not self._check_weekly_limit(amount):
+            return False
+        
+        # 检查月限额
+        if not self._check_monthly_limit(amount):
+            return False
+        
+        return True
+    
+    def _check_daily_limit(self, amount: float) -> bool:
+        """检查每日交易限额"""
+        today = datetime.now().date().isoformat()
+        today_trades = [t for t in self.daily_trades if t['date'] == today]
+        today_volume = sum(t['amount'] for t in today_trades)
+        
+        if today_volume + amount > self.daily_limit:
+            print(f"❌ 超过日限额：${today_volume + amount:.2f}/日限额${self.daily_limit}")
+            self._send_telegram_alert(f"❌ 超过日限额：${today_volume + amount:.2f}/日限额${self.daily_limit}")
+            return False
+        return True
+    
+    def _check_weekly_limit(self, amount: float) -> bool:
+        """检查每周交易限额"""
+        week_key = self._get_current_week_key()
+        weekly_volume = sum(self.weekly_pnl.values())
+        
+        if weekly_volume + amount > self.weekly_limit:
+            print(f"❌ 超过周限额：${weekly_volume + amount:.2f}/周限额${self.weekly_limit}")
+            self._send_telegram_alert(f"❌ 超过周限额：${weekly_volume + amount:.2f}/周限额${self.weekly_limit}")
+            return False
+        return True
+    
+    def _check_monthly_limit(self, amount: float) -> bool:
+        """检查每月交易限额"""
+        month_key = self._get_current_month_key()
+        monthly_volume = sum(self.monthly_pnl.values())
+        
+        if monthly_volume + amount > self.monthly_limit:
+            print(f"❌ 超过月限额：${monthly_volume + amount:.2f}/月限额${self.monthly_limit}")
+            self._send_telegram_alert(f"❌ 超过月限额：${monthly_volume + amount:.2f}/月限额${self.monthly_limit}")
+            return False
+        return True
+    
+    def _calculate_drawdown(self) -> float:
+        """计算当前回撤率"""
+        # 基于总盈亏计算回撤
+        # 如果没有历史数据，则回撤为0
+        if self.total_pnl >= 0:
+            return 0.0
+        
+        # 这里我们简化回撤计算为当前亏损占初始资金的比例
+        # 在实际应用中，可能需要更复杂的回撤计算方法
+        # 假设初始资金为10000
+        initial_capital = 10000
+        drawdown = abs(self.total_pnl) / initial_capital
+        return drawdown
+    
+    def _check_drawdown_limit(self) -> bool:
+        """检查最大回撤限制"""
+        current_drawdown = self._calculate_drawdown()
+        
+        if current_drawdown > self.max_drawdown:
+            print(f"❌ 触发最大回撤限制：当前回撤{current_drawdown*100:.2f}% > 限制{self.max_drawdown*100:.2f}%")
+            self._trigger_drawdown_lock()
+            self._send_telegram_alert(f"❌ 触发最大回撤限制：当前回撤{current_drawdown*100:.2f}% > 限制{self.max_drawdown*100:.2f}%")
+            return False
+        return True
+    
+    def _trigger_drawdown_lock(self):
+        """触发回撤锁定（24小时冷静期）"""
+        self.drawdown_lock_until = datetime.now() + timedelta(hours=24)
+        print(f"🔒 已触发24小时冷静期，直到 {self.drawdown_lock_until.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    def _send_telegram_alert(self, message: str):
+        """发送Telegram告警（模拟）"""
+        # 这里只是打印，实际应用中应该调用Telegram API
+        print(f"📡 [Telegram告警] {message}")
+        
+        # 在实际应用中，这里会使用Telegram Bot API发送消息
+        # 示例代码：
+        # import requests
+        # bot_token = self.config.get('telegram_bot_token')
+        # chat_id = self.config.get('telegram_chat_id')
+        # if bot_token and chat_id:
+        #     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        #     data = {'chat_id': chat_id, 'text': message}
+        #     requests.post(url, data=data)
+    
+    def _record_risk_event(self, event_type: str, details: dict):
+        """记录风控事件"""
+        timestamp = datetime.now().isoformat()
+        event = {
+            'timestamp': timestamp,
+            'event_type': event_type,
+            'details': details
+        }
+        
+        # 在实际应用中，这会写入数据库或日志文件
+        print(f"📋 [风控事件] {json.dumps(event)}")
+    
+    def fetch_balance(self) -> Dict:
+        """查询余额"""
+        if not self._check_permission('read'):
+            return {}
+        
+        try:
+            balance = self.exchange.fetch_balance()
+            return balance['total']
+        except Exception as e:
+            print(f"❌ 查询余额失败：{e}")
+            return {}
+    
+    def fetch_positions(self) -> list:
+        """查询仓位"""
+        if not self._check_permission('read'):
+            return []
+        
+        try:
+            positions = self.exchange.fetch_positions()
+            return [p for p in positions if float(p['contracts']) != 0]
+        except Exception as e:
+            print(f"❌ 查询仓位失败：{e}")
+            return []
+    
+    def create_order(self, symbol: str, side: str, amount: float, 
+                     price: float = None, leverage: int = None) -> Optional[Dict]:
+        """创建订单"""
+        if not self._check_permission('trade'):
+            return None
+        
+        # 风控检查
+        if not self._check_risk_limits(amount):
+            return None
+        
+        # 安全检查
+        if amount > self.max_position:
+            print(f"❌ 仓位过大：{amount} > {self.max_position}")
+            return None
+        
+        if leverage and leverage > self.max_leverage:
+            print(f"❌ 杠杆过大：{leverage}x > {self.max_leverage}x")
+            return None
+        
+        # 创建订单
+        try:
+            order_type = 'limit' if price else 'market'
+            params = {}
+            
+            if leverage:
+                params['leverage'] = leverage
+            
+            order = self.exchange.create_order(
+                symbol=symbol,
+                type=order_type,
+                side=side,
+                amount=amount,
+                price=price,
+                params=params
+            )
+            
+            # 记录交易
+            trade_record = {
+                'date': datetime.now().date().isoformat(),
+                'datetime': datetime.now().isoformat(),
+                'symbol': symbol,
+                'side': side,
+                'amount': amount,
+                'price': order.get('price', 0),
+                'order_id': order.get('id', '')
+            }
+            
+            self.daily_trades.append(trade_record)
+            
+            # 更新周/月交易记录
+            week_key = self._get_current_week_key()
+            if week_key not in self.weekly_pnl:
+                self.weekly_pnl[week_key] = 0
+            self.weekly_pnl[week_key] += amount
+            
+            month_key = self._get_current_month_key()
+            if month_key not in self.monthly_pnl:
+                self.monthly_pnl[month_key] = 0
+            self.monthly_pnl[month_key] += amount
+            
+            print(f"✅ 订单创建成功")
+            print(f"   币种：{symbol}")
+            print(f"   方向：{side}")
+            print(f"   数量：{amount}")
+            print(f"   价格：{order.get('price', '市价')}")
+            print(f"   订单ID：{order.get('id', 'N/A')}")
+            
+            return order
+            
+        except Exception as e:
+            print(f"❌ 创建订单失败：{e}")
+            return None
+    
+    def close_position(self, symbol: str, position_id: str = None) -> Optional[Dict]:
+        """平仓"""
+        if not self._check_permission('trade'):
+            return None
+        
+        try:
+            # 获取仓位
+            positions = self.fetch_positions()
+            target_position = None
+            
+            for pos in positions:
+                if pos['symbol'] == symbol:
+                    target_position = pos
+                    break
+            
+            if not target_position:
+                print(f"❌ 无仓位：{symbol}")
+                return None
+            
+            # 平仓（反向开仓）
+            side = 'sell' if target_position['side'] == 'long' else 'buy'
+            amount = abs(float(target_position['contracts']))
+            
+            return self.create_order(symbol, side, amount)
+            
+        except Exception as e:
+            print(f"❌ 平仓失败：{e}")
+            return None
+    
+    def set_stop_loss(self, symbol: str, position_id: str, 
+                      stop_price: float) -> Optional[Dict]:
+        """设置止损"""
+        if not self._check_permission('trade'):
+            return None
+        
+        print(f"⚠️  止损订单功能需要 OKX API 高级权限")
+        print(f"   建议在 OKX 网页端手动设置止损")
+        return None
+    
+    def get_daily_summary(self) -> Dict:
+        """获取每日交易汇总"""
+        today = datetime.now().date().isoformat()
+        today_trades = [t for t in self.daily_trades if t['date'] == today]
+        
+        return {
+            'date': today,
+            'trade_count': len(today_trades),
+            'total_volume': sum(t['amount'] for t in today_trades),
+            'remaining_limit': self.daily_limit - sum(t['amount'] for t in today_trades)
+        }
+    
+    def get_weekly_summary(self) -> Dict:
+        """获取每周交易汇总"""
+        week_key = self._get_current_week_key()
+        weekly_volume = self.weekly_pnl.get(week_key, 0)
+        
+        return {
+            'week': week_key,
+            'total_volume': weekly_volume,
+            'remaining_limit': self.weekly_limit - weekly_volume
+        }
+    
+    def get_monthly_summary(self) -> Dict:
+        """获取每月交易汇总"""
+        month_key = self._get_current_month_key()
+        monthly_volume = self.monthly_pnl.get(month_key, 0)
+        
+        return {
+            'month': month_key,
+            'total_volume': monthly_volume,
+            'remaining_limit': self.monthly_limit - monthly_volume
+        }
+    
+    def get_risk_summary(self) -> Dict:
+        """获取风控汇总"""
+        current_drawdown = self._calculate_drawdown()
+        
+        return {
+            'drawdown': current_drawdown,
+            'max_drawdown': self.max_drawdown,
+            'drawdown_exceeded': current_drawdown > self.max_drawdown,
+            'lock_until': self.drawdown_lock_until.isoformat() if self.drawdown_lock_until else None,
+            'is_locked': self.drawdown_lock_until and datetime.now() < self.drawdown_lock_until,
+            'total_pnl': self.total_pnl
+        }
+
+
+# 使用示例
+if __name__ == '__main__':
+    print("\n" + "="*70)
+    print("📖 OKX API v2 使用示例")
+    print("="*70)
+    
+    try:
+        # 创建客户端
+        client = OKXAPIClient()
+        
+        # 查询余额
+        print("\n1. 查询余额:")
+        balance = client.fetch_balance()
+        for currency, amount in balance.items():
+            if amount > 0:
+                print(f"   {currency}: {amount}")
+        
+        # 查询仓位
+        print("\n2. 查询仓位:")
+        positions = client.fetch_positions()
+        if positions:
+            for pos in positions:
+                print(f"   {pos['symbol']}: {pos['side']} {pos['contracts']}")
+        else:
+            print("   无仓位")
+        
+        # 每日汇总
+        print("\n3. 每日交易汇总:")
+        daily_summary = client.get_daily_summary()
+        print(f"   日期：{daily_summary['date']}")
+        print(f"   交易数：{daily_summary['trade_count']}")
+        print(f"   交易量：${daily_summary['total_volume']:.2f}")
+        print(f"   剩余限额：${daily_summary['remaining_limit']:.2f}")
+        
+        # 每周汇总
+        print("\n4. 每周交易汇总:")
+        weekly_summary = client.get_weekly_summary()
+        print(f"   周：{weekly_summary['week']}")
+        print(f"   交易量：${weekly_summary['total_volume']:.2f}")
+        print(f"   剩余限额：${weekly_summary['remaining_limit']:.2f}")
+        
+        # 每月汇总
+        print("\n5. 每月交易汇总:")
+        monthly_summary = client.get_monthly_summary()
+        print(f"   月：{monthly_summary['month']}")
+        print(f"   交易量：${monthly_summary['total_volume']:.2f}")
+        print(f"   剩余限额：${monthly_summary['remaining_limit']:.2f}")
+        
+        # 风控汇总
+        print("\n6. 风控状态:")
+        risk_summary = client.get_risk_summary()
+        print(f"   当前回撤：{risk_summary['drawdown']*100:.2f}%")
+        print(f"   最大回撤限制：{risk_summary['max_drawdown']*100:.2f}%")
+        print(f"   是否超过回撤限制：{'是' if risk_summary['drawdown_exceeded'] else '否'}")
+        print(f"   是否被锁定：{'是' if risk_summary['is_locked'] else '否'}")
+        if risk_summary['lock_until']:
+            print(f"   解锁时间：{risk_summary['lock_until']}")
+        print(f"   总盈亏：${risk_summary['total_pnl']:.2f}")
+        
+        # 创建订单（示例，不执行）
+        print("\n7. 创建订单示例:")
+        print("   client.create_order('BTC/USDT', 'buy', 0.001, leverage=5)")
+        
+    except FileNotFoundError as e:
+        print(f"\n⚠️  配置文件不存在")
+        print(f"   请先配置：nano ~/.openclaw/secrets/okx_api.json")
+    except Exception as e:
+        print(f"\n❌ 错误：{e}")
+    
+    print("\n" + "="*70)

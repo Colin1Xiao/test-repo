@@ -1,0 +1,14 @@
+{
+  "id": "evt_20260317_071000_test",
+  "ts": "2026-03-16T23:10:00Z",
+  "schema_version": "1.0.0",
+  "source": "auto_heal",
+  "type": "critical.detected",
+  "severity": "critical",
+  "component": "gateway",
+  "status": "detected",
+  "summary": "关键异常: Gateway 进程未运行",
+  "details": {"alert": "Gateway 进程未运行"},
+  "tags": ["critical", "alert"],
+  "links": {"log": null, "snapshot": null}
+}

@@ -1,0 +1,28 @@
+{
+  "session_id": "telegram_20260313133459_93743b93",
+  "channel_type": "telegram",
+  "window_type": "interactive",
+  "parent_agent": "main",
+  "routing_profile": "light",
+  "priority_level": "P1",
+  "status": "idle",
+  "created_at": "2026-03-13T13:34:59.427069",
+  "last_active_at": "2026-03-13T13:34:59.427069",
+  "active_task_count": 0,
+  "active_chain_count": 0,
+  "resource_budget": {
+    "max_mixed_chains": 0,
+    "max_subagents": 0,
+    "max_retries": 1,
+    "max_context_size": 4000
+  },
+  "last_route_decision": null,
+  "last_error": null,
+  "history": [
+    {
+      "timestamp": "2026-03-13T13:34:59.428074",
+      "role": "user",
+      "content": "消息 1"
+    }
+  ]
+}

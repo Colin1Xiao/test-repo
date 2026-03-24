@@ -1,0 +1,634 @@
+加载数据：/Users/colin/.openclaw/workspace/crypto_test_data/btc_5m_ta.csv
+计算技术指标...
+生成 combo 策略信号...
+
+==================================================
+信号统计:
+  买入信号：33
+  卖出信号：32
+  总计：97 条 K 线
+==================================================
+
+最近信号:
+  BUY: 多数指标看涨 (score=2) @ 72780.50
+  SELL: 多数指标看跌 (score=-2) @ 72820.00
+  BUY: 多数指标看涨 (score=2) @ 72880.50
+  SELL: 多数指标看跌 (score=-2) @ 72920.00
+  BUY: 多数指标看涨 (score=2) @ 72980.50
+[
+  {
+    "timestamp": 1710000300000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710000600000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710000900000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710001200000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710001500000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710001800000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710002100000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710002400000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710002700000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710003000000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710003300000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710003600000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710003900000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710004200000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710004500000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710004800000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710005100000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710005400000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710005700000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710006000000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710006300000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710006600000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710006900000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710007200000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710007500000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710007800000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710008100000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710008400000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710008700000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710009000000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710009300000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710009600000,
+    "type": "HOLD",
+    "score": 0
+  },
+  {
+    "timestamp": 1710009900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 69780.5
+  },
+  {
+    "timestamp": 1710010200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 69820.0
+  },
+  {
+    "timestamp": 1710010500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 69880.5
+  },
+  {
+    "timestamp": 1710010800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 69920.0
+  },
+  {
+    "timestamp": 1710011100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 69980.5
+  },
+  {
+    "timestamp": 1710011400000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70020.0
+  },
+  {
+    "timestamp": 1710011700000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70080.5
+  },
+  {
+    "timestamp": 1710012000000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70120.0
+  },
+  {
+    "timestamp": 1710012300000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70180.5
+  },
+  {
+    "timestamp": 1710012600000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70220.0
+  },
+  {
+    "timestamp": 1710012900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70280.5
+  },
+  {
+    "timestamp": 1710013200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70320.0
+  },
+  {
+    "timestamp": 1710013500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70380.5
+  },
+  {
+    "timestamp": 1710013800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70420.0
+  },
+  {
+    "timestamp": 1710014100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70480.5
+  },
+  {
+    "timestamp": 1710014400000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70520.0
+  },
+  {
+    "timestamp": 1710014700000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70580.5
+  },
+  {
+    "timestamp": 1710015000000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70620.0
+  },
+  {
+    "timestamp": 1710015300000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70680.5
+  },
+  {
+    "timestamp": 1710015600000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70720.0
+  },
+  {
+    "timestamp": 1710015900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70780.5
+  },
+  {
+    "timestamp": 1710016200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70820.0
+  },
+  {
+    "timestamp": 1710016500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70880.5
+  },
+  {
+    "timestamp": 1710016800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 70920.0
+  },
+  {
+    "timestamp": 1710017100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 70980.5
+  },
+  {
+    "timestamp": 1710017400000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71020.0
+  },
+  {
+    "timestamp": 1710017700000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71080.5
+  },
+  {
+    "timestamp": 1710018000000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71120.0
+  },
+  {
+    "timestamp": 1710018300000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71180.5
+  },
+  {
+    "timestamp": 1710018600000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71220.0
+  },
+  {
+    "timestamp": 1710018900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71280.5
+  },
+  {
+    "timestamp": 1710019200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71320.0
+  },
+  {
+    "timestamp": 1710019500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71380.5
+  },
+  {
+    "timestamp": 1710019800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71420.0
+  },
+  {
+    "timestamp": 1710020100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71480.5
+  },
+  {
+    "timestamp": 1710020400000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71520.0
+  },
+  {
+    "timestamp": 1710020700000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71580.5
+  },
+  {
+    "timestamp": 1710021000000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71620.0
+  },
+  {
+    "timestamp": 1710021300000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71680.5
+  },
+  {
+    "timestamp": 1710021600000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71720.0
+  },
+  {
+    "timestamp": 1710021900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71780.5
+  },
+  {
+    "timestamp": 1710022200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71820.0
+  },
+  {
+    "timestamp": 1710022500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71880.5
+  },
+  {
+    "timestamp": 1710022800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 71920.0
+  },
+  {
+    "timestamp": 1710023100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 71980.5
+  },
+  {
+    "timestamp": 1710023400000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72020.0
+  },
+  {
+    "timestamp": 1710023700000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72080.5
+  },
+  {
+    "timestamp": 1710024000000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72120.0
+  },
+  {
+    "timestamp": 1710024300000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72180.5
+  },
+  {
+    "timestamp": 1710024600000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72220.0
+  },
+  {
+    "timestamp": 1710024900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72280.5
+  },
+  {
+    "timestamp": 1710025200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72320.0
+  },
+  {
+    "timestamp": 1710025500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72380.5
+  },
+  {
+    "timestamp": 1710025800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72420.0
+  },
+  {
+    "timestamp": 1710026100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72480.5
+  },
+  {
+    "timestamp": 1710026400000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72520.0
+  },
+  {
+    "timestamp": 1710026700000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72580.5
+  },
+  {
+    "timestamp": 1710027000000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72620.0
+  },
+  {
+    "timestamp": 1710027300000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72680.5
+  },
+  {
+    "timestamp": 1710027600000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72720.0
+  },
+  {
+    "timestamp": 1710027900000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72780.5
+  },
+  {
+    "timestamp": 1710028200000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72820.0
+  },
+  {
+    "timestamp": 1710028500000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72880.5
+  },
+  {
+    "timestamp": 1710028800000,
+    "type": "SELL",
+    "score": -1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u8dcc (score=-2)",
+    "price": 72920.0
+  },
+  {
+    "timestamp": 1710029100000,
+    "type": "BUY",
+    "score": 1,
+    "reason": "\u591a\u6570\u6307\u6807\u770b\u6da8 (score=2)",
+    "price": 72980.5
+  }
+]

@@ -1,0 +1,83 @@
+[
+  {
+    "timestamp": "2026-03-19T01:01:17.623847",
+    "task_preview": "分析我当前 OpenClaw vNext 架构的潜在瓶颈，重点看事件总线、Judge Agent、策略引擎和 Dashboard 数据生成链路。请指出最可能先出问题的 3 个点，给出原因、影响范围、观...",
+    "task_length": 116,
+    "use_ocnmps": true,
+    "recommended_model": "REASON",
+    "chain": null,
+    "task_type": "reason",
+    "reason": "reason任务，桥接检测: 包含系统/架构对象, 包含质量维度",
+    "expected_model": null,
+    "match_expected": null,
+    "notes": "",
+    "user_rating": 4,
+    "user_comment": "合理。架构分析应走 REASON；v2 去掉了无明确需求时的 CN/MAIN 尾链，路由更克制、更高效。"
+  },
+  {
+    "timestamp": "2026-03-19T01:03:23.649563",
+    "task_preview": "下面这段 Python 脚本在处理大日志文件时很慢，而且偶尔会内存暴涨。请分析性能瓶颈、找出可能的内存问题，并给出一个尽量低风险的重构方案，要求保留现有输出格式和错误处理语义。",
+    "task_length": 88,
+    "use_ocnmps": true,
+    "recommended_model": "CODE",
+    "chain": null,
+    "task_type": "code",
+    "reason": "code任务，桥接检测: 包含代码实体, 包含编程语言, 包含工程问题, 包含约束条件, 语言+代码实体+工程问题组合",
+    "expected_model": null,
+    "match_expected": null,
+    "notes": "",
+    "user_rating": 5,
+    "user_comment": "正确。该任务是典型 Python 脚本性能/内存问题分析与低风险重构，v2 已能稳定识别为 CODE，路由准确。"
+  },
+  {
+    "timestamp": "2026-03-19T01:05:01.175349",
+    "task_preview": "请把下面这段技术汇报改写成更专业、更简洁、适合发给团队的中文版本，要求保留原意，不夸大结论，不增加新事实，并统一术语风格。",
+    "task_length": 61,
+    "use_ocnmps": true,
+    "recommended_model": "CN",
+    "chain": null,
+    "task_type": "cn",
+    "reason": "cn任务，桥接检测: 包含写作关键词, 包含风格要求, 包含输出场景, 写作+风格/场景组合",
+    "expected_model": null,
+    "match_expected": null,
+    "notes": "",
+    "user_rating": 5,
+    "user_comment": "正确。该任务是典型中文改写/风格统一场景，v2 已能稳定触发并路由到 CN，且无多余链路。"
+  },
+  {
+    "timestamp": "2026-03-19T01:06:24.606778",
+    "task_preview": "我会给你一份较长的技术设计文档。请先提炼核心目标、关键约束、主要模块、已知风险和待决问题，再输出一版适合管理层快速阅读的摘要。要求信息不遗漏重点，但整体要比原文短很多。",
+    "task_length": 84,
+    "use_ocnmps": true,
+    "recommended_model": "LONG",
+    "chain": [
+      "LONG",
+      "CN"
+    ],
+    "task_type": "long",
+    "reason": "long任务，桥接检测: 预声明式: 我会给你一份, 包含文档类型, 包含提取动作, 包含提取目标, 包含受众转换, 文档+提取组合",
+    "expected_model": null,
+    "match_expected": null,
+    "notes": "",
+    "user_rating": 5,
+    "user_comment": "正确。该任务是典型预声明式长文总结/结构化提炼场景，应优先路由到 LONG；因包含\"适合管理层快速阅读\"的受众转换要求，追加 CN 合理。"
+  },
+  {
+    "timestamp": "2026-03-19T01:09:33.662012",
+    "task_preview": "请比较两种 OpenClaw 升级路径：A. 继续强化本地事件驱动与自治运维能力；B. 引入更多外部接口和远程控制能力。请从安全性、复杂度、可维护性、扩展性、故障面和长期收益六个维度做权衡，给出推荐方...",
+    "task_length": 122,
+    "use_ocnmps": true,
+    "recommended_model": "REASON",
+    "chain": [
+      "REASON",
+      "CN"
+    ],
+    "task_type": "reason",
+    "reason": "reason任务，桥接检测: 包含系统/架构对象, 包含比较意图, 包含权衡意图, 包含维度分析, 包含决策意图, 包含质量维度, 比较+权衡/决策组合, 系统对象+分析组合",
+    "expected_model": null,
+    "match_expected": null,
+    "notes": "",
+    "user_rating": 5,
+    "user_comment": "正确。该任务是典型多因素比较/权衡/推荐场景，应优先路由到 REASON；因要求中文团队结论输出，追加 CN 合理。"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "last_check": "2026-03-12T13:41:20.332971",
+  "status": "ISSUES_FOUND",
+  "issues_count": 1,
+  "processes": {
+    "auto_monitor_fixed.py": true,
+    "ClashX": true
+  },
+  "apis": {
+    "okx": true,
+    "notion": false
+  }
+}

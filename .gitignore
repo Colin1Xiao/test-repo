@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# Runtime state / data
+state_store.json
+live_state.json
+*.jsonl
+data/
+cache/
+
+# Secrets / local config
+.env
+.env.*
+*api*.json
+*secret*.json
+*key*.json
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

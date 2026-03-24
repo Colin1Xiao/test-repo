@@ -1,0 +1,77 @@
+{
+  "schema": "openclaw.arbiter.v1",
+  "version": "3.8.0",
+  "lastUpdated": "2026-03-19T06:41:00+08:00",
+  "priority": {
+    "1": "rate-limit",
+    "2": "recovery-gate",
+    "3": "predictive"
+  },
+  "rules": {
+    "anyDeny": true,
+    "momentumOverride": true,
+    "description": "如果任何上层说 NO → 最终 NO；全部同意才执行；但连续被拒可触发动量放宽"
+  },
+  "decisionLog": [
+    {
+      "timestamp": "2026-03-18T22:46:20.141Z",
+      "event": "gateway_degraded",
+      "final": "SKIP",
+      "reason": "gate-blocked"
+    },
+    {
+      "timestamp": "2026-03-18T22:46:20.272Z",
+      "event": "gateway_degraded",
+      "final": "SKIP",
+      "reason": "gate-blocked"
+    },
+    {
+      "timestamp": "2026-03-18T22:46:20.407Z",
+      "event": "gateway_degraded",
+      "final": "SKIP",
+      "reason": "gate-blocked"
+    }
+  ],
+  "statistics": {
+    "totalDecisions": 3,
+    "executed": 0,
+    "skipped": 3,
+    "conflicts": 0,
+    "conflictRate": 0,
+    "skipReasons": {
+      "rate-limit": 0,
+      "recovery-gate": 0,
+      "predictive-confidence": 0
+    }
+  },
+  "conflictAnalysis": {
+    "recentConflicts": [],
+    "avgDecisionDelay": 0
+  },
+  "decisionMemory": {
+    "description": "记录每个事件类型的连续决策历史",
+    "events": {}
+  },
+  "momentum": {
+    "enabled": true,
+    "threshold": 3,
+    "relaxationRules": {
+      "confidence": {
+        "normal": 0.85,
+        "relaxed": 0.8,
+        "description": "连续被拒 3 次后，置信度阈值从 85% 降到 80%"
+      },
+      "gate": {
+        "normal": "strict",
+        "relaxed": "lenient",
+        "description": "连续被拒 3 次后，门控从严格变宽松"
+      }
+    },
+    "statistics": {
+      "consecutiveRejectedEvents": 0,
+      "forcedExecutions": 0,
+      "relaxationTriggered": 0
+    },
+    "recentRelaxations": []
+  }
+}

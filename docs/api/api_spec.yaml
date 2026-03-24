@@ -1,0 +1,2619 @@
+openapi: 3.0.3
+info:
+  title: 预测性智能交易系统 API
+  description: |
+    智能交易系统的 RESTful API 规范
+    
+    ## 认证方式
+    所有 API 请求需要在 Header 中包含 JWT Token:
+    ```
+    Authorization: Bearer <token>
+    ```
+    
+    ## 速率限制
+    - 普通端点：100 请求/分钟
+    - 交易端点：20 请求/分钟
+    - 数据端点：200 请求/分钟
+    
+    ## 错误码
+    - 400: 请求参数错误
+    - 401: 未授权
+    - 403: 禁止访问
+    - 404: 资源不存在
+    - 429: 请求超限
+    - 500: 服务器内部错误
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@trading-system.com
+
+servers:
+  - url: https://api.trading-system.com/v1
+    description: 生产环境
+  - url: https://staging-api.trading-system.com/v1
+    description: 测试环境
+  - url: http://localhost:8000/v1
+    description: 本地开发
+
+tags:
+  - name: 认证
+    description: 用户认证和授权
+  - name: 账户
+    description: 交易账户管理
+  - name: 市场数据
+    description: 实时市场数据查询
+  - name: 分析
+    description: 市场分析和预测
+  - name: 信号
+    description: 交易信号管理
+  - name: 交易
+    description: 订单执行和仓位管理
+  - name: 风控
+    description: 风险控制和监控
+  - name: 监控
+    description: 系统监控和预警
+  - name: 报告
+    description: 性能报告和分析
+  - name: 配置
+    description: 系统配置管理
+
+paths:
+  # ==================== 认证端点 ====================
+  /auth/login:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: 认证失败
+
+  /auth/refresh:
+    post:
+      tags:
+        - 认证
+      summary: 刷新 Token
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - 认证
+      summary: 用户登出
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+
+  # ==================== 账户端点 ====================
+  /accounts:
+    get:
+      tags:
+        - 账户
+      summary: 获取交易账户列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TradingAccount'
+    
+    post:
+      tags:
+        - 账户
+      summary: 创建交易账户
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: 账户创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingAccount'
+
+  /accounts/{account_id}:
+    get:
+      tags:
+        - 账户
+      summary: 获取账户详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingAccount'
+    
+    put:
+      tags:
+        - 账户
+      summary: 更新账户配置
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: 更新成功
+    
+    delete:
+      tags:
+        - 账户
+      summary: 删除账户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 删除成功
+
+  /accounts/{account_id}/balance:
+    get:
+      tags:
+        - 账户
+      summary: 获取账户余额
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalance'
+
+  # ==================== 市场数据端点 ====================
+  /market/klines:
+    get:
+      tags:
+        - 市场数据
+      summary: 获取 K 线数据
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+            example: BTC-USDT
+        - name: interval
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+        - name: start_time
+          in: query
+          schema:
+            type: integer
+            format: int64
+            description: 开始时间戳 (毫秒)
+        - name: end_time
+          in: query
+          schema:
+            type: integer
+            format: int64
+            description: 结束时间戳 (毫秒)
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Kline'
+
+  /market/orderbook:
+    get:
+      tags:
+        - 市场数据
+      summary: 获取订单簿
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+            example: BTC-USDT
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderBook'
+
+  /market/ticker:
+    get:
+      tags:
+        - 市场数据
+      summary: 获取行情 Ticker
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticker'
+
+  /market/funding-rate:
+    get:
+      tags:
+        - 市场数据
+      summary: 获取资金费率
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundingRate'
+
+  /market/open-interest:
+    get:
+      tags:
+        - 市场数据
+      summary: 获取持仓量
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenInterest'
+
+  # ==================== 分析端点 ====================
+  /analysis/market-state:
+    get:
+      tags:
+        - 分析
+      summary: 获取市场状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketState'
+
+  /analysis/sentiment:
+    get:
+      tags:
+        - 分析
+      summary: 获取情绪分析结果
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentimentAnalysis'
+
+  /analysis/ml-prediction:
+    get:
+      tags:
+        - 分析
+      summary: 获取 ML 预测结果
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: horizon
+          in: query
+          schema:
+            type: string
+            enum: [1h, 4h, 1d, 1w]
+            default: 1d
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLPrediction'
+
+  /analysis/event-impact:
+    get:
+      tags:
+        - 分析
+      summary: 获取事件影响分析
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: window
+          in: query
+          schema:
+            type: string
+            default: 24h
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventImpactAnalysis'
+
+  /analysis/technical-indicators:
+    get:
+      tags:
+        - 分析
+      summary: 获取技术指标
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: indicators
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [RSI, MACD, EMA, SMA, BOLL, KDJ, ADX, ATR]
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TechnicalIndicator'
+
+  # ==================== 信号端点 ====================
+  /signals:
+    get:
+      tags:
+        - 信号
+      summary: 获取交易信号列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum: [LONG, SHORT, NEUTRAL]
+        - name: min_confidence
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, executed, expired, cancelled]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TradingSignal'
+    
+    post:
+      tags:
+        - 信号
+      summary: 手动生成信号
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateSignalRequest'
+      responses:
+        '201':
+          description: 信号生成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingSignal'
+
+  /signals/{signal_id}:
+    get:
+      tags:
+        - 信号
+      summary: 获取信号详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: signal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingSignal'
+    
+    delete:
+      tags:
+        - 信号
+      summary: 取消信号
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: signal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 取消成功
+
+  /signals/{signal_id}/execute:
+    post:
+      tags:
+        - 信号
+      summary: 执行信号
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: signal_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteSignalRequest'
+      responses:
+        '200':
+          description: 执行成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResult'
+
+  # ==================== 交易端点 ====================
+  /trades:
+    get:
+      tags:
+        - 交易
+      summary: 获取交易记录列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, cancelled]
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trade'
+
+  /trades/{trade_id}:
+    get:
+      tags:
+        - 交易
+      summary: 获取交易详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trade_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+
+  /trades/{trade_id}/close:
+    post:
+      tags:
+        - 交易
+      summary: 平仓
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trade_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClosePositionRequest'
+      responses:
+        '200':
+          description: 平仓成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+
+  /orders:
+    post:
+      tags:
+        - 交易
+      summary: 创建订单
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: 订单创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+    
+    get:
+      tags:
+        - 交易
+      summary: 获取订单列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, filled, cancelled, rejected]
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+
+  /orders/{order_id}:
+    get:
+      tags:
+        - 交易
+      summary: 获取订单详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+    
+    delete:
+      tags:
+        - 交易
+      summary: 取消订单
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 取消成功
+
+  /positions:
+    get:
+      tags:
+        - 交易
+      summary: 获取当前仓位列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: symbol
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Position'
+
+  /positions/{position_id}:
+    get:
+      tags:
+        - 交易
+      summary: 获取仓位详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: position_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Position'
+
+  # ==================== 风控端点 ====================
+  /risk/metrics:
+    get:
+      tags:
+        - 风控
+      summary: 获取风险指标
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: account_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskMetrics'
+
+  /risk/limits:
+    get:
+      tags:
+        - 风控
+      summary: 获取风险限制配置
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskLimits'
+    
+    put:
+      tags:
+        - 风控
+      summary: 更新风险限制配置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskLimits'
+      responses:
+        '200':
+          description: 更新成功
+
+  /risk/circuit-breaker:
+    get:
+      tags:
+        - 风控
+      summary: 获取熔断状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircuitBreakerStatus'
+    
+    post:
+      tags:
+        - 风控
+      summary: 手动触发熔断
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: 触发成功
+
+  /risk/validate:
+    post:
+      tags:
+        - 风控
+      summary: 验证交易请求
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+      responses:
+        '200':
+          description: 验证结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  # ==================== 监控端点 ====================
+  /monitoring/dashboard:
+    get:
+      tags:
+        - 监控
+      summary: 获取监控仪表板数据
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardData'
+
+  /monitoring/alerts:
+    get:
+      tags:
+        - 监控
+      summary: 获取预警列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, acknowledged, resolved]
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+    
+    post:
+      tags:
+        - 监控
+      summary: 创建预警
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /monitoring/alerts/{alert_id}/acknowledge:
+    post:
+      tags:
+        - 监控
+      summary: 确认预警
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: alert_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 确认成功
+
+  /monitoring/system-health:
+    get:
+      tags:
+        - 监控
+      summary: 获取系统健康状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemHealth'
+
+  /monitoring/metrics:
+    get:
+      tags:
+        - 监控
+      summary: 获取系统指标
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: service
+          in: query
+          schema:
+            type: string
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SystemMetric'
+
+  # ==================== 报告端点 ====================
+  /reports/daily:
+    get:
+      tags:
+        - 报告
+      summary: 获取日报
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyReport'
+
+  /reports/weekly:
+    get:
+      tags:
+        - 报告
+      summary: 获取周报
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: week_start
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyReport'
+
+  /reports/monthly:
+    get:
+      tags:
+        - 报告
+      summary: 获取月报
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyReport'
+
+  /reports/performance:
+    get:
+      tags:
+        - 报告
+      summary: 获取性能分析
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceAnalysis'
+
+  /reports/trades:
+    get:
+      tags:
+        - 报告
+      summary: 获取交易分析报告
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeAnalysis'
+
+  # ==================== 配置端点 ====================
+  /config/system:
+    get:
+      tags:
+        - 配置
+      summary: 获取系统配置
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfig'
+    
+    put:
+      tags:
+        - 配置
+      summary: 更新系统配置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+      responses:
+        '200':
+          description: 更新成功
+
+  /config/strategy:
+    get:
+      tags:
+        - 配置
+      summary: 获取策略配置
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StrategyConfig'
+    
+    post:
+      tags:
+        - 配置
+      summary: 创建策略配置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrategyConfig'
+      responses:
+        '201':
+          description: 创建成功
+
+  /config/strategy/{strategy_id}:
+    put:
+      tags:
+        - 配置
+      summary: 更新策略配置
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: strategy_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrategyConfig'
+      responses:
+        '200':
+          description: 更新成功
+    
+    delete:
+      tags:
+        - 配置
+      summary: 删除策略配置
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: strategy_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 删除成功
+
+  # ==================== WebSocket 端点 ====================
+  /ws/market:
+    get:
+      tags:
+        - 市场数据
+      summary: 市场数据 WebSocket
+      description: 订阅实时市场数据更新
+      parameters:
+        - name: symbols
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: channels
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [kline, orderbook, ticker, trade]
+
+  /ws/signals:
+    get:
+      tags:
+        - 信号
+      summary: 信号 WebSocket
+      description: 订阅实时交易信号
+      parameters:
+        - name: symbols
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+
+  /ws/alerts:
+    get:
+      tags:
+        - 监控
+      summary: 预警 WebSocket
+      description: 订阅实时预警通知
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [low, medium, high, critical]
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ==================== 认证相关 ====================
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+        two_factor_code:
+          type: string
+          description: 两步验证代码 (可选)
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+        token_type:
+          type: string
+          default: Bearer
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+
+    # ==================== 账户相关 ====================
+    TradingAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        exchange:
+          type: string
+          enum: [OKX, BINANCE, BYBIT]
+        account_type:
+          type: string
+          enum: [spot, futures, margin]
+        balance:
+          type: number
+        equity:
+          type: number
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateAccountRequest:
+      type: object
+      required:
+        - exchange
+        - account_type
+        - api_key
+        - api_secret
+      properties:
+        exchange:
+          type: string
+          enum: [OKX, BINANCE, BYBIT]
+        account_type:
+          type: string
+          enum: [spot, futures, margin]
+        api_key:
+          type: string
+        api_secret:
+          type: string
+        initial_balance:
+          type: number
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        api_key:
+          type: string
+        api_secret:
+          type: string
+        risk_settings:
+          $ref: '#/components/schemas/RiskLimits'
+
+    AccountBalance:
+      type: object
+      properties:
+        total_balance:
+          type: number
+        available_balance:
+          type: number
+        unrealized_pnl:
+          type: number
+        realized_pnl:
+          type: number
+        margin_ratio:
+          type: number
+        positions_value:
+          type: number
+        updated_at:
+          type: string
+          format: date-time
+
+    # ==================== 市场数据相关 ====================
+    Kline:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+        turnover:
+          type: number
+
+    OrderBook:
+      type: object
+      properties:
+        symbol:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        bids:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+            description: [price, size]
+        asks:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+            description: [price, size]
+
+    Ticker:
+      type: object
+      properties:
+        symbol:
+          type: string
+        last_price:
+          type: number
+        price_change_24h:
+          type: number
+        price_change_percent_24h:
+          type: number
+        high_24h:
+          type: number
+        low_24h:
+          type: number
+        volume_24h:
+          type: number
+        turnover_24h:
+          type: number
+        timestamp:
+          type: integer
+          format: int64
+
+    FundingRate:
+      type: object
+      properties:
+        symbol:
+          type: string
+        funding_rate:
+          type: number
+        next_funding_time:
+          type: integer
+          format: int64
+        predicted_funding_rate:
+          type: number
+
+    OpenInterest:
+      type: object
+      properties:
+        symbol:
+          type: string
+        open_interest:
+          type: number
+        open_interest_value:
+          type: number
+        timestamp:
+          type: integer
+          format: int64
+
+    # ==================== 分析相关 ====================
+    MarketState:
+      type: object
+      properties:
+        symbol:
+          type: string
+        state:
+          type: string
+          enum: [strong_uptrend, weak_uptrend, ranging, weak_downtrend, strong_downtrend, breakout, reversal]
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        trend_strength:
+          type: number
+          minimum: 0
+          maximum: 1
+        volatility:
+          type: number
+        support_levels:
+          type: array
+          items:
+            type: number
+        resistance_levels:
+          type: array
+          items:
+            type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    SentimentAnalysis:
+      type: object
+      properties:
+        symbol:
+          type: string
+        sentiment_score:
+          type: number
+          minimum: -1
+          maximum: 1
+        sentiment_class:
+          type: string
+          enum: [very_bearish, bearish, neutral, bullish, very_bullish]
+        social_volume:
+          type: number
+        news_sentiment:
+          type: number
+        fear_greed_index:
+          type: number
+          minimum: 0
+          maximum: 100
+        extreme_alert:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    MLPrediction:
+      type: object
+      properties:
+        symbol:
+          type: string
+        horizon:
+          type: string
+        price_direction:
+          type: string
+          enum: [up, down, neutral]
+        price_probability:
+          type: object
+          properties:
+            up:
+              type: number
+            down:
+              type: number
+            neutral:
+              type: number
+        predicted_price:
+          type: number
+        predicted_volatility:
+          type: number
+        trend_strength:
+          type: number
+        confidence:
+          type: number
+        model_version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    EventImpactAnalysis:
+      type: object
+      properties:
+        symbol:
+          type: string
+        event_score:
+          type: number
+          minimum: -1
+          maximum: 1
+        upcoming_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduledEvent'
+        recent_impacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventImpact'
+        event_coefficient:
+          type: number
+          minimum: 0.5
+          maximum: 1.5
+
+    ScheduledEvent:
+      type: object
+      properties:
+        event_type:
+          type: string
+        description:
+          type: string
+        scheduled_time:
+          type: string
+          format: date-time
+        predicted_impact:
+          type: number
+        confidence:
+          type: number
+
+    EventImpact:
+      type: object
+      properties:
+        event_type:
+          type: string
+        description:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        actual_impact:
+          type: number
+        duration:
+          type: string
+
+    TechnicalIndicator:
+      type: object
+      properties:
+        symbol:
+          type: string
+        indicator_type:
+          type: string
+        interval:
+          type: string
+        value:
+          type: number
+        signal:
+          type: string
+          enum: [buy, sell, neutral]
+        timestamp:
+          type: string
+          format: date-time
+
+    # ==================== 信号相关 ====================
+    TradingSignal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        direction:
+          type: string
+          enum: [LONG, SHORT, NEUTRAL]
+        strength:
+          type: number
+          minimum: 0
+          maximum: 1
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        composite_score:
+          type: number
+          minimum: -1
+          maximum: 1
+        component_scores:
+          type: object
+          properties:
+            event:
+              type: number
+            ml:
+              type: number
+            sentiment:
+              type: number
+            technical:
+              type: number
+        entry_zone:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+        stop_loss:
+          type: number
+        take_profit:
+          type: array
+          items:
+            type: number
+        suggested_leverage:
+          type: number
+        status:
+          type: string
+          enum: [active, executed, expired, cancelled]
+        created_at:
+          type: string
+          format: date-time
+        expiry:
+          type: string
+          format: date-time
+
+    GenerateSignalRequest:
+      type: object
+      required:
+        - symbol
+      properties:
+        symbol:
+          type: string
+        force_refresh:
+          type: boolean
+          default: false
+
+    ExecuteSignalRequest:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        position_size:
+          type: number
+          description: 覆盖自动计算的仓位大小
+        leverage:
+          type: number
+          description: 覆盖自动计算的杠杆
+
+    # ==================== 交易相关 ====================
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [LONG, SHORT]
+        size:
+          type: number
+        entry_price:
+          type: number
+        current_price:
+          type: number
+        exit_price:
+          type: number
+        leverage:
+          type: number
+        pnl:
+          type: number
+        pnl_percent:
+          type: number
+        stop_loss:
+          type: number
+        take_profit:
+          type: array
+          items:
+            type: number
+        status:
+          type: string
+          enum: [open, closed, cancelled, liquidated]
+        signal_id:
+          type: string
+          format: uuid
+        strategy_id:
+          type: string
+          format: uuid
+        opened_at:
+          type: string
+          format: date-time
+        closed_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        account_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [buy, sell]
+        type:
+          type: string
+          enum: [market, limit, stop_limit, trigger]
+        size:
+          type: number
+        price:
+          type: number
+        filled_size:
+          type: number
+        avg_fill_price:
+          type: number
+        status:
+          type: string
+          enum: [pending, partially_filled, filled, cancelled, rejected]
+        time_in_force:
+          type: string
+          enum: [GTC, IOC, FOK]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - account_id
+        - symbol
+        - side
+        - type
+        - size
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [buy, sell]
+        type:
+          type: string
+          enum: [market, limit, stop_limit, trigger]
+        size:
+          type: number
+        price:
+          type: number
+        stop_price:
+          type: number
+        time_in_force:
+          type: string
+          enum: [GTC, IOC, FOK]
+        leverage:
+          type: number
+        reduce_only:
+          type: boolean
+          default: false
+
+    ClosePositionRequest:
+      type: object
+      properties:
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 100
+        order_type:
+          type: string
+          enum: [market, limit]
+          default: market
+        price:
+          type: number
+          description: 限价单价格
+
+    Position:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        trade_id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [LONG, SHORT]
+        size:
+          type: number
+        entry_price:
+          type: number
+        current_price:
+          type: number
+        mark_price:
+          type: number
+        unrealized_pnl:
+          type: number
+        unrealized_pnl_percent:
+          type: number
+        leverage:
+          type: number
+        margin:
+          type: number
+        liquidation_price:
+          type: number
+        stop_loss:
+          type: number
+        take_profit:
+          type: array
+          items:
+            type: number
+        opened_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrderResult:
+      type: object
+      properties:
+        order_id:
+          type: string
+        status:
+          type: string
+        filled_size:
+          type: number
+        avg_fill_price:
+          type: number
+        total_fees:
+          type: number
+        execution_time_ms:
+          type: integer
+
+    # ==================== 风控相关 ====================
+    RiskMetrics:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        total_exposure:
+          type: number
+        exposure_ratio:
+          type: number
+        daily_pnl:
+          type: number
+        daily_pnl_percent:
+          type: number
+        current_drawdown:
+          type: number
+        max_drawdown:
+          type: number
+        var_95:
+          type: number
+          description: 95% 置信度下的风险价值
+        sharpe_ratio:
+          type: number
+        win_rate:
+          type: number
+        profit_factor:
+          type: number
+        total_trades:
+          type: integer
+        open_positions:
+          type: integer
+        margin_ratio:
+          type: number
+        updated_at:
+          type: string
+          format: date-time
+
+    RiskLimits:
+      type: object
+      properties:
+        max_position_size:
+          type: number
+          default: 0.2
+          description: 单笔最大仓位比例
+        max_total_exposure:
+          type: number
+          default: 0.5
+          description: 总仓位上限比例
+        max_leverage:
+          type: integer
+          default: 10
+          description: 最大杠杆倍数
+        max_daily_loss:
+          type: number
+          default: 0.05
+          description: 日最大亏损比例
+        max_drawdown:
+          type: number
+          default: 0.15
+          description: 最大回撤比例
+        circuit_breaker_loss:
+          type: number
+          default: 0.03
+          description: 熔断亏损阈值
+        max_positions:
+          type: integer
+          default: 10
+          description: 最大持仓数量
+
+    CircuitBreakerStatus:
+      type: object
+      properties:
+        is_triggered:
+          type: boolean
+        triggered_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+        triggered_by:
+          type: string
+          enum: [auto, manual]
+        auto_reset_at:
+          type: string
+          format: date-time
+
+    TradeRequest:
+      type: object
+      required:
+        - account_id
+        - symbol
+        - side
+        - size
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [LONG, SHORT]
+        size:
+          type: number
+        leverage:
+          type: number
+        entry_price:
+          type: number
+
+    ValidationResult:
+      type: object
+      properties:
+        is_valid:
+          type: boolean
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              check_name:
+                type: string
+              passed:
+                type: boolean
+              message:
+                type: string
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    # ==================== 监控相关 ====================
+    DashboardData:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total_equity:
+              type: number
+            total_pnl:
+              type: number
+            total_pnl_percent:
+              type: number
+            daily_pnl:
+              type: number
+            open_positions:
+              type: integer
+            active_signals:
+              type: integer
+        positions_summary:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        recent_trades:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        active_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+        system_health:
+          $ref: '#/components/schemas/SystemHealth'
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [price_anomaly, volatility_spike, extreme_sentiment, system_fault, risk_breach, circuit_breaker]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        message:
+          type: string
+        symbol:
+          type: string
+        current_value:
+          type: number
+        threshold:
+          type: number
+        status:
+          type: string
+          enum: [active, acknowledged, resolved]
+        created_at:
+          type: string
+          format: date-time
+        acknowledged_at:
+          type: string
+          format: date-time
+        acknowledged_by:
+          type: string
+        resolved_at:
+          type: string
+          format: date-time
+
+    CreateAlertRequest:
+      type: object
+      required:
+        - type
+        - severity
+        - title
+        - message
+      properties:
+        type:
+          type: string
+        severity:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        symbol:
+          type: string
+        threshold:
+          type: number
+
+    SystemHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+              uptime_percent:
+                type: number
+              last_check:
+                type: string
+                format: date-time
+        latency:
+          type: object
+          properties:
+            api_p50_ms:
+              type: number
+            api_p95_ms:
+              type: number
+            data_freshness_ms:
+              type: number
+        resources:
+          type: object
+          properties:
+            cpu_usage:
+              type: number
+            memory_usage:
+              type: number
+            disk_usage:
+              type: number
+        updated_at:
+          type: string
+          format: date-time
+
+    SystemMetric:
+      type: object
+      properties:
+        service:
+          type: string
+        metric_name:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    # ==================== 报告相关 ====================
+    DailyReport:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        summary:
+          type: object
+          properties:
+            starting_equity:
+              type: number
+            ending_equity:
+              type: number
+            daily_pnl:
+              type: number
+            daily_pnl_percent:
+              type: number
+            total_trades:
+              type: integer
+            winning_trades:
+              type: integer
+            losing_trades:
+              type: integer
+            win_rate:
+              type: number
+            best_trade:
+              type: number
+            worst_trade:
+              type: number
+        trades:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        metrics:
+          $ref: '#/components/schemas/PerformanceMetrics'
+
+    WeeklyReport:
+      type: object
+      properties:
+        week_start:
+          type: string
+          format: date
+        week_end:
+          type: string
+          format: date
+        summary:
+          type: object
+          properties:
+            starting_equity:
+              type: number
+            ending_equity:
+              type: number
+            weekly_pnl:
+              type: number
+            weekly_pnl_percent:
+              type: number
+            total_trades:
+              type: integer
+            win_rate:
+              type: number
+            avg_trade_pnl:
+              type: number
+        daily_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyReport'
+        metrics:
+          $ref: '#/components/schemas/PerformanceMetrics'
+
+    MonthlyReport:
+      type: object
+      properties:
+        month:
+          type: string
+          format: date
+        summary:
+          type: object
+          properties:
+            starting_equity:
+              type: number
+            ending_equity:
+              type: number
+            monthly_pnl:
+              type: number
+            monthly_pnl_percent:
+              type: number
+            total_trades:
+              type: integer
+            win_rate:
+              type: number
+            profit_factor:
+              type: number
+            sharpe_ratio:
+              type: number
+            max_drawdown:
+              type: number
+        weekly_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeeklyReport'
+        metrics:
+          $ref: '#/components/schemas/PerformanceMetrics'
+
+    PerformanceAnalysis:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+        metrics:
+          $ref: '#/components/schemas/PerformanceMetrics'
+        equity_curve:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              equity:
+                type: number
+        drawdown_curve:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              drawdown:
+                type: number
+        strategy_breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              strategy_id:
+                type: string
+              strategy_name:
+                type: string
+              pnl:
+                type: number
+              trades:
+                type: integer
+              win_rate:
+                type: number
+
+    TradeAnalysis:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+        total_trades:
+          type: integer
+        winning_trades:
+          type: integer
+        losing_trades:
+          type: integer
+        win_rate:
+          type: number
+        avg_win:
+          type: number
+        avg_loss:
+          type: number
+        profit_factor:
+          type: number
+        largest_win:
+          type: number
+        largest_loss:
+          type: number
+        avg_holding_time_hours:
+          type: number
+        trades_by_symbol:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              trades:
+                type: integer
+              pnl:
+                type: number
+        trades_by_hour:
+          type: array
+          items:
+            type: object
+            properties:
+              hour:
+                type: integer
+              trades:
+                type: integer
+              pnl:
+                type: number
+
+    PerformanceMetrics:
+      type: object
+      properties:
+        total_return:
+          type: number
+        annualized_return:
+          type: number
+        sharpe_ratio:
+          type: number
+        sortino_ratio:
+          type: number
+        max_drawdown:
+          type: number
+        win_rate:
+          type: number
+        profit_factor:
+          type: number
+        avg_win:
+          type: number
+        avg_loss:
+          type: number
+        avg_holding_time:
+          type: number
+        total_trades:
+          type: integer
+
+    # ==================== 配置相关 ====================
+    SystemConfig:
+      type: object
+      properties:
+        trading_enabled:
+          type: boolean
+        auto_execute_enabled:
+          type: boolean
+        min_signal_confidence:
+          type: number
+        default_leverage:
+          type: number
+        risk_limits:
+          $ref: '#/components/schemas/RiskLimits'
+        signal_weights:
+          type: object
+          properties:
+            event:
+              type: number
+            ml:
+              type: number
+            sentiment:
+              type: number
+            technical:
+              type: number
+        notification_settings:
+          type: object
+          properties:
+            email_enabled:
+              type: boolean
+            telegram_enabled:
+              type: boolean
+            alert_severity_threshold:
+              type: string
+        updated_at:
+          type: string
+          format: date-time
+
+    StrategyConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+        symbols:
+          type: array
+          items:
+            type: string
+        parameters:
+          type: object
+        risk_settings:
+          $ref: '#/components/schemas/RiskLimits'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

@@ -1,0 +1,48 @@
+{
+  "date": "2026-03-19",
+  "total_anomalies": 2,
+  "anomalies": [
+    {
+      "type": "new_project_no_progress",
+      "project": "交易系统",
+      "severity": "低",
+      "question": "🤔 项目「交易系统」在计划中但尚无完成记录，是否需要支持？",
+      "suggestion": "建议：确认资源是否到位"
+    },
+    {
+      "type": "new_project_no_progress",
+      "project": "Daily Digest",
+      "severity": "低",
+      "question": "🤔 项目「Daily Digest」在计划中但尚无完成记录，是否需要支持？",
+      "suggestion": "建议：确认资源是否到位"
+    }
+  ],
+  "questions": [
+    {
+      "project": "交易系统",
+      "severity": "低",
+      "question": "🤔 项目「交易系统」在计划中但尚无完成记录，是否需要支持？",
+      "suggestion": "建议：确认资源是否到位"
+    },
+    {
+      "project": "Daily Digest",
+      "severity": "低",
+      "question": "🤔 项目「Daily Digest」在计划中但尚无完成记录，是否需要支持？",
+      "suggestion": "建议：确认资源是否到位"
+    }
+  ],
+  "actions": [
+    {
+      "priority": "低",
+      "project": "交易系统",
+      "action": "建议：确认资源是否到位",
+      "reason": "[new_project_no_progress] "
+    },
+    {
+      "priority": "低",
+      "project": "Daily Digest",
+      "action": "建议：确认资源是否到位",
+      "reason": "[new_project_no_progress] "
+    }
+  ]
+}

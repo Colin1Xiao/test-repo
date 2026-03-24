@@ -1,0 +1,19 @@
+{
+  "schema": "openclaw.health.v1",
+  "lastUpdated": "2026-03-24T22:12:54Z",
+  "changed": false,
+  "previousStatus": "healthy",
+  "components": {
+    "gateway": {"status": "running", "severity": 0, "port": 18789, "lastCheck": "2026-03-24T22:12:54Z", "errors": []},
+    "telegram": {"status": "configured", "severity": 0, "lastCheck": "2026-03-24T22:12:54Z", "errors": []},
+    "memorySearch": {"status": "ready", "severity": 0, "provider": "local", "modelPath": "/Users/colin/.openclaw/memory/models/embeddinggemma-300M-Q8_0.gguf", "lastCheck": "2026-03-24T22:12:54Z", "errors": []},
+    "cron": {"status": "not_initialized", "severity": 0, "lastCheck": "2026-03-24T22:12:54Z", "errors": []}
+  },
+  "overall": {"status": "healthy", "emoji": "🟢", "severity": 0},
+  "system": {
+    "version": "2026.3.12",
+    "nodeVersion": "v22.22.1",
+    "platform": "darwin",
+    "arch": "x86_64"
+  }
+}

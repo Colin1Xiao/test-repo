@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""
+Execution State Machine - 执行状态机（修复版）
+"""
+
+import json
+import logging
+import os
+from datetime import datetime
+from enum import Enum
+from typing import Dict, Any, Optional
+
+# 配置日志
+os.makedirs('logs', exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/execution_state_machine.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+class ExecutionState(Enum):
+    """执行状态枚举"""
+    IDLE = "IDLE"  # 空闲
+    SIGNAL_DETECTED = "SIGNAL_DETECTED"  # 信号检测到
+    RL_EVALUATION_PENDING = "RL_EVALUATION_PENDING"  # RL 评估中
+    PRECHECK_PENDING = "PRECHECK_PENDING"  # 预检查中
+    ENTRY_ORDER_PENDING = "ENTRY_ORDER_PENDING"  # 入场挂单中
+    ENTRY_PARTIALLY_FILLED = "ENTRY_PARTIALLY_FILLED"  # 入场部分成交
+    POSITION_OPEN = "POSITION_OPEN"  # 持仓中
+    EXIT_ORDER_PENDING = "EXIT_ORDER_PENDING"  # 平仓挂单中
+    EXIT_PARTIALLY_FILLED = "EXIT_PARTIALLY_FILLED"  # 平仓部分成交
+    EMERGENCY_EXIT_TRIGGERED = "EMERGENCY_EXIT_TRIGGERED"  # 紧急平仓触发
+    COOLDOWN = "COOLDOWN"  # 冷静期
+    FROZEN = "FROZEN"  # 系统冻结
+    ERROR_RECOVERY = "ERROR_RECOVERY"  # 错误恢复
+    POSITION_CLOSED = "POSITION_CLOSED"  # 持仓已平
+
+class ExecutionStateMachine:
+    """执行状态机"""
+    
+    def __init__(self, adapter=None, config: Dict = None):
+        self.adapter = adapter
+        self.config = config or {}
+        self.current_state = ExecutionState.IDLE
+        self.position_info = {}
+        self.entry_orders = []
+        self.exit_orders = []
+        self.last_signal = None
+        self.entry_start_time = None
+        self.exit_start_time = None
+        
+    def transition_to(self, new_state: ExecutionState, reason: str = ""):
+        """状态转换"""
+        old_state = self.current_state
+        if old_state != new_state:
+            self.log_state_transition(old_state, new_state, reason)
+            
+            # 根据状态转换发送告警
+            if new_state in [ExecutionState.SIGNAL_DETECTED, ExecutionState.POSITION_OPEN, ExecutionState.POSITION_CLOSED]:
+                alert_msg = f"📊 TRADE STATE CHANGE: {new_state.value}"
+                logger.info(alert_msg)
+                print(alert_msg)  # 同时打印到控制台
+        
+        self.current_state = new_state
+    
+    def log_state_transition(self, old_state: ExecutionState, new_state: ExecutionState, reason: str = ""):
+        """记录状态转换"""
+        log_msg = f"State transition: {old_state.value} -> {new_state.value}"
+        if reason:
+            log_msg += f" ({reason})"
+        logger.info(log_msg)
+        print(log_msg)  # 同时打印到控制台
+    
+    def save_state(self):
+        """保存状态到文件"""
+        state_data = {
+            'current_state': self.current_state.value,
+            'position_info': self.position_info,
+            'entry_orders': self.entry_orders,
+            'exit_orders': self.exit_orders,
+            'last_signal': self.last_signal,
+            'entry_start_time': self.entry_start_time.isoformat() if self.entry_start_time else None,
+            'exit_start_time': self.exit_start_time.isoformat() if self.exit_start_time else None,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        with open('logs/state_machine_state.json', 'w') as f:
+            json.dump(state_data, f, indent=2)
+        logger.info("状态已保存到 logs/state_machine_state.json")
+    
+    def load_state(self):
+        """从文件加载状态"""
+        try:
+            with open('logs/state_machine_state.json', 'r') as f:
+                state_data = json.load(f)
+            
+            # 恢复状态
+            self.current_state = ExecutionState(state_data['current_state'])
+            self.position_info = state_data['position_info']
+            self.entry_orders = state_data['entry_orders']
+            self.exit_orders = state_data['exit_orders']
+            self.last_signal = state_data['last_signal']
+            
+            if state_data['entry_start_time']:
+                self.entry_start_time = datetime.fromisoformat(state_data['entry_start_time'])
+            if state_data['exit_start_time']:
+                self.exit_start_time = datetime.fromisoformat(state_data['exit_start_time'])
+                
+            logger.info("状态已从 logs/state_machine_state.json 加载")
+            return True
+        except FileNotFoundError:
+            logger.info("状态文件不存在，使用默认状态")
+            return False
+        except Exception as e:
+            logger.error(f"加载状态失败: {e}")
+            return False

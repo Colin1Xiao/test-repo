@@ -1,0 +1,14 @@
+{
+  "position_size": 100000.0,
+  "leverage": 50,
+  "balance": 10000.0,
+  "margin": 2000.0,
+  "margin_pct": 20.0,
+  "liquidation_pct": 2.0,
+  "risk_level": "VERY_HIGH",
+  "risk_emoji": "\ud83d\udd34",
+  "position_risk": "\u5b89\u5168",
+  "suggestions": [
+    "\u26a0\ufe0f  \u5efa\u8bae\u964d\u4f4e\u6760\u6746\u81f3 20-50 \u500d"
+  ]
+}

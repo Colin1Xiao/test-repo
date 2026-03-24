@@ -1,0 +1,114 @@
+# OpenClaw 正式基线配置
+# 所有健康判断、报告、告警都基于此基线
+
+# ============================================================
+# 核心基线指标
+# ============================================================
+core:
+  critical_count: 0
+  warning_count_max: 3
+  health_ok_after: true
+  final_exit: 0
+  
+  # 服务状态基线
+  gateway_online: true
+  ocnmps_online: true
+  telegram_reachable: true
+  
+# ============================================================
+# 性能基线
+# ============================================================
+performance:
+  telegram_latency_ms_max: 2000
+  gateway_response_ms_max: 500
+  health_check_duration_ms_max: 30000
+  
+# ============================================================
+# 趋势基线
+# ============================================================
+trends:
+  warning_increase_7d_max: 5
+  critical_increase_7d_max: 0
+  repair_7d_max: 5
+  
+# ============================================================
+# 存储基线
+# ============================================================
+storage:
+  snapshot_count_max: 10
+  event_archive_days: 30
+  log_retention_days: 7
+  
+# ============================================================
+# Judge 基线
+# ============================================================
+judge:
+  confidence_threshold: 0.75
+  low_confidence_ratio_max: 0.20  # 低置信度裁决比例上限
+  manual_review_ratio_max: 0.30   # 人工审核比例上限
+  
+# ============================================================
+# 模型基线
+# ============================================================
+models:
+  availability_min: 0.99
+  fallback_count_max: 3
+  response_time_ms_max: 5000
+  
+# ============================================================
+# 告警基线
+# ============================================================
+alerts:
+  active_critical_max: 0
+  active_warning_max: 5
+  cooldown_critical_min: 30
+  cooldown_warning_min: 60
+  
+# ============================================================
+# 基线偏离判定
+# ============================================================
+drift_detection:
+  # 严重偏离 (Critical)
+  critical:
+    - critical_count > 0
+    - health_ok_after == false
+    - gateway_online == false
+    - ocnmps_online == false
+    
+  # 警告偏离 (Warning)
+  warning:
+    - warning_count > 3
+    - telegram_latency_ms > 2000
+    - snapshot_count > 10
+    - repair_7d > 5
+    - low_confidence_ratio > 0.20
+    
+  # 信息偏离 (Info)
+  info:
+    - warning_increase_7d > 5
+    - telegram_latency_ms > 1500
+
+# ============================================================
+# 基线检查命令
+# ============================================================
+check_commands:
+  gateway: "pgrep -f openclaw-gateway"
+  ocnmps: "openclaw status | grep -q running"
+  telegram: "curl -s --max-time 3 https://api.telegram.org"
+  health: "openclaw health check"
+  
+# ============================================================
+# 基线恢复动作
+# ============================================================
+recovery:
+  gateway_offline:
+    auto: "openclaw gateway start"
+    verify: "pgrep -f openclaw-gateway"
+    
+  health_failed:
+    auto: "openclaw doctor --repair --yes"
+    verify: "openclaw health check"
+    
+  telegram_unreachable:
+    auto: null  # 无法自动修复
+    verify: "curl -s --max-time 3 https://api.telegram.org"

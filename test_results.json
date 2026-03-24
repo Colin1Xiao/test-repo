@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-03-11T19:42:53.414691",
+  "total": 7,
+  "passed": 4,
+  "failed": 3,
+  "timeout": 0,
+  "results": [
+    {
+      "name": "1. 1% 波动捕捉策略",
+      "status": "PASS",
+      "output_lines": 17,
+      "has_expected": false
+    },
+    {
+      "name": "2. 双向交易策略",
+      "status": "PASS",
+      "output_lines": 7,
+      "has_expected": false
+    },
+    {
+      "name": "3. 量价关系分析",
+      "status": "PASS",
+      "output_lines": 5,
+      "has_expected": false
+    },
+    {
+      "name": "4. 日内波段策略",
+      "status": "PASS",
+      "output_lines": 7,
+      "has_expected": false
+    },
+    {
+      "name": "5. 黑天鹅防护",
+      "status": "FAIL",
+      "error": "错误：获取数据失败 - okx GET https://www.okx.com/api/v5/public/instruments?instType=SPOT\n"
+    },
+    {
+      "name": "6. 金字塔滚仓",
+      "status": "FAIL",
+      "error": "错误：获取数据失败 - okx GET https://www.okx.com/api/v5/public/instruments?instType=SPOT\n"
+    },
+    {
+      "name": "7. 专业止损管理",
+      "status": "FAIL",
+      "error": "脚本不存在"
+    }
+  ]
+}

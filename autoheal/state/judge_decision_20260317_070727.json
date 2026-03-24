@@ -1,0 +1,12 @@
+{
+  "decision": "manual_review",
+  "confidence": 0.9,
+  "reason": "Security Agent \u68c0\u6d4b\u5230\u5b89\u5168\u76f8\u5173\u95ee\u9898\uff0c\u9700\u8981\u4eba\u5de5\u5ba1\u6838",
+  "analysis": {
+    "sre": "restart_recommended",
+    "security": "security_concern",
+    "code": "script_generated"
+  },
+  "context": "",
+  "threshold": 0.75
+}

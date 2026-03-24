@@ -1,0 +1,34 @@
+{
+  "current_symbols": [
+    "BTC/USDT:USDT",
+    "ETH/USDT:USDT",
+    "SOL/USDT:USDT"
+  ],
+  "suggested_symbols": [
+    "WIF/USDT:USDT",
+    "SUSHI/USDT:USDT",
+    "XLM/USDT:USDT",
+    "DASH/USDT:USDT",
+    "UNI/USDT:USDT",
+    "STRK/USDT:USDT",
+    "ZKP/USDT:USDT",
+    "INJ/USDT:USDT",
+    "APT/USDT:USDT",
+    "LIT/USDT:USDT"
+  ],
+  "all_symbols": [
+    "BTC/USDT:USDT",
+    "ETH/USDT:USDT",
+    "SOL/USDT:USDT",
+    "WIF/USDT:USDT",
+    "SUSHI/USDT:USDT",
+    "XLM/USDT:USDT",
+    "DASH/USDT:USDT",
+    "UNI/USDT:USDT",
+    "STRK/USDT:USDT",
+    "ZKP/USDT:USDT",
+    "INJ/USDT:USDT",
+    "APT/USDT:USDT",
+    "LIT/USDT:USDT"
+  ]
+}

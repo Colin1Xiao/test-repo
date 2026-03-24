@@ -1,0 +1,11 @@
+关键事件摘要
+============
+时间: Tue Mar 17 06:34:42 CST 2026
+Critical: 1
+Warning: 0
+修复动作: doctor_repair
+健康恢复: true
+
+告警列表:
+Gateway 进程未运行
+基线偏移: critical_count=1 (基线: 0) health_ok_after=false

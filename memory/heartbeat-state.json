@@ -1,0 +1,26 @@
+{
+  "lastChecks": {
+    "health": "2026-03-24T11:11:30.413344Z",
+    "alerts": "2026-03-24T11:11:30.413799Z"
+  },
+  "lastNotifiedCritical": null,
+  "pendingReview": [],
+  "lastSystemStatus": "healthy",
+  "lastSystemCheck": "2026-03-24T11:11:30.413805Z",
+  "systemHealth": {
+    "status": "healthy",
+    "consecutiveDaysWithoutAlerts": 9,
+    "trend": "stable"
+  },
+  "xiaolongSystem": {
+    "version": "V5.4",
+    "status": "READY",
+    "phase": "MICRO_MODE_ENABLED",
+    "totalTrades": 89,
+    "capitalState": "MICRO",
+    "equityUsdt": 1.35,
+    "riskPct": 0.037,
+    "lastActivity": "2026-03-24T11:11:30.413808Z",
+    "capitalMode": "MICRO_MODE (\u91c7\u6837\u6a21\u5f0f)"
+  }
+}

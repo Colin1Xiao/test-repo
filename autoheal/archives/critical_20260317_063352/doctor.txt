@@ -1,0 +1,79 @@
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██
+██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██
+██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+                  🦞 OPENCLAW 🦞                    
+ 
+┌  OpenClaw doctor
+│
+◇  Session locks ──────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  - Found 2 session lock files.                                               │
+│  - ~/.openclaw/agents/main/sessions/31e234e1-fb31-4372-b9c3-bf5cd99d4357.js  │
+│  onl.lock                                                                    │
+│    pid=13541 (alive) age=7m21s stale=no                                      │
+│  - ~/.openclaw/agents/main/sessions/befe0891-4ef4-4494-b6c2-ff9dd44b4af3.js  │
+│  onl.lock                                                                    │
+│    pid=13541 (alive) age=4m59s stale=no                                      │
+│                                                                              │
+├──────────────────────────────────────────────────────────────────────────────╯
+│
+◇  Other gateway-like services detected ───────────────────────────────────╮
+│                                                                          │
+│  - com.colin.ocnmps (user, plist:                                        │
+│    /Users/colin/Library/LaunchAgents/com.colin.ocnmps.plist)             │
+│  - com.colin.openclaw.autoheal (user, plist:                             │
+│    /Users/colin/Library/LaunchAgents/com.colin.openclaw.autoheal.plist)  │
+│                                                                          │
+├──────────────────────────────────────────────────────────────────────────╯
+│
+◇  Cleanup hints ─────────────────────────────────────────╮
+│                                                         │
+│  - launchctl bootout gui/$UID/ai.openclaw.gateway       │
+│  - rm ~/Library/LaunchAgents/ai.openclaw.gateway.plist  │
+│                                                         │
+├─────────────────────────────────────────────────────────╯
+│
+◇  Gateway recommendation ───────────────────────────────────────────────╮
+│                                                                        │
+│  Recommendation: run a single gateway per machine for most setups.     │
+│  One gateway supports multiple agents.                                 │
+│  If you need multiple gateways (e.g., a rescue bot on the same host),  │
+│  isolate ports + config/state (see docs:                               │
+│  /gateway#multiple-gateways-same-host).                                │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────╯
+│
+◇  Security ─────────────────────────────────╮
+│                                            │
+│  - No channel security warnings detected.  │
+│  - Run: openclaw security audit --deep     │
+│                                            │
+├────────────────────────────────────────────╯
+│
+◇  Skills status ────────────╮
+│                            │
+│  Eligible: 37              │
+│  Missing requirements: 47  │
+│  Blocked by allowlist: 0   │
+│                            │
+├────────────────────────────╯
+│
+◇  Plugins ──────╮
+│                │
+│  Loaded: 8     │
+│  Disabled: 33  │
+│  Errors: 0     │
+│                │
+├────────────────╯
+Telegram: ok (@AlanColin_Xiao_bot) (1306ms)
+Agents: main (default)
+Heartbeat interval: 30m (main)
+Session store (main): /Users/colin/.openclaw/agents/main/sessions/sessions.json (2 entries)
+- agent:main:subagent:54cf12b2-64a7-48d4-baf0-f57ae06041e6 (5m ago)
+- agent:main:main (7m ago)
+Run "openclaw doctor --fix" to apply changes.
+│
+└  Doctor complete.
+

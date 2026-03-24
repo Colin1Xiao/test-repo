@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-03-14T00:26:42.458830",
+  "tests": {
+    "create_exchange": "✅ 成功",
+    "public_api": "❌ 失败：okx GET https://www.okx.com/api/v5/public/time",
+    "fetch_ticker": "❌ 失败：okx GET https://www.okx.com/api/v5/asset/currencies",
+    "fetch_balance": "❌ 失败：okx GET https://www.okx.com/api/v5/asset/currencies",
+    "fetch_positions": "❌ 失败：okx GET https://www.okx.com/api/v5/asset/currencies",
+    "fetch_orders": "❌ 失败：okx GET https://www.okx.com/api/v5/asset/currencies",
+    "trading_permission": "✅ 有权限",
+    "network_latency": "❌ 失败：okx GET https://www.okx.com/api/v5/public/time"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "openclaw.meta.v1",
+  "version": "4.0.0",
+  "lastUpdated": "2026-03-19T06:57:00+08:00",
+  "goals": {
+    "stability": 0.99,
+    "minimizeActions": true,
+    "avoidFalsePositive": true,
+    "description": "系统围绕这些目标调整行为"
+  },
+  "explanations": {
+    "enabled": true,
+    "detailLevel": "normal",
+    "description": "normal: 关键信息; verbose: 全部细节"
+  },
+  "decisionTrace": [],
+  "confidenceDistribution": {
+    "highConfidenceExecute": 0,
+    "momentumExecute": 0,
+    "rejected": 0,
+    "total": 0
+  },
+  "systemSelfAssessment": {
+    "status": "unknown",
+    "lastAssessment": null,
+    "recommendations": []
+  }
+}

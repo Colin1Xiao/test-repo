@@ -1,0 +1,2447 @@
+[
+  {
+    "timestamp": "2026-03-12T14:37:39.957674",
+    "symbols": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "volume_top10": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "change_top5": []
+  },
+  {
+    "timestamp": "2026-03-12T14:40:00.501302",
+    "symbols": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "volume_top10": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "change_top5": []
+  },
+  {
+    "timestamp": "2026-03-12T14:47:45.194247",
+    "symbols": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "change_top5": [
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T14:49:15.874069",
+    "symbols": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "change_top5": [
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP"
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T14:49:31.423699",
+    "symbols": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ],
+    "change_top5": [
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP"
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:07:26.398863",
+    "symbols": [
+      "SATS/USDT:USDT-SWAP",
+      "PEPE/USDT:USDT-SWAP",
+      "SHIB/USDT:USDT-SWAP",
+      "BONK/USDT:USDT-SWAP",
+      "FLOKI/USDT:USDT-SWAP",
+      "PUMP/USDT:USDT-SWAP",
+      "HMSTR/USDT:USDT-SWAP",
+      "NEIRO/USDT:USDT-SWAP",
+      "GALA/USDT:USDT-SWAP",
+      "DOGE/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      "SATS/USDT:USDT-SWAP",
+      "PEPE/USDT:USDT-SWAP",
+      "SHIB/USDT:USDT-SWAP",
+      "BONK/USDT:USDT-SWAP",
+      "FLOKI/USDT:USDT-SWAP",
+      "PUMP/USDT:USDT-SWAP",
+      "HMSTR/USDT:USDT-SWAP",
+      "NEIRO/USDT:USDT-SWAP",
+      "GALA/USDT:USDT-SWAP",
+      "DOGE/USDT:USDT-SWAP"
+    ],
+    "change_top5": [
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP"
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:08:50.382883",
+    "symbols": [
+      "SATS/USDT:USDT-SWAP",
+      "PEPE/USDT:USDT-SWAP",
+      "SHIB/USDT:USDT-SWAP",
+      "BONK/USDT:USDT-SWAP",
+      "FLOKI/USDT:USDT-SWAP",
+      "PUMP/USDT:USDT-SWAP",
+      "HMSTR/USDT:USDT-SWAP",
+      "NEIRO/USDT:USDT-SWAP",
+      "GALA/USDT:USDT-SWAP",
+      "DOGE/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      "SATS/USDT:USDT-SWAP",
+      "PEPE/USDT:USDT-SWAP",
+      "SHIB/USDT:USDT-SWAP",
+      "BONK/USDT:USDT-SWAP",
+      "FLOKI/USDT:USDT-SWAP",
+      "PUMP/USDT:USDT-SWAP",
+      "HMSTR/USDT:USDT-SWAP",
+      "NEIRO/USDT:USDT-SWAP",
+      "GALA/USDT:USDT-SWAP",
+      "DOGE/USDT:USDT-SWAP"
+    ],
+    "change_top5": [
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP"
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:15:31.520544",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "OKB/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$782.11B",
+        "volume_usd": 782114162868.675,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69478.5
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$148.03B",
+        "volume_usd": 148031148687.8,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5142.7
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$86.86B",
+        "volume_usd": 86856657313.553,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2028.01
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$8.06B",
+        "volume_usd": 8059198715.976,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.568
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$7.86B",
+        "volume_usd": 7858886850.639999,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 205.54
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.06B",
+        "volume_usd": 7056253981.5,
+        "instId": "BNB-USDT-SWAP",
+        "price": 644.1
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.78B",
+        "volume_usd": 5775352366.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2527.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.61B",
+        "volume_usd": 4608019492.0,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.0
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.02B",
+        "volume_usd": 4021790144.736,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.096
+      },
+      {
+        "symbol": "OKB/USDT:USDT-SWAP",
+        "volume_display": "$2.75B",
+        "volume_usd": 2753390936.5,
+        "instId": "OKB-USDT-SWAP",
+        "price": 94.1
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 20.229265003371545,
+        "price": 0.1783,
+        "volume_usd": 93232939.48439999,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.465760585467844,
+        "price": 18.13,
+        "volume_usd": 4029621771.9799995,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.238896146309607,
+        "price": 0.21253,
+        "volume_usd": 720716.43384,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.457912457912453,
+        "price": 0.1336,
+        "volume_usd": 3408233.3944,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -11.486001435750175,
+        "price": 0.03699,
+        "volume_usd": 2433876.0468300004,
+        "instId": "ICX-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:15:55.957128",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "OKB/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$783.04B",
+        "volume_usd": 783042959390.9501,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69507.5
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$148.08B",
+        "volume_usd": 148077396988.9,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5142.7
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$86.91B",
+        "volume_usd": 86911109428.83202,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2028.91
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$8.06B",
+        "volume_usd": 8061130987.032001,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.568
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$7.86B",
+        "volume_usd": 7863979498.2,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 205.65
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.06B",
+        "volume_usd": 7063229535.5,
+        "instId": "BNB-USDT-SWAP",
+        "price": 644.5
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.78B",
+        "volume_usd": 5778168704.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2528.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.61B",
+        "volume_usd": 4609558901.2,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.02
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.03B",
+        "volume_usd": 4025480085.051,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.097
+      },
+      {
+        "symbol": "OKB/USDT:USDT-SWAP",
+        "volume_display": "$2.75B",
+        "volume_usd": 2753421236.7,
+        "instId": "OKB-USDT-SWAP",
+        "price": 94.1
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 20.29669588671613,
+        "price": 0.1784,
+        "volume_usd": 93317685.72320001,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.256664924202816,
+        "price": 18.098,
+        "volume_usd": 4025718287.4919996,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.018451992161987,
+        "price": 0.21307,
+        "volume_usd": 723229.46696,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.626262626262625,
+        "price": 0.1338,
+        "volume_usd": 3417039.7932,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -11.366355587461124,
+        "price": 0.03704,
+        "volume_usd": 2437258.1131999996,
+        "instId": "ICX-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:23:06.832094",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "OKB/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "CL/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$783.88B",
+        "volume_usd": 783879533894.52,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69561.5
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$148.24B",
+        "volume_usd": 148242288967.6,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5140.6
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$86.87B",
+        "volume_usd": 86866089981.1191,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2029.89
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$8.04B",
+        "volume_usd": 8038047637.956,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.572
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$7.89B",
+        "volume_usd": 7885741157.5,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 205.75
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.07B",
+        "volume_usd": 7067984693.5,
+        "instId": "BNB-USDT-SWAP",
+        "price": 644.9
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.76B",
+        "volume_usd": 5759395389.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2529.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.60B",
+        "volume_usd": 4601931285.629999,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.07
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.06B",
+        "volume_usd": 4060895246.3190002,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.103
+      },
+      {
+        "symbol": "OKB/USDT:USDT-SWAP",
+        "volume_display": "$2.76B",
+        "volume_usd": 2759581132.62,
+        "instId": "OKB-USDT-SWAP",
+        "price": 94.34
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 20.526671168129628,
+        "price": 0.1785,
+        "volume_usd": 93807559.81799999,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.26734613876912,
+        "price": 18.102,
+        "volume_usd": 4060667249.94,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.773109243697494,
+        "price": 0.1342,
+        "volume_usd": 3444951.5760000004,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.206927985414765,
+        "price": 0.2396,
+        "volume_usd": 5761597.706,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "CL/USDT:USDT-SWAP",
+        "change": 8.461464654944956,
+        "price": 90.433,
+        "volume_usd": 776491107.7770001,
+        "instId": "CL-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.698630136986303,
+        "price": 0.21105,
+        "volume_usd": 720155.7846,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -10.349819059107364,
+        "price": 0.03716,
+        "volume_usd": 2406427.68084,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -10.180817610062896,
+        "price": 0.2285,
+        "volume_usd": 476820.77550000005,
+        "instId": "LA-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -9.527700604673969,
+        "price": 0.05536,
+        "volume_usd": 6998575.16064,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.84014110299362,
+        "price": 0.047291,
+        "volume_usd": 393664.140263,
+        "instId": "NIGHT-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:26:38.826171",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "OKB/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$783.83B",
+        "volume_usd": 783831969991.2721,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69556.1
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$148.29B",
+        "volume_usd": 148291833172.5,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5140.5
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$86.89B",
+        "volume_usd": 86888679545.8876,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2030.09
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$8.05B",
+        "volume_usd": 8053119577.216001,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.576
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$7.85B",
+        "volume_usd": 7853063736.75,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 205.75
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.07B",
+        "volume_usd": 7070769118.4,
+        "instId": "BNB-USDT-SWAP",
+        "price": 644.8
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.78B",
+        "volume_usd": 5781621513.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2531.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.61B",
+        "volume_usd": 4612265536.13,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.17
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.06B",
+        "volume_usd": 4056274291.216,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.032
+      },
+      {
+        "symbol": "OKB/USDT:USDT-SWAP",
+        "volume_display": "$2.76B",
+        "volume_usd": 2761141074.12,
+        "instId": "OKB-USDT-SWAP",
+        "price": 94.38
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 20.757268424611226,
+        "price": 0.1786,
+        "volume_usd": 93949771.1658,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.634480036834848,
+        "price": 18.036,
+        "volume_usd": 4057174663.0200005,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.447434819175784,
+        "price": 0.1337,
+        "volume_usd": 3441292.8018000005,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.393524851801189,
+        "price": 0.2399,
+        "volume_usd": 5775727.8036,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 6.802721088435375,
+        "price": 0.02669,
+        "volume_usd": 866714.8057899999,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -14.055224246385098,
+        "price": 0.21041,
+        "volume_usd": 719905.82163,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -10.766642633982212,
+        "price": 0.03713,
+        "volume_usd": 2397363.6874100002,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -9.211591075488409,
+        "price": 0.047121,
+        "volume_usd": 392561.98813500005,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -9.210003969829307,
+        "price": 0.2287,
+        "volume_usd": 460037.1397,
+        "instId": "LA-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -7.8878748370273755,
+        "price": 0.05652,
+        "volume_usd": 7163902.59588,
+        "instId": "FLOW-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:37:26.947800",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "HYPE/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "LA/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$788.53B",
+        "volume_usd": 788529060889.5869,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69615.9
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$147.90B",
+        "volume_usd": 147899931909.6,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5143.2
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.81B",
+        "volume_usd": 87813780538.0792,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2035.22
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$8.01B",
+        "volume_usd": 8006431576.785,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.577
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.00B",
+        "volume_usd": 7998347598.24,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 206.88
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.10B",
+        "volume_usd": 7098691350.8,
+        "instId": "BNB-USDT-SWAP",
+        "price": 645.4
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.79B",
+        "volume_usd": 5788400136.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2532.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.59B",
+        "volume_usd": 4585894399.8,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.52
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.01B",
+        "volume_usd": 4011646578.6,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 17.9
+      },
+      {
+        "symbol": "HYPE/USDT:USDT-SWAP",
+        "volume_display": "$2.75B",
+        "volume_usd": 2752671662.8950005,
+        "instId": "HYPE-USDT-SWAP",
+        "price": 36.645
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 19.959266802444002,
+        "price": 0.1767,
+        "volume_usd": 93668522.1021,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.960590150860625,
+        "price": 17.9,
+        "volume_usd": 4011646578.6,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.742616033755278,
+        "price": 0.1336,
+        "volume_usd": 3466163.4232,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.340659340659341,
+        "price": 0.2388,
+        "volume_usd": 5774251.5804,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 7.686116700201201,
+        "price": 0.02676,
+        "volume_usd": 879556.69812,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.034573160740626,
+        "price": 0.2123,
+        "volume_usd": 734010.4783,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -11.439466158245946,
+        "price": 0.03716,
+        "volume_usd": 2373008.02064,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -10.981308411214945,
+        "price": 0.2286,
+        "volume_usd": 436512.6144,
+        "instId": "LA-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.61287398005439,
+        "price": 0.047376,
+        "volume_usd": 395568.51768,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -8.491490912747286,
+        "price": 0.36403,
+        "volume_usd": 15701520.334700001,
+        "instId": "PIPPIN-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:41:56.214148",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "LA/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$787.43B",
+        "volume_usd": 787426527013.06,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69644.2
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$147.85B",
+        "volume_usd": 147845245990.5,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5145.1
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.03B",
+        "volume_usd": 87028777789.997,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2035.9
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.02B",
+        "volume_usd": 8024065206.719999,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.07
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$8.00B",
+        "volume_usd": 7999002857.489,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.581
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.07B",
+        "volume_usd": 7073110276.4,
+        "instId": "BNB-USDT-SWAP",
+        "price": 645.4
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.80B",
+        "volume_usd": 5803998084.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2531.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.57B",
+        "volume_usd": 4566967890.25,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.75
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.00B",
+        "volume_usd": 3999127398.56,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 17.84
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.75B",
+        "volume_usd": 2754492972.0,
+        "instId": "TAO-USDT-SWAP",
+        "price": 207.2
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.668085955691566,
+        "price": 17.837,
+        "volume_usd": 3998459858.244,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 18.428184281842817,
+        "price": 0.1748,
+        "volume_usd": 93605415.3824,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.679628064243447,
+        "price": 0.1333,
+        "volume_usd": 3467136.0659000003,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.070087036188736,
+        "price": 0.2381,
+        "volume_usd": 5764417.1908,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 7.819427650141075,
+        "price": 0.02675,
+        "volume_usd": 880046.29725,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.02384763781144,
+        "price": 0.2119,
+        "volume_usd": 735954.7637,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -11.227902532250363,
+        "price": 0.03716,
+        "volume_usd": 2360494.0562,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -10.317771675166739,
+        "price": 0.2286,
+        "volume_usd": 429298.6842,
+        "instId": "LA-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.983096530745838,
+        "price": 0.047276,
+        "volume_usd": 395160.606288,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -8.864492872357854,
+        "price": 0.05562,
+        "volume_usd": 7032174.20388,
+        "instId": "FLOW-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:47:36.000570",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "HYPE/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP",
+      "LA/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$786.56B",
+        "volume_usd": 786564962212.1201,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69717.8
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$149.34B",
+        "volume_usd": 149336238259.2,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5153.6
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$86.85B",
+        "volume_usd": 86849487167.8896,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2037.42
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.04B",
+        "volume_usd": 8035886020.02,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.21
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.95B",
+        "volume_usd": 7949870461.417001,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.579
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.06B",
+        "volume_usd": 7059331109.099999,
+        "instId": "BNB-USDT-SWAP",
+        "price": 645.9
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.81B",
+        "volume_usd": 5814318015.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2519.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.58B",
+        "volume_usd": 4584658503.92,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.92
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.02B",
+        "volume_usd": 4018190494.656,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 17.904
+      },
+      {
+        "symbol": "HYPE/USDT:USDT-SWAP",
+        "volume_display": "$2.75B",
+        "volume_usd": 2747635440.508,
+        "instId": "HYPE-USDT-SWAP",
+        "price": 36.794
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 19.52326901248581,
+        "price": 17.901,
+        "volume_usd": 4017523291.704,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 18.766937669376695,
+        "price": 0.1753,
+        "volume_usd": 94480856.72510001,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.573839662447256,
+        "price": 0.1334,
+        "volume_usd": 3479679.2367999996,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.14494741655235,
+        "price": 0.2387,
+        "volume_usd": 5780368.9867,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 7.943548387096773,
+        "price": 0.02677,
+        "volume_usd": 881196.9241,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.05628272251309,
+        "price": 0.21256,
+        "volume_usd": 739994.05552,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -12.94862772695286,
+        "price": 0.03711,
+        "volume_usd": 2309860.62687,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -9.203681472589036,
+        "price": 0.36304,
+        "volume_usd": 15567678.70368,
+        "instId": "PIPPIN-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -8.996815286624198,
+        "price": 0.2286,
+        "volume_usd": 410873.5242,
+        "instId": "LA-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -8.566290665358839,
+        "price": 0.05593,
+        "volume_usd": 7057835.00058,
+        "instId": "FLOW-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:53:35.136031",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "HYPE/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "LA/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$789.66B",
+        "volume_usd": 789657391906.786,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69807.4
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$149.63B",
+        "volume_usd": 149634887700.0,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5150.0
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.08B",
+        "volume_usd": 87082905217.62001,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2039.91
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.06B",
+        "volume_usd": 8058202210.41,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.57
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.90B",
+        "volume_usd": 7901902905.431999,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.582
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.04B",
+        "volume_usd": 7044000581.8,
+        "instId": "BNB-USDT-SWAP",
+        "price": 646.1
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.81B",
+        "volume_usd": 5807612160.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2520.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.56B",
+        "volume_usd": 4558443401.5,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.75
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.07B",
+        "volume_usd": 4072457424.0999994,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.115
+      },
+      {
+        "symbol": "HYPE/USDT:USDT-SWAP",
+        "volume_display": "$2.77B",
+        "volume_usd": 2769676249.704,
+        "instId": "HYPE-USDT-SWAP",
+        "price": 36.946
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 20.037093462277277,
+        "price": 18.122,
+        "volume_usd": 4074036159.518,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 17.99729364005414,
+        "price": 0.1744,
+        "volume_usd": 94324506.1344,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 12.205387205387204,
+        "price": 0.1333,
+        "volume_usd": 3486826.6087,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 8.991328160657245,
+        "price": 0.2388,
+        "volume_usd": 5784261.8376,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 8.642972536348948,
+        "price": 0.0269,
+        "volume_usd": 886442.3712,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -12.959238126513684,
+        "price": 0.21204,
+        "volume_usd": 740129.43672,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -12.505887894488922,
+        "price": 0.03715,
+        "volume_usd": 2279057.4703,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -9.41252839987017,
+        "price": 0.05582,
+        "volume_usd": 7027678.830800001,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.636363636363638,
+        "price": 0.047436,
+        "volume_usd": 397568.373708,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -7.822580645161291,
+        "price": 0.2286,
+        "volume_usd": 401274.153,
+        "instId": "LA-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T15:59:13.841246",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$789.36B",
+        "volume_usd": 789363410268.406,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69764.3
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$150.66B",
+        "volume_usd": 150655416730.0,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5154.5
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.07B",
+        "volume_usd": 87072878819.9891,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2038.69
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.07B",
+        "volume_usd": 8074307591.2,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.7
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.83B",
+        "volume_usd": 7832012728.023,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.577
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.04B",
+        "volume_usd": 7044097198.8,
+        "instId": "BNB-USDT-SWAP",
+        "price": 645.1
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.81B",
+        "volume_usd": 5810983920.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2520.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.55B",
+        "volume_usd": 4552399188.96,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.92
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.04B",
+        "volume_usd": 4042753666.9490004,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.001
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.78B",
+        "volume_usd": 2778370006.0,
+        "instId": "TAO-USDT-SWAP",
+        "price": 206.3
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.62964916908468,
+        "price": 17.989,
+        "volume_usd": 4040557644.432,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 18.05838424983029,
+        "price": 0.1739,
+        "volume_usd": 94880985.8271,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 11.457455770850885,
+        "price": 0.1323,
+        "volume_usd": 3479810.8275,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 8.76712328767123,
+        "price": 0.2382,
+        "volume_usd": 5772059.5416,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 8.340048348106375,
+        "price": 0.02689,
+        "volume_usd": 886264.2832000001,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -13.54433325575983,
+        "price": 0.03715,
+        "volume_usd": 2210802.33255,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.152298380500572,
+        "price": 0.21236,
+        "volume_usd": 739891.54568,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -9.210955330942282,
+        "price": 0.05569,
+        "volume_usd": 6993178.914770001,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.423630123780521,
+        "price": 0.047497,
+        "volume_usd": 398352.63679699996,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -6.280230925261352,
+        "price": 0.36039,
+        "volume_usd": 15110421.829079999,
+        "instId": "PIPPIN-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T16:02:36.594161",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$791.44B",
+        "volume_usd": 791443344637.245,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69823.5
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$151.61B",
+        "volume_usd": 151614621466.0,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5159.0
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.40B",
+        "volume_usd": 87403718562.1664,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2041.64
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.11B",
+        "volume_usd": 8113049397.6,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 208.18
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.69B",
+        "volume_usd": 7689946210.544,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.561
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.07B",
+        "volume_usd": 7070090432.200001,
+        "instId": "BNB-USDT-SWAP",
+        "price": 646.7
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.81B",
+        "volume_usd": 5811353738.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2521.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.58B",
+        "volume_usd": 4576507130.77,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.93
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.05B",
+        "volume_usd": 4052436334.351,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.037
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.78B",
+        "volume_usd": 2784954037.0,
+        "instId": "TAO-USDT-SWAP",
+        "price": 205.3
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 19.30404869012966,
+        "price": 18.034,
+        "volume_usd": 4051943447.278,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 17.243720298710123,
+        "price": 0.1727,
+        "volume_usd": 94976815.2289,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 11.62594776748105,
+        "price": 0.1325,
+        "volume_usd": 3508852.5450000004,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 8.67183934276587,
+        "price": 0.2381,
+        "volume_usd": 5767535.5865,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 8.646464646464644,
+        "price": 0.02689,
+        "volume_usd": 887370.43024,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.1761725772185,
+        "price": 0.21251,
+        "volume_usd": 740770.12063,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -10.964807277950683,
+        "price": 0.03719,
+        "volume_usd": 2131337.66451,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -8.46534653465347,
+        "price": 0.05547,
+        "volume_usd": 6944378.93952,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.29109410835084,
+        "price": 0.047585,
+        "volume_usd": 399460.94297000003,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -7.068612457554632,
+        "price": 0.35852,
+        "volume_usd": 15055923.35208,
+        "instId": "PIPPIN-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T16:03:17.494137",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$791.35B",
+        "volume_usd": 791348344215.607,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69801.7
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$151.55B",
+        "volume_usd": 151548188336.0,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5158.0
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.45B",
+        "volume_usd": 87448217544.95999,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2041.84
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.11B",
+        "volume_usd": 8108834940.46,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 208.06
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.69B",
+        "volume_usd": 7685491540.356,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.562
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.07B",
+        "volume_usd": 7073828211.599999,
+        "instId": "BNB-USDT-SWAP",
+        "price": 646.9
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.81B",
+        "volume_usd": 5811094075.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2521.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.57B",
+        "volume_usd": 4573368981.36,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.91
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.07B",
+        "volume_usd": 4066654310.187,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.093
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.78B",
+        "volume_usd": 2783514239.7999997,
+        "instId": "TAO-USDT-SWAP",
+        "price": 205.1
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 19.391660068619675,
+        "price": 18.095,
+        "volume_usd": 4067090809.705,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 17.107942973523425,
+        "price": 0.1725,
+        "volume_usd": 95054567.66999999,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 11.700336700336708,
+        "price": 0.1327,
+        "volume_usd": 3516147.2555000004,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 8.991328160657245,
+        "price": 0.2388,
+        "volume_usd": 5783932.5324,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 8.477997577714982,
+        "price": 0.02687,
+        "volume_usd": 886809.7145700001,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -12.571662571662573,
+        "price": 0.2135,
+        "volume_usd": 744350.4565,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -11.703139866793531,
+        "price": 0.03712,
+        "volume_usd": 2110713.65376,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.50342102727185,
+        "price": 0.047473,
+        "volume_usd": 398636.857544,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -8.115269956939386,
+        "price": 0.05548,
+        "volume_usd": 6942621.675960001,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -7.227134818349182,
+        "price": 0.35776,
+        "volume_usd": 15021557.1168,
+        "instId": "PIPPIN-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T16:04:07.649201",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$791.63B",
+        "volume_usd": 791633708689.738,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69828.7
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$151.57B",
+        "volume_usd": 151571691260.4,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5157.2
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.55B",
+        "volume_usd": 87549953958.4075,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2042.83
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.10B",
+        "volume_usd": 8104444489.12,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.97
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.68B",
+        "volume_usd": 7676208868.65,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.562
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.08B",
+        "volume_usd": 7077625133.900001,
+        "instId": "BNB-USDT-SWAP",
+        "price": 646.7
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.82B",
+        "volume_usd": 5816592002.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2522.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.57B",
+        "volume_usd": 4571535418.559999,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.88
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.05B",
+        "volume_usd": 4047468571.776,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.008
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.79B",
+        "volume_usd": 2785238925.7,
+        "instId": "TAO-USDT-SWAP",
+        "price": 205.1
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.886981779772913,
+        "price": 18.009,
+        "volume_usd": 4047696122.643,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 17.335146159075453,
+        "price": 0.1726,
+        "volume_usd": 95393942.759,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 11.60639192598823,
+        "price": 0.1327,
+        "volume_usd": 3518516.4813,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.024612579762982,
+        "price": 0.2392,
+        "volume_usd": 5793665.592,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 8.427419354838717,
+        "price": 0.02689,
+        "volume_usd": 887600.87754,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -12.632139637793985,
+        "price": 0.21323,
+        "volume_usd": 743726.83607,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -11.82055542368858,
+        "price": 0.03715,
+        "volume_usd": 2103102.55075,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.100450988706006,
+        "price": 0.047683,
+        "volume_usd": 400418.755428,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -7.99469232045116,
+        "price": 0.05547,
+        "volume_usd": 6925031.05899,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -7.228540271070254,
+        "price": 0.3573,
+        "volume_usd": 14998128.059700001,
+        "instId": "PIPPIN-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T16:06:37.156573",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "LA/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$791.54B",
+        "volume_usd": 791536670841.6179,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69761.9
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$151.68B",
+        "volume_usd": 151679161040.59998,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5158.9
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.68B",
+        "volume_usd": 87682944950.1781,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2041.67
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.11B",
+        "volume_usd": 8109883401.7,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.85
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.59B",
+        "volume_usd": 7589423326.547999,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.558
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.10B",
+        "volume_usd": 7099853984.0,
+        "instId": "BNB-USDT-SWAP",
+        "price": 646.4
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.81B",
+        "volume_usd": 5810235480.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2520.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.57B",
+        "volume_usd": 4572770461.6,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.9
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.07B",
+        "volume_usd": 4070223667.9100003,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.103
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.80B",
+        "volume_usd": 2797965335.1000004,
+        "instId": "TAO-USDT-SWAP",
+        "price": 205.3
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 18.89246534848584,
+        "price": 18.099,
+        "volume_usd": 4069323451.278,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 17.471108089734873,
+        "price": 0.1728,
+        "volume_usd": 95761552.1472,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 11.467116357504228,
+        "price": 0.1322,
+        "volume_usd": 3512569.3352,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 9.124087591240873,
+        "price": 0.2392,
+        "volume_usd": 5794209.2935999995,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 8.22249093107618,
+        "price": 0.02685,
+        "volume_usd": 886544.8186499999,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -12.706074861934958,
+        "price": 0.21339,
+        "volume_usd": 745471.5633,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -12.65584568336861,
+        "price": 0.03713,
+        "volume_usd": 2069794.1018600003,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -8.46179075106592,
+        "price": 0.05582,
+        "volume_usd": 6960598.15056,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -7.7849735939246765,
+        "price": 0.047843,
+        "volume_usd": 402112.85580599995,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "LA/USDT:USDT-SWAP",
+        "change": -6.882591093117404,
+        "price": 0.23,
+        "volume_usd": 373385.91000000003,
+        "instId": "LA-USDT-SWAP"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T16:09:42.464831",
+    "symbols": [
+      "BTC/USDT:USDT-SWAP",
+      "XAU/USDT:USDT-SWAP",
+      "ETH/USDT:USDT-SWAP",
+      "ZEC/USDT:USDT-SWAP",
+      "ICP/USDT:USDT-SWAP",
+      "BNB/USDT:USDT-SWAP",
+      "YFI/USDT:USDT-SWAP",
+      "XAG/USDT:USDT-SWAP",
+      "RIVER/USDT:USDT-SWAP",
+      "TAO/USDT:USDT-SWAP",
+      "AVNT/USDT:USDT-SWAP",
+      "MMT/USDT:USDT-SWAP",
+      "BAND/USDT:USDT-SWAP",
+      "AIXBT/USDT:USDT-SWAP",
+      "RAVE/USDT:USDT-SWAP",
+      "ICX/USDT:USDT-SWAP",
+      "FLOW/USDT:USDT-SWAP",
+      "NIGHT/USDT:USDT-SWAP",
+      "PIPPIN/USDT:USDT-SWAP"
+    ],
+    "volume_top10": [
+      {
+        "symbol": "BTC/USDT:USDT-SWAP",
+        "volume_display": "$791.86B",
+        "volume_usd": 791857418309.3429,
+        "instId": "BTC-USDT-SWAP",
+        "price": 69698.9
+      },
+      {
+        "symbol": "XAU/USDT:USDT-SWAP",
+        "volume_display": "$151.79B",
+        "volume_usd": 151789599117.4,
+        "instId": "XAU-USDT-SWAP",
+        "price": 5158.7
+      },
+      {
+        "symbol": "ETH/USDT:USDT-SWAP",
+        "volume_display": "$87.74B",
+        "volume_usd": 87742202354.256,
+        "instId": "ETH-USDT-SWAP",
+        "price": 2038.65
+      },
+      {
+        "symbol": "ZEC/USDT:USDT-SWAP",
+        "volume_display": "$8.11B",
+        "volume_usd": 8109869793.57,
+        "instId": "ZEC-USDT-SWAP",
+        "price": 207.63
+      },
+      {
+        "symbol": "ICP/USDT:USDT-SWAP",
+        "volume_display": "$7.56B",
+        "volume_usd": 7563588126.712,
+        "instId": "ICP-USDT-SWAP",
+        "price": 2.566
+      },
+      {
+        "symbol": "BNB/USDT:USDT-SWAP",
+        "volume_display": "$7.11B",
+        "volume_usd": 7110877746.7,
+        "instId": "BNB-USDT-SWAP",
+        "price": 646.1
+      },
+      {
+        "symbol": "YFI/USDT:USDT-SWAP",
+        "volume_display": "$5.80B",
+        "volume_usd": 5803322260.0,
+        "instId": "YFI-USDT-SWAP",
+        "price": 2515.0
+      },
+      {
+        "symbol": "XAG/USDT:USDT-SWAP",
+        "volume_display": "$4.57B",
+        "volume_usd": 4571512039.7699995,
+        "instId": "XAG-USDT-SWAP",
+        "price": 86.97
+      },
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "volume_display": "$4.08B",
+        "volume_usd": 4082694646.952,
+        "instId": "RIVER-USDT-SWAP",
+        "price": 18.149
+      },
+      {
+        "symbol": "TAO/USDT:USDT-SWAP",
+        "volume_display": "$2.81B",
+        "volume_usd": 2807232610.0,
+        "instId": "TAO-USDT-SWAP",
+        "price": 205.4
+      }
+    ],
+    "change_top5": [
+      {
+        "symbol": "RIVER/USDT:USDT-SWAP",
+        "change": 19.472055822526496,
+        "price": 18.149,
+        "volume_usd": 4082694646.952,
+        "instId": "RIVER-USDT-SWAP"
+      },
+      {
+        "symbol": "AVNT/USDT:USDT-SWAP",
+        "change": 18.088737201365184,
+        "price": 0.173,
+        "volume_usd": 96133536.659,
+        "instId": "AVNT-USDT-SWAP"
+      },
+      {
+        "symbol": "MMT/USDT:USDT-SWAP",
+        "change": 11.457455770850885,
+        "price": 0.1323,
+        "volume_usd": 3521480.4324,
+        "instId": "MMT-USDT-SWAP"
+      },
+      {
+        "symbol": "BAND/USDT:USDT-SWAP",
+        "change": 8.58700590640618,
+        "price": 0.239,
+        "volume_usd": 5794989.262999999,
+        "instId": "BAND-USDT-SWAP"
+      },
+      {
+        "symbol": "AIXBT/USDT:USDT-SWAP",
+        "change": 7.961399276236427,
+        "price": 0.02685,
+        "volume_usd": 886692.76215,
+        "instId": "AIXBT-USDT-SWAP"
+      },
+      {
+        "symbol": "RAVE/USDT:USDT-SWAP",
+        "change": -13.148223764801962,
+        "price": 0.2127,
+        "volume_usd": 743698.3182,
+        "instId": "RAVE-USDT-SWAP"
+      },
+      {
+        "symbol": "ICX/USDT:USDT-SWAP",
+        "change": -12.473423104181432,
+        "price": 0.03705,
+        "volume_usd": 2049495.25755,
+        "instId": "ICX-USDT-SWAP"
+      },
+      {
+        "symbol": "FLOW/USDT:USDT-SWAP",
+        "change": -9.906118484946585,
+        "price": 0.05566,
+        "volume_usd": 6916134.26724,
+        "instId": "FLOW-USDT-SWAP"
+      },
+      {
+        "symbol": "NIGHT/USDT:USDT-SWAP",
+        "change": -8.15697158937589,
+        "price": 0.04765,
+        "volume_usd": 400683.5132,
+        "instId": "NIGHT-USDT-SWAP"
+      },
+      {
+        "symbol": "PIPPIN/USDT:USDT-SWAP",
+        "change": -7.761310452418094,
+        "price": 0.35475,
+        "volume_usd": 14926908.339750001,
+        "instId": "PIPPIN-USDT-SWAP"
+      }
+    ]
+  }
+]

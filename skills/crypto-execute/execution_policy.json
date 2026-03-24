@@ -1,0 +1,96 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-03-14T07:40:00+08:00",
+  "defaultMode": "testnet",
+  "modes": {
+    "testnet": {
+      "enabled": true,
+      "description": "测试网模拟交易",
+      "requiresConfirmation": false,
+      "maxOrderAmount": 10000,
+      "maxLeverage": 10,
+      "allowedExchanges": ["okx_testnet", "binance_testnet"]
+    },
+    "paper": {
+      "enabled": true,
+      "description": "模拟盘交易（虚拟资金）",
+      "requiresConfirmation": true,
+      "maxOrderAmount": 100000,
+      "maxLeverage": 20,
+      "allowedExchanges": ["okx", "binance"]
+    },
+    "live": {
+      "enabled": false,
+      "description": "实盘交易",
+      "requiresConfirmation": true,
+      "requiresExplicitAuthorization": true,
+      "maxOrderAmount": 1000,
+      "maxLeverage": 3,
+      "maxDailyLoss": 500,
+      "maxPositionSize": 2000,
+      "allowedExchanges": [],
+      "whitelistOnly": true
+    }
+  },
+  "prohibitedChains": [
+    "crypto-signals -> crypto-execute",
+    "crypto-ta -> crypto-execute",
+    "crypto-risk -> crypto-execute",
+    "browser-automation -> crypto-execute",
+    "cron-scheduler -> crypto-execute",
+    "self-improving -> crypto-execute"
+  ],
+  "riskControls": {
+    "stopLoss": {
+      "required": true,
+      "defaultPercentage": 2.0,
+      "maxPercentage": 5.0
+    },
+    "takeProfit": {
+      "required": true,
+      "defaultPercentage": 3.0,
+      "maxPercentage": 10.0
+    },
+    "positionSizing": {
+      "method": "fixed_percentage",
+      "defaultPercentage": 1.0,
+      "maxPercentage": 5.0
+    },
+    "dailyLimits": {
+      "maxTrades": 10,
+      "maxLoss": 500,
+      "maxExposure": 2000
+    }
+  },
+  "authorization": {
+    "testnet": {
+      "type": "auto",
+      "description": "测试网自动授权"
+    },
+    "paper": {
+      "type": "confirm_once",
+      "description": "模拟盘需首次确认，会话内有效"
+    },
+    "live": {
+      "type": "explicit_per_trade",
+      "description": "实盘每笔交易需单独确认",
+      "confirmationText": "我确认执行实盘交易，订单金额 {amount}，杠杆 {leverage}x，止损 {stopLoss}%",
+      "cooldownSeconds": 30
+    }
+  },
+  "logging": {
+    "level": "verbose",
+    "includeStackTrace": true,
+    "auditLog": "~/.openclaw/logs/crypto-execute-audit.log",
+    "retentionDays": 90
+  },
+  "emergency": {
+    "panicButton": true,
+    "emergencyStopUrl": "~/.openclaw/emergency-stop",
+    "autoDisableOn": {
+      "consecutiveLosses": 3,
+      "dailyLossExceeded": true,
+      "apiErrorRate": 0.5
+    }
+  }
+}

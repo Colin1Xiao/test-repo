@@ -1,0 +1,15 @@
+# ngrok 配置 - 小龙 Control Tower
+# 使用: ngrok start --config=ngrok.yml control-tower
+
+version: "3"
+agent:
+  authtoken: YOUR_NGROK_AUTHTOKEN  # 替换为你的 token
+
+tunnels:
+  control-tower:
+    proto: http
+    addr: 8765
+    # 使用固定域名（需要付费）
+    # domain: your-domain.ngrok.io
+    # 或使用随机域名
+    inspect: true

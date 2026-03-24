@@ -1,0 +1,358 @@
+{
+  "schema_version": "1.0.0",
+  "description": "OpenClaw Auto-Heal 事件字典 v1.0",
+  "updated": "2026-03-17T07:06:00Z",
+  
+  "event_schema": {
+    "id": {
+      "type": "string",
+      "format": "evt_YYYYMMDD_HHMMSS_XXXXXX",
+      "required": true,
+      "description": "唯一事件ID"
+    },
+    "ts": {
+      "type": "string",
+      "format": "ISO 8601",
+      "required": true,
+      "description": "事件时间戳"
+    },
+    "schema_version": {
+      "type": "string",
+      "default": "1.0.0",
+      "required": true,
+      "description": "事件 schema 版本"
+    },
+    "source": {
+      "type": "string",
+      "required": true,
+      "enum": ["auto_heal", "snapshot", "alert_manager", "agents", "judge", "reporter", "manual"],
+      "description": "事件来源"
+    },
+    "type": {
+      "type": "string",
+      "required": true,
+      "description": "事件类型"
+    },
+    "severity": {
+      "type": "string",
+      "required": true,
+      "enum": ["debug", "info", "warning", "error", "critical"],
+      "description": "严重程度"
+    },
+    "component": {
+      "type": "string",
+      "required": true,
+      "enum": ["health", "gateway", "ocnmps", "telegram", "model", "repair", "snapshot", "alert", "baseline", "agent", "judge", "report", "system"],
+      "description": "相关组件"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "enum": ["started", "in_progress", "success", "warning", "failed", "detected", "resolved"],
+      "description": "事件状态"
+    },
+    "summary": {
+      "type": "string",
+      "required": true,
+      "description": "事件摘要"
+    },
+    "details": {
+      "type": "object",
+      "required": false,
+      "description": "事件详情"
+    },
+    "tags": {
+      "type": "array",
+      "items": "string",
+      "required": false,
+      "description": "事件标签"
+    },
+    "links": {
+      "type": "object",
+      "properties": {
+        "log": { "type": "string" },
+        "snapshot": { "type": "string" },
+        "report": { "type": "string" },
+        "parent_event": { "type": "string" }
+      },
+      "required": false,
+      "description": "关联资源"
+    },
+    "correlation_id": {
+      "type": "string",
+      "required": false,
+      "description": "关联ID，用于追踪相关事件"
+    }
+  },
+  
+  "event_types": {
+    "health.check.started": {
+      "severity": "info",
+      "component": "health",
+      "status": "started",
+      "description": "健康检查开始",
+      "details_schema": {}
+    },
+    "health.check.completed": {
+      "severity": ["info", "warning", "critical"],
+      "component": "health",
+      "status": ["success", "warning", "failed"],
+      "description": "健康检查完成",
+      "details_schema": {
+        "exit_code": "integer",
+        "critical_count": "integer",
+        "warning_count": "integer",
+        "latency_ms": "integer"
+      }
+    },
+    "health.check.failed": {
+      "severity": "critical",
+      "component": "health",
+      "status": "failed",
+      "description": "健康检查失败",
+      "details_schema": {
+        "reason": "string"
+      }
+    },
+    "critical.detected": {
+      "severity": "critical",
+      "component": ["gateway", "ocnmps", "telegram", "model", "system"],
+      "status": "detected",
+      "description": "关键异常检测",
+      "triggers": ["snapshot", "alert", "judge"],
+      "details_schema": {
+        "alert": "string",
+        "component": "string"
+      }
+    },
+    "warning.detected": {
+      "severity": "warning",
+      "component": ["gateway", "ocnmps", "telegram", "model", "system"],
+      "status": "detected",
+      "description": "警告检测",
+      "triggers": ["alert"],
+      "details_schema": {
+        "alert": "string",
+        "component": "string"
+      }
+    },
+    "baseline.drift.detected": {
+      "severity": "warning",
+      "component": "baseline",
+      "status": "detected",
+      "description": "基线偏移检测",
+      "triggers": ["alert", "judge"],
+      "details_schema": {
+        "baseline": "string",
+        "current": "string",
+        "expected": "string"
+      }
+    },
+    "repair.started": {
+      "severity": "info",
+      "component": "repair",
+      "status": "started",
+      "description": "修复开始",
+      "details_schema": {
+        "action": "string",
+        "target": "string"
+      }
+    },
+    "repair.applied": {
+      "severity": "info",
+      "component": "repair",
+      "status": "success",
+      "description": "修复完成",
+      "details_schema": {
+        "action": "string",
+        "success": "boolean",
+        "duration_ms": "integer"
+      }
+    },
+    "repair.failed": {
+      "severity": "error",
+      "component": "repair",
+      "status": "failed",
+      "description": "修复失败",
+      "details_schema": {
+        "action": "string",
+        "reason": "string"
+      }
+    },
+    "repair.blocked": {
+      "severity": "warning",
+      "component": "repair",
+      "status": "failed",
+      "description": "修复被阻止 (高风险)",
+      "details_schema": {
+        "action": "string",
+        "reason": "manual_only"
+      }
+    },
+    "snapshot.created": {
+      "severity": "info",
+      "component": "snapshot",
+      "status": "success",
+      "description": "快照创建",
+      "details_schema": {
+        "snapshot_id": "string",
+        "reason": "string",
+        "size_kb": "integer"
+      }
+    },
+    "alert.sent": {
+      "severity": "info",
+      "component": "alert",
+      "status": "success",
+      "description": "告警发送",
+      "details_schema": {
+        "channel": "string",
+        "level": "string",
+        "message": "string",
+        "deduped": "boolean"
+      }
+    },
+    "agent.analysis.started": {
+      "severity": "info",
+      "component": "agent",
+      "status": "started",
+      "description": "Agent 分析开始",
+      "details_schema": {
+        "agent": "string",
+        "incident_id": "string"
+      }
+    },
+    "agent.analysis.completed": {
+      "severity": "info",
+      "component": "agent",
+      "status": "success",
+      "description": "Agent 分析完成",
+      "details_schema": {
+        "agent": "string",
+        "conclusion": "string",
+        "confidence": "number",
+        "report_file": "string"
+      }
+    },
+    "judge.decision.made": {
+      "severity": "info",
+      "component": "judge",
+      "status": "success",
+      "description": "Judge 裁决",
+      "triggers": ["repair", "manual_review"],
+      "details_schema": {
+        "decision": "string",
+        "confidence": "number",
+        "reason": "string",
+        "agent_votes": "object"
+      }
+    },
+    "report.daily.generated": {
+      "severity": "info",
+      "component": "report",
+      "status": "success",
+      "description": "日报生成",
+      "details_schema": {
+        "date": "string",
+        "path": "string"
+      }
+    },
+    "report.weekly.generated": {
+      "severity": "info",
+      "component": "report",
+      "status": "success",
+      "description": "周报生成",
+      "details_schema": {
+        "start_date": "string",
+        "end_date": "string",
+        "path": "string"
+      }
+    },
+    "model.degraded": {
+      "severity": "warning",
+      "component": "model",
+      "status": "warning",
+      "description": "模型降级",
+      "details_schema": {
+        "model": "string",
+        "fallback_model": "string",
+        "reason": "string"
+      }
+    }
+  },
+  
+  "severity_levels": {
+    "debug": {
+      "level": 0,
+      "color": "⚪",
+      "description": "调试信息",
+      "notify": false,
+      "snapshot": false
+    },
+    "info": {
+      "level": 1,
+      "color": "🟢",
+      "description": "信息",
+      "notify": false,
+      "snapshot": false
+    },
+    "warning": {
+      "level": 2,
+      "color": "🟡",
+      "description": "警告",
+      "notify": true,
+      "cooldown_minutes": 60,
+      "snapshot": false
+    },
+    "error": {
+      "level": 3,
+      "color": "🟠",
+      "description": "错误",
+      "notify": true,
+      "cooldown_minutes": 30,
+      "snapshot": true
+    },
+    "critical": {
+      "level": 4,
+      "color": "🔴",
+      "description": "关键异常",
+      "notify": true,
+      "cooldown_minutes": 30,
+      "snapshot": true
+    }
+  },
+  
+  "event_sources": {
+    "auto_heal": "Auto-Heal 主程序",
+    "snapshot": "快照模块",
+    "alert_manager": "告警管理器",
+    "agents": "Agent 协作系统",
+    "judge": "Judge Agent",
+    "reporter": "报告生成器",
+    "manual": "手动触发"
+  },
+  
+  "event_flow": {
+    "normal_check": [
+      "health.check.started",
+      "health.check.completed"
+    ],
+    "critical_flow": [
+      "critical.detected",
+      "snapshot.created",
+      "alert.sent",
+      "agent.analysis.started",
+      "agent.analysis.completed",
+      "judge.decision.made",
+      "repair.started",
+      "repair.applied"
+    ],
+    "manual_review_flow": [
+      "critical.detected",
+      "snapshot.created",
+      "alert.sent",
+      "judge.decision.made",
+      "repair.blocked"
+    ]
+  }
+}

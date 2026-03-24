@@ -1,0 +1,11 @@
+{
+  "balance": 10000.0,
+  "risk_amount": 200.0,
+  "risk_pct": 2.0,
+  "stop_loss_pct": 1.5,
+  "leverage": 50,
+  "position_size": 13333.333333333334,
+  "margin": 266.6666666666667,
+  "margin_pct": 2.666666666666667,
+  "liquidation_pct": 2.0
+}

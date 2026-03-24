@@ -1,0 +1,28 @@
+{
+  "schema": "openclaw.operational.v1",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-19T06:25:00+08:00",
+  "mode": "production",
+  "features": {
+    "predictiveEngine": {
+      "enabled": true,
+      "shadowMode": true,
+      "description": "shadow=true: 只记录不执行; shadow=false: 正常执行"
+    },
+    "recoveryV25": {
+      "enabled": true,
+      "shadowMode": false
+    },
+    "recoveryV30": {
+      "enabled": true,
+      "shadowMode": false
+    }
+  },
+  "logging": {
+    "level": "info",
+    "retention": {
+      "days": 30,
+      "maxSizeMb": 100
+    }
+  }
+}

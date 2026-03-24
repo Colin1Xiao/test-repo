@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "max_position_usd": 50,
+  "leverage": 100,
+  "stop_loss_pct": 0.005,
+  "take_profit_pct": 0.015,
+  "min_signal_confidence": 0.7,
+  "max_trades_per_day": 5,
+  "symbols": [
+    "BTC/USDT:USDT",
+    "ETH/USDT:USDT"
+  ]
+}
