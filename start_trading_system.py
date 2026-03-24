@@ -37,10 +37,10 @@ def main():
     print()
     
     try:
-        # 启动主进程（后台运行）
+        # 启动主进程（后台运行，执行模式）
         with open(log_file_path, "a", encoding="utf-8") as log_file:
             proc = subprocess.Popen(
-                [sys.executable, "run_v52_live.py"],
+                [sys.executable, "run_v52_live.py", "--execute"],
                 cwd=APP_DIR,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
