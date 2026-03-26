@@ -61,10 +61,13 @@ class PositionMonitor:
     """
     
     # 默认阈值（可被 regime 覆盖）
+    # V5.4.1 优化：延长持仓时间，避免过早 TIME_EXIT
     DEFAULT_TAKE_PROFIT = 0.002    # 0.2%
     DEFAULT_STOP_LOSS = -0.005     # -0.5%
     DEFAULT_LIQUIDATION = -0.004   # -0.4% (爆仓前退出)
-    DEFAULT_MAX_HOLD = 30          # 30秒
+    DEFAULT_MAX_HOLD = 60          # 60 秒 (V5.4.1: 30 → 60)
+    DEFAULT_MIN_HOLD = 20          # 20 秒 (V5.4.1 新增：最小持仓时间)
+    DEFAULT_BREAK_EVEN_GUARD = 15  # 15 秒 (V5.4.1 新增：浮亏轻微保护期)          # 30秒
     
     def __init__(self):
         self.positions: Dict[str, Dict] = {}
@@ -175,7 +178,18 @@ class PositionMonitor:
             should_close = True
             close_reason = f"🚨 爆仓风险 ({pnl_pct*100:+.2f}%)"
         
-        # 4. 超时检查
+        # 4. 超时检查 (V5.4.1 优化)
+        # 4a. 最小持仓时间保护 (前 20 秒不允许普通 TIME_EXIT)
+        elif hold_time < self.DEFAULT_MIN_HOLD:
+            # 持仓时间不足，但如果是浮亏轻微且在保护期内，不触发
+            if hold_time < self.DEFAULT_BREAK_EVEN_GUARD and pnl_pct > -0.001:
+                should_close = False  # 保护期内浮亏轻微不砍
+                close_reason = ""
+            else:
+                # 其他情况继续检查止损/止盈
+                pass
+        
+        # 4b. 正常超时平仓 (60 秒)
         elif hold_time >= pos['max_hold']:
             should_close = True
             close_reason = f"超时平仓 ({hold_time:.0f}s >= {pos['max_hold']}s)"
