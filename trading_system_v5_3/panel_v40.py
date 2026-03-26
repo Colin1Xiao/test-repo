@@ -1807,13 +1807,21 @@ INDEX_TEMPLATE = r"""
       border-bottom: 1px solid var(--top-nav-border);
       padding: 0 var(--space-lg);
       height: var(--top-nav-height);
+      min-height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 9999;
       margin-bottom: var(--space-lg);
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* 导航兜底强约束（防止被覆盖） */
+    .top-nav-brand, .top-nav-links {
+      visibility: visible;
     }
 
     .top-nav-brand {
