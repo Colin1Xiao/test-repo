@@ -1871,7 +1871,7 @@ INDEX_TEMPLATE = r"""
       border-color: var(--info);
     }
     
-    /* 顶部状态条 - 统一布局 */
+    /* ===== Header 体系统一 (UI-3.5) ===== */
     .header {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -1882,13 +1882,13 @@ INDEX_TEMPLATE = r"""
       border-bottom: 1px solid var(--border-2);
     }
     
-    .header-title-area {
+    .header-main {
       display: flex;
       flex-direction: column;
       gap: var(--space-xs);
     }
     
-    .title h1 {
+    .header-title {
       font-size: 28px;
       font-weight: 800;
       letter-spacing: -0.02em;
@@ -1897,17 +1897,33 @@ INDEX_TEMPLATE = r"""
       gap: var(--space-sm);
     }
     
-    .title p {
-      color: var(--text-2);
-      font-size: 13px;
-      margin-top: var(--space-xs);
+    .header-title .icon {
+      font-size: 32px;
     }
     
-    .meta {
+    .header-subtitle {
+      color: var(--text-2);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    
+    /* 状态组（首页专用） */
+    .status-group {
       display: flex;
       gap: var(--space-xs);
-      flex-wrap: wrap;
+      margin-left: var(--space-md);
+      padding-left: var(--space-md);
+      border-left: 1px solid var(--border-1);
+    }
+    
+    .header-controls {
+      display: flex;
       align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
     }
     
     .chip, .badge {
