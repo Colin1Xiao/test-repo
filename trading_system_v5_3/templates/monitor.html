@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐉 小龙监控报表</title>
+  
+  <!-- UI-3.9 PWA 支持 -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#121a27">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/freshness-badge.js"></script>
+  <script src="/static/error-tracker.js"></script>
+  <style>
+    :root {
+      --bg-0: #0a0f19;
+      --bg-1: #121a27;
+      --bg-2: #182233;
+      --text-1: #f5f7fb;
+      --text-2: #b6c1d1;
+      --text-3: #7f8a9e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #22c55e;
+      --info: #3b82f6;
+      --border-1: rgba(255,255,255,0.05);
+      --border-2: rgba(255,255,255,0.1);
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --space-lg: 24px;
+      --space-md: 18px;
+      --space-sm: 12px;
+      --top-nav-height: 60px;
+      --badge-height: 24px;
+      --badge-radius: 6px;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-0);
+      color: var(--text-1);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    
+    /* Top Navigation */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--top-nav-height);
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border-1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-lg);
+      z-index: 1000;
+    }
+    .top-nav-brand h1 { font-size: 18px; font-weight: 700; margin: 0; }
+    .top-nav-brand span { font-size: 12px; color: var(--text-3); }
+    .top-nav-links {
+      display: flex;
+      gap: var(--space-xs);
+    }
+    .top-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .top-nav-link:hover { background: var(--bg-2); color: var(--text-1); }
+    .top-nav-link.active { background: var(--info-light); color: var(--info); }
+    
+    .main-content { padding-top: var(--top-nav-height); min-height: 100vh; }
+    
+    /* Shell */
+    .shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: var(--space-lg);
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--border-1);
+    }
+    .header-title { font-size: 24px; font-weight: 700; }
+    .header-controls { display: flex; gap: var(--space-sm); align-items: center; }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    /* Stat Card */
+    .stat-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border-1);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+    }
+    .stat-card h3 { font-size: 14px; color: var(--text-2); margin: 0 0 var(--space-sm) 0; }
+    .stat-card .value { font-size: 32px; font-weight: 700; color: var(--text-1); }
+    .stat-card .unit { font-size: 14px; color: var(--text-3); margin-left: var(--space-xs); }
+    .stat-card .trend { font-size: 12px; margin-top: var(--space-xs); }
+    
+    /* Lists */
+    .list-section {
+      margin-bottom: var(--space-lg);
+    }
+    .list-section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 var(--space-md) 0;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-1);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .table th {
+      text-align: left;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--bg-2);
+      font-size: 12px;
+      color: var(--text-3);
+      font-weight: 600;
+    }
+    .table td {
+      padding: var(--space-sm) var(--space-md);
+      font-size: 14px;
+      border-bottom: 1px solid var(--border-1);
+    }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr:hover td { background: rgba(255,255,255,0.02); }
+    .table .timestamp { color: var(--text-3); font-size: 13px; }
+    .table .duration { font-variant-numeric: tabular-nums; }
+    
+    /* Empty State */
+    .empty-state {
+      background: var(--bg-1);
+      border: 1px dashed var(--border-1);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      text-align: center;
+      color: var(--text-3);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: var(--space-sm); opacity: 0.3; }
+    .empty-state .message { font-size: 14px; }
+    
+    /* Error State */
+    .error-state {
+      background: var(--bg-1);
+      border-left: 4px solid var(--danger);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      color: var(--danger);
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-xl);
+      color: var(--text-3);
+    }
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border-1);
+      border-top-color: var(--info);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: var(--space-sm);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Freshness Badge */
+    .freshness-badge {
+      display: inline-flex;
+      align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: var(--badge-height);
+      padding: 0 var(--space-sm);
+      border-radius: var(--badge-radius);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-fresh { background: var(--success-light); color: var(--success); }
+    .badge-delayed { background: var(--warning-light); color: var(--warning); }
+    .badge-stale { background: var(--danger-light); color: var(--danger); }
+    
+    /* Button */
+    .btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--bg-2);
+      border: 1px solid var(--border-1);
+      border-radius: var(--radius-md);
+      color: var(--text-2);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-refresh:hover { background: var(--bg-1); color: var(--text-1); }
+    
+    /* Chip */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      background: var(--bg-2);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      color: var(--text-2);
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="top-nav-brand">
+      <h1>小龙监控报表</h1>
+      <span>性能监控与错误追踪</span>
+    </div>
+    <div class="top-nav-links">
+      <a href="/" class="top-nav-link">
+        <span>📊</span>
+        <span>驾驶舱</span>
+      </a>
+      <a href="/history" class="top-nav-link">
+        <span>📜</span>
+        <span>历史分析</span>
+      </a>
+      <a href="/reports" class="top-nav-link">
+        <span>📈</span>
+        <span>报表中心</span>
+      </a>
+      <a href="/monitor" class="top-nav-link active">
+        <span>👁️</span>
+        <span>监控报表</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="shell">
+      <div class="header">
+        <div class="header-title">
+          <span class="icon">📊</span>
+          <span>监控报表</span>
+        </div>
+        <div class="header-controls">
+          <span class="chip">刷新：<span id="last-refresh">--:--:--</span></span>
+          <span class="chip" id="freshness-badge">
+            <span class="badge badge-neutral">● 加载中</span>
+          </span>
+          <button class="btn-refresh" onclick="loadData()">
+            <span class="icon">🔄</span>
+            <span>刷新</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 张卡片 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>总请求数</h3>
+          <div class="value" id="stat-total-requests">0</div>
+          <div class="trend">过去 24 小时</div>
+        </div>
+        <div class="stat-card">
+          <h3>平均响应时间</h3>
+          <div class="value"><span id="stat-avg-duration">0</span><span class="unit">ms</span></div>
+          <div class="trend" id="stat-avg-trend">稳定</div>
+        </div>
+        <div class="stat-card">
+          <h3>慢请求数</h3>
+          <div class="value" id="stat-slow-requests">0</div>
+          <div class="trend" id="stat-slow-trend">/all 请求</div>
+        </div>
+        <div class="stat-card">
+          <h3>前端错误数</h3>
+          <div class="value" id="stat-errors">0</div>
+          <div class="trend">需处理</div>
+        </div>
+      </div>
+
+      <!-- 最近慢请求 -->
+      <div class="list-section">
+        <h2>🚀 最近慢请求 (><span class="unit">1000</span>ms)</h2>
+        <div id="slow-requests-list">
+          <div class="empty-state">
+            <div class="icon">📊</div>
+            <div class="message">暂无慢请求数据</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最近前端错误 -->
+      <div class="list-section">
+        <h2>🐛 最近前端错误</h2>
+        <div id="frontend-errors-list">
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无前端错误</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最近慢查询 -->
+      <div class="list-section">
+        <h2>🐢 最近慢查询 (><span class="unit">500</span>ms)</h2>
+        <div id="db-queries-list">
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无慢查询数据</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // UI-3.10B: 最近慢请求接口
+    async function fetchSlowRequests(limit = 20) {
+      try {
+        const res = await fetch('/api/monitor/performance?slow_only=true&limit=' + limit);
+        const data = await res.json();
+        return data.ok ? data.data.performance.slow_requests : [];
+      } catch (e) {
+        console.error('加载慢请求失败:', e);
+        return [];
+      }
+    }
+
+    // UI-3.10B: 最近前端错误接口
+    async function fetchFrontendErrors(limit = 20) {
+      try {
+        const res = await fetch('/api/monitor/errors?limit=' + limit);
+        const data = await res.json();
+        return data.ok ? data.data.errors : [];
+      } catch (e) {
+        console.error('加载前端错误失败:', e);
+        return [];
+      }
+    }
+
+    // UI-3.10B: 最近慢查询接口
+    async function fetchSlowDbQueries(limit = 20) {
+      try {
+        const res = await fetch('/api/monitor/db-queries?slow_only=true&limit=' + limit);
+        const data = await res.json();
+        return data.ok ? data.data.slow_queries : [];
+      } catch (e) {
+        console.error('加载慢查询失败:', e);
+        return [];
+      }
+    }
+
+    // 渲染卡片
+    function updateStats(stats, errors) {
+      document.getElementById('stat-total-requests').textContent = stats.total_requests || 0;
+      
+      const avgDuration = stats.avg_duration || 0;
+      document.getElementById('stat-avg-duration').textContent = avgDuration.toFixed(1);
+      
+      const avgTrend = document.getElementById('stat-avg-trend');
+      if (avgDuration < 100) avgTrend.textContent = '快速 ⚡';
+      else if (avgDuration < 500) avgTrend.textContent = '正常 🐢';
+      else avgTrend.textContent = '偏慢 ⚠️';
+      
+      const slowCount = stats.slow_requests || 0;
+      document.getElementById('stat-slow-requests').textContent = slowCount;
+      
+      const slowTrend = document.getElementById('stat-slow-trend');
+      if (stats.total_requests > 0) {
+        slowTrend.textContent = `${((slowCount / stats.total_requests) * 100).toFixed(1)}% 的请求`;
+      } else {
+        slowTrend.textContent = '无数据';
+      }
+      
+      const errorCount = errors.total_errors || 0;
+      document.getElementById('stat-errors').textContent = errorCount;
+      
+      // 更新时间戳
+      document.getElementById('last-refresh').textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    }
+
+    // 渲染慢请求列表
+    function renderSlowRequests(items) {
+      const container = document.getElementById('slow-requests-list');
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📊</div>
+            <div class="message">暂无慢请求数据</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<table class="table">
+        <thead>
+          <tr>
+            <th>路径</th>
+            <th>耗时</th>
+            <th>方法</th>
+            <th>状态</th>
+            <th>时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td><code>${item.endpoint}</code></td>
+              <td class="duration" style="color:${item.duration_ms > 2000 ? '#ef4444' : '#f59e0b'}">${(item.duration_ms || 0).toFixed(0)}ms</td>
+              <td>${item.method}</td>
+              <td>${item.status_code}</td>
+              <td class="timestamp">${item.created_at?.split('T')[1]?.split('.')[0] || '--'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+    }
+
+    // 渲染前端错误列表
+    function renderFrontendErrors(items) {
+      const container = document.getElementById('frontend-errors-list');
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无前端错误</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<table class="table">
+        <thead>
+          <tr>
+            <th>页面</th>
+            <th>错误消息</th>
+            <th>来源</th>
+            <th>时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td>${item.page || '/'}</td>
+              <td><code>${truncate(item.message, 60)}</code></td>
+              <td>${item.source || '-'}</td>
+              <td class="timestamp">${item.created_at?.split('T')[1]?.split('.')[0] || '--'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+    }
+
+    // 渲染慢查询列表
+    function renderSlowDbQueries(items) {
+      const container = document.getElementById('db-queries-list');
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无慢查询数据</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<table class="table">
+        <thead>
+          <tr>
+            <th>表名</th>
+            <th>查询类型</th>
+            <th>耗时</th>
+            <th>预览</th>
+            <th>时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td>${item.table_name || '-'}</td>
+              <td>${item.query_type || '-'}</td>
+              <td class="duration" style="color:#f59e0b">${(item.duration_ms || 0).toFixed(0)}ms</td>
+              <td>${truncate(item.query_preview, 40)}</td>
+              <td class="timestamp">${item.created_at?.split('T')[1]?.split('.')[0] || '--'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+    }
+
+    // 辅助函数
+    function truncate(str, maxLen) {
+      if (!str) return '-';
+      return str.length > maxLen ? str.slice(0, maxLen) + '...' : str;
+    }
+
+    // 加载全部数据
+    async function loadData() {
+      const loading = document.createElement('div');
+      loading.className = 'loading';
+      loading.innerHTML = '<div class="spinner"></div>加载中...';
+      
+      document.querySelector('.stats-grid').style.opacity = '0.5';
+      document.getElementById('slow-requests-list').replaceWith(loading);
+      document.getElementById('frontend-errors-list').style.opacity = '0.5';
+      document.getElementById('db-queries-list').style.opacity = '0.5';
+      
+      try {
+        // 并行加载所有数据
+        const [perfRes, errRes, queryRes] = await Promise.all([
+          fetch('/api/monitor/performance?hours=24').then(r => r.json()),
+          fetch('/api/monitor/errors?hours=24').then(r => r.json()),
+          fetch('/api/monitor/db-queries?slow_only=true&limit=20').then(r => r.json())
+        ]);
+        
+        const performance = perfRes.ok ? perfRes.data : { performance: { stats: {} }, errors: { stats: {} } };
+        const errors = errRes.ok ? errRes.data : { stats: {}, errors: [] };
+        const queries = queryRes.ok ? queryRes.data : { slow_queries: [] };
+        
+        updateStats(performance.performance.stats || {}, errors.stats || {});
+        renderSlowRequests(performance.performance.slow_requests || []);
+        renderFrontendErrors(errors.errors || []);
+        renderSlowDbQueries(queries.slow_queries || []);
+        
+        // 更新 freshness badge (使用 db-queries 的 freshness 如果有)
+        if (queries.freshness && queries.freshness.age_sec !== undefined) {
+          updateFreshnessBadge(queries.freshness.age_sec);
+        }
+        
+        // 恢复显示
+        document.querySelector('.stats-grid').style.opacity = '1';
+        loading.remove();
+        document.getElementById('frontend-errors-list').style.opacity = '1';
+        document.getElementById('db-queries-list').style.opacity = '1';
+        
+      } catch (e) {
+        console.error('加载数据失败:', e);
+        document.querySelector('.stats-grid').style.opacity = '1';
+        loading.remove();
+        alert('加载失败：' + e.message);
+      }
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      updateFreshnessBadge(0);
+      loadData();
+      
+      // 30 秒自动刷新
+      setInterval(loadData, 30000);
+    });
+  </script>
+</body>
+</html>
