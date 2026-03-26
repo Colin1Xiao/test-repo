@@ -706,16 +706,17 @@
   <script>
     const API_BASE = '/api/history';
 
-    // 辅助：API 请求（自动附加 days 参数）
-    function fetchHistory(endpoint) {
-      const u = new URL(endpoint, window.location.origin);
-      u.searchParams.set('days', String(currentRangeDays));
-      return fetch(u.pathname + u.search);
-    }
-
     // ===== UI-3.6: 历史页 range 状态管理 =====
     const DEFAULT_RANGE_DAYS = 30;
     let currentRangeDays = DEFAULT_RANGE_DAYS;
+
+    // 辅助：API 请求（自动附加 days 参数）
+    function fetchHistory(endpoint) {
+      const url = API_BASE + endpoint;
+      const u = new URL(url, window.location.origin);
+      u.searchParams.set('days', String(currentRangeDays));
+      return fetch(u.pathname + u.search);
+    }
 
     // 从 URL 解析 days 参数
     function getRangeDaysFromUrl() {
@@ -842,16 +843,16 @@
         const data = await res.json();
         
         // 更新统计
-        document.getElementById('stat-alerts').textContent = data.summary?.total || 0;
-        document.getElementById('stat-critical').textContent = data.summary?.CRITICAL || 0;
-        document.getElementById('stat-warn').textContent = data.summary?.WARN || 0;
-        document.getElementById('alert-critical-count').textContent = `${data.summary?.CRITICAL || 0} CRITICAL`;
+        document.getElementById('stat-alerts').textContent = data.data?.summary?.total || 0;
+        document.getElementById('stat-critical').textContent = data.data?.summary?.CRITICAL || 0;
+        document.getElementById('stat-warn').textContent = data.data?.summary?.WARN || 0;
+        document.getElementById('alert-critical-count').textContent = `${data.data?.summary?.CRITICAL || 0} CRITICAL`;
 
         // 渲染图表
         renderBarChart('alert-chart', [
-          { level: 'CRITICAL', cnt: data.summary?.CRITICAL || 0 },
-          { level: 'WARN', cnt: data.summary?.WARN || 0 },
-          { level: 'INFO', cnt: data.summary?.INFO || 0 }
+          { level: 'CRITICAL', cnt: data.data?.summary?.CRITICAL || 0 },
+          { level: 'WARN', cnt: data.data?.summary?.WARN || 0 },
+          { level: 'INFO', cnt: data.data?.summary?.INFO || 0 }
         ], { CRITICAL: '#ef4444', WARN: '#f59e0b', INFO: '#3b82f6' });
 
         // 渲染表格（UI-3.6: 使用统一状态函数）
@@ -859,8 +860,7 @@
         if (!data.items || data.items.length === 0) {
           renderEmpty('alerts-table', '最近所选周期内暂无告警', '可切换到 30D / 90D 查看更长周期');
         } else {
-
-        table.innerHTML = `
+          table.innerHTML = `
           <table>
             <thead>
               <tr>
@@ -884,6 +884,7 @@
             </tbody>
           </table>
         `;
+        }
       } catch (e) {
         document.getElementById('alerts-table').innerHTML = `<div class="error">加载失败：${e.message}</div>`;
       }
@@ -895,15 +896,14 @@
         const res = await fetchHistory('/control?limit=20');
         const data = await res.json();
         
-        document.getElementById('stat-control').textContent = data.count || 0;
-        document.getElementById('control-timestamp').textContent = `共 ${data.count || 0} 条`;
+        document.getElementById('stat-control').textContent = data.data?.count || 0;
+        document.getElementById('control-timestamp').textContent = `共 ${data.data?.count || 0} 条`;
 
         const table = document.getElementById('control-table');
         if (!data.items || data.items.length === 0) {
           renderEmpty('control-table', '最近所选周期内暂无控制变更', '当前系统未发生人工干预或模式切换');
         } else {
-
-        table.innerHTML = `
+          table.innerHTML = `
           <table>
             <thead>
               <tr>
@@ -925,6 +925,7 @@
             </tbody>
           </table>
         `;
+        }
       } catch (e) {
         document.getElementById('control-table').innerHTML = `<div class="error">加载失败：${e.message}</div>`;
       }
@@ -936,7 +937,7 @@
         const res = await fetchHistory('/decisions?limit=1');
         const data = await res.json();
         
-        document.getElementById('stat-decisions').textContent = data.summary?.reduce((a,b) => a + b.cnt, 0) || 0;
+        document.getElementById('stat-decisions').textContent = data.data?.summary?.reduce((a,b) => a + b.cnt, 0) || 0;
 
         // 渲染图表
         const colorMap = {
@@ -946,7 +947,7 @@
           reject_long: '#f59e0b',
           reject_short: '#f59e0b'
         };
-        renderBarChart('decision-chart', data.summary || [], colorMap);
+        renderBarChart('decision-chart', data.data?.summary || [], colorMap);
       } catch (e) {
         console.error('决策加载失败:', e);
       }
