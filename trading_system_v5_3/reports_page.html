@@ -662,7 +662,9 @@
           <span class="icon">🔄</span>
           <span>刷新</span>
         </button>
-        <span class="last-updated" id="last-updated">--:--:--</span>
+        <span class="freshness-badge" id="freshness-badge">
+          <span class="badge badge-neutral">● 加载中</span>
+        </span>
       </div>
     </div>
 
@@ -872,26 +874,20 @@
         `更新于 ${now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
     }
 
-    // 更新 Freshness 状态
-    function updateFreshnessBadge(freshness) {
+    // UI-3.7: 更新 Freshness Badge（统一格式）
+    function updateFreshnessBadge(ageSec) {
       const badge = document.getElementById('freshness-badge');
-      const text = document.getElementById('freshness-text');
+      if (!badge) return;
       
-      if (!freshness) {
-        text.textContent = '数据不足';
-        badge.className = 'freshness-badge';
-        return;
+      if (ageSec === null || ageSec === undefined) {
+        badge.innerHTML = '<span class="badge badge-neutral">● 未知</span>';
+      } else if (ageSec <= 30) {
+        badge.innerHTML = `<span class="badge" style="background:#22c55e;color:#000">● 数据新鲜 (${ageSec}s)</span>`;
+      } else if (ageSec <= 60) {
+        badge.innerHTML = `<span class="badge" style="background:#f59e0b;color:#000">⚠️ 数据延迟 (${ageSec}s)</span>`;
+      } else {
+        badge.innerHTML = `<span class="badge" style="background:#ef4444;color:#fff">🔴 数据陈旧 (${ageSec}s)</span>`;
       }
-      
-      const overall = freshness.overall || 'unknown';
-      text.textContent = {
-        fresh: '数据新鲜',
-        delayed: '数据延迟',
-        stale: '数据陈旧',
-        unknown: '未知状态'
-      }[overall] || '未知状态';
-      
-      badge.className = `freshness-badge ${overall}`;
     }
 
     // 加载报表数据
@@ -1154,8 +1150,8 @@
         renderTopLists(data);
         updateLastUpdated();
         
-        // 更新 Freshness 状态
-        updateFreshnessBadge(data.alerts.freshness || {});
+        // UI-3.7: 更新 Freshness Badge
+        updateFreshnessBadge(data.alerts.freshness?.age_sec);
       }
     }
 

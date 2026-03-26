@@ -1195,6 +1195,18 @@ def build_decision_explain(decision_state: Dict, structure_state: Dict, risk_sta
     
     return decision_explain
 
+def render_freshness_badge(age_sec: int) -> str:
+    """UI-3.7: 渲染统一的 Freshness Badge"""
+    if age_sec is None:
+        return '<span class="badge badge-neutral">● 未知</span>'
+    elif age_sec <= 30:
+        return f'<span class="badge badge-fresh" style="background:var(--freshness-fresh);color:#000">● 数据新鲜 ({age_sec}s)</span>'
+    elif age_sec <= 60:
+        return f'<span class="badge badge-delayed" style="background:var(--freshness-delayed);color:#000">⚠️ 数据延迟 ({age_sec}s)</span>'
+    else:
+        return f'<span class="badge badge-stale" style="background:var(--freshness-stale);color:#fff">🔴 数据陈旧 ({age_sec}s)</span>'
+
+
 def build_health_status() -> Dict[str, Any]:
     """构建健康状态（v41 新增，B1+B2 观测性增强：Freshness 指标）"""
     now = datetime.now()
@@ -1772,6 +1784,13 @@ INDEX_TEMPLATE = r"""
       --badge-font-size: 12px;
       --badge-font-weight: 600;
       
+      /* UI-3.7: Freshness Badge */
+      --freshness-fresh: #22c55e;
+      --freshness-delayed: #f59e0b;
+      --freshness-stale: #ef4444;
+      --freshness-threshold-fresh: 30;
+      --freshness-threshold-delayed: 60;
+      
       /* Loading / Empty / Error */
       --spinner-size: 40px;
       --spinner-border-width: 3px;
@@ -2241,7 +2260,7 @@ INDEX_TEMPLATE = r"""
       <div class="header-controls">
         <span class="chip">数据：<span id="as-of">{{ vm.as_of }}</span></span>
         <span class="chip">更新：<span id="last-updated">--:--:--</span></span>
-        <span class="chip">延迟：<span id="health-snapshot-age">{{ (vm.health or {}).get('snapshot_age_sec', 0) }}</span>s</span>
+        <span class="chip" id="freshness-badge">{{ render_freshness_badge((vm.health or {}).get('snapshot_age_sec', 0)) }}</span>
       </div>
     </div>
 
@@ -3148,7 +3167,7 @@ def index() -> str:
     if not raw:
         raw = {"snapshot_ts": datetime.now().isoformat()}
     vm = adapt_stats_payload(raw)
-    return render_template_string(INDEX_TEMPLATE, vm=vm)
+    return render_template_string(INDEX_TEMPLATE, vm=vm, render_freshness_badge=render_freshness_badge)
 
 
 @app.route("/api/stats")
@@ -3298,6 +3317,8 @@ def api_history_control():
     - action: 动作类型过滤
     - days: 时间范围（7/30/90，默认30）
     """
+    start_time = time.time()
+    endpoint = "/api/history/control"
     try:
         limit = int(request.args.get("limit", 50))
         action = request.args.get("action")
@@ -3351,6 +3372,8 @@ def api_history_decisions():
     - limit: 返回条数（默认 50）
     - action: 动作类型过滤（buy/sell/hold/reject_long/reject_short）
     """
+    start_time = time.time()
+    endpoint = "/api/history/decisions"
     try:
         limit = int(request.args.get("limit", 50))
         action = request.args.get("action")

@@ -205,6 +205,14 @@
       flex-wrap: wrap;
     }
     
+    /* UI-3.7: Freshness Badge */
+    .freshness-badge .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    
     /* 刷新按钮 */
     .refresh-btn {
       background: linear-gradient(135deg, var(--info), #2563eb);
@@ -641,6 +649,9 @@
           <span class="icon">🔄</span>
           <span>刷新</span>
         </button>
+        <span class="freshness-badge" id="freshness-badge">
+          <span class="badge badge-neutral">● 加载中</span>
+        </span>
       </div>
     </div>
 
@@ -954,12 +965,39 @@
     }
 
     // 加载全部
+    // UI-3.7: 更新 Freshness Badge
+    function updateFreshnessBadge(ageSec) {
+      const badge = document.getElementById('freshness-badge');
+      if (!badge) return;
+      
+      if (ageSec === null || ageSec === undefined) {
+        badge.innerHTML = '<span class="badge badge-neutral">● 未知</span>';
+      } else if (ageSec <= 30) {
+        badge.innerHTML = `<span class="badge" style="background:var(--freshness-fresh,#22c55e);color:#000">● 数据新鲜 (${ageSec}s)</span>`;
+      } else if (ageSec <= 60) {
+        badge.innerHTML = `<span class="badge" style="background:var(--freshness-delayed,#f59e0b);color:#000">⚠️ 数据延迟 (${ageSec}s)</span>`;
+      } else {
+        badge.innerHTML = `<span class="badge" style="background:var(--freshness-stale,#ef4444);color:#fff">🔴 数据陈旧 (${ageSec}s)</span>`;
+      }
+    }
+
     async function loadAll() {
       await Promise.all([
         loadAlerts(),
         loadControl(),
         loadDecisions()
       ]);
+      
+      // UI-3.7: 更新 freshness（从 alerts API 获取）
+      try {
+        const days = typeof currentRangeDays !== 'undefined' ? currentRangeDays : 30;
+        const res = await fetch('/api/history/alerts?days=' + days + '&limit=1');
+        const data = await res.json();
+        const ageSec = data.data?.freshness?.age_sec;
+        updateFreshnessBadge(ageSec);
+      } catch (e) {
+        console.error('Freshness 更新失败:', e);
+      }
     }
 
     // 初始化（UI-3.6: 增加 range 状态管理）
