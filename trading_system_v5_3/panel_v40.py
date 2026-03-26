@@ -3416,6 +3416,64 @@ def api_monitor_errors() -> Any:
         logger_error(f"错误列表查询失败：{e}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
+
+@app.route("/api/monitor/db-queries")
+def api_monitor_db_queries() -> Any:
+    """
+    获取数据库查询性能数据
+    
+    参数:
+    - slow_only: 是否只返回慢查询（默认 false）
+    - limit: 返回数量（默认 20）
+    """
+    try:
+        slow_only = request.args.get('slow_only', 'false').lower() == 'true'
+        limit = int(request.args.get('limit', 20))
+        
+        conn = monitor_db._get_connection()
+        try:
+            query = "SELECT * FROM db_query_logs WHERE 1=1"
+            params = []
+            
+            if slow_only:
+                query += " AND is_slow = 1"
+            
+            query += " ORDER BY created_at DESC LIMIT ?"
+            params.append(limit)
+            
+            cursor = conn.execute(query, params)
+            rows = cursor.fetchall()
+            slow_queries = [dict(row) for row in rows]
+            
+            # 获取统计
+            cursor = conn.execute("""
+                SELECT 
+                    COUNT(*) as total_queries,
+                    AVG(duration_ms) as avg_duration,
+                    MAX(duration_ms) as max_duration,
+                    SUM(CASE WHEN is_slow = 1 THEN 1 ELSE 0 END) as slow_queries
+                FROM db_query_logs
+            """)
+            row = cursor.fetchone()
+            stats = dict(row) if row else {}
+            
+            conn.close()
+            
+            return jsonify({
+                "ok": True,
+                "data": {
+                    "slow_queries": slow_queries,
+                    "stats": stats,
+                }
+            })
+        finally:
+            conn.close()
+    
+    except Exception as e:
+        logger_error(f"数据库查询数据查询失败：{e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # =============================================================================
 # 主页面路由
 # =============================================================================
@@ -3645,6 +3703,12 @@ def page_reports():
         "sources": get_all_freshness_statuses() if FreshnessStatus else {},
     }
     return render_template("reports.html", freshness=freshness_data, render_freshness_badge=render_freshness_badge)
+
+
+@app.route("/monitor")
+def page_monitor() -> str:
+    """UI-3.10B: 监控报表页面（轻量监控仪表板）"""
+    return render_template("monitor.html")
 
 
 @app.route("/api/history/decisions")
