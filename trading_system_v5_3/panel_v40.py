@@ -3230,6 +3230,17 @@ def api_health():
 # P2-3 只读分析 API
 # =============================================================================
 
+# UI-3.6: 统一 days 参数解析 helper
+def parse_days_arg(request_obj, default=30, allowed=(7, 30, 90)):
+    """解析 days 参数（UI-3.6 新增）"""
+    raw = request_obj.args.get("days", default)
+    try:
+        val = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return val if val in allowed else default
+
+
 @app.route("/api/history/alerts")
 def api_history_alerts():
     """
@@ -3248,12 +3259,13 @@ def api_history_alerts():
         limit = int(request.args.get("limit", 50))
         level = request.args.get("level")
         alert_type = request.args.get("type")
+        days = parse_days_arg(request)
         
         if not storage:
             return jsonify(make_error_response("storage_not_initialized", "SQLite 存储未初始化", 503))
         
-        items = storage.list_alerts(limit=limit, level=level, alert_type=alert_type)
-        summary = storage.get_alert_summary(days=7)
+        items = storage.list_alerts(limit=limit, level=level, alert_type=alert_type, days=days)
+        summary = storage.get_alert_summary(days=days)
         
         # B1+B2: 更新 freshness
         if FreshnessTracker:
@@ -3284,15 +3296,17 @@ def api_history_control():
     参数:
     - limit: 返回条数（默认 50）
     - action: 动作类型过滤
+    - days: 时间范围（7/30/90，默认30）
     """
     try:
         limit = int(request.args.get("limit", 50))
         action = request.args.get("action")
+        days = parse_days_arg(request)
         
         if not storage:
             return jsonify(make_error_response("storage_not_initialized", "SQLite 存储未初始化", 503))
         
-        items = storage.list_control_audits(limit=limit, action=action)
+        items = storage.list_control_audits(limit=limit, action=action, days=days)
         
         return jsonify(make_success_response({
             "items": items,
@@ -3340,12 +3354,13 @@ def api_history_decisions():
     try:
         limit = int(request.args.get("limit", 50))
         action = request.args.get("action")
+        days = parse_days_arg(request)
         
         if not storage:
             return jsonify(make_error_response("storage_not_initialized", "SQLite 存储未初始化", 503))
         
-        items = storage.list_decision_events(limit=limit, normalized_action=action)
-        summary = storage.get_decision_action_summary(days=7)
+        items = storage.list_decision_events(limit=limit, normalized_action=action, days=days)
+        summary = storage.get_decision_action_summary(days=days)
         
         return jsonify(make_success_response({
             "items": items,

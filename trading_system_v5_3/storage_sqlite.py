@@ -321,6 +321,7 @@ class SQLiteStorage:
         limit: int = 50,
         level: str | None = None,
         alert_type: str | None = None,
+        days: int | None = None,
     ) -> list[dict]:
         """查询告警列表（支持过滤）"""
         with self.connect() as conn:
@@ -334,6 +335,10 @@ class SQLiteStorage:
             if alert_type:
                 conditions.append("type = ?")
                 params.append(alert_type)
+            
+            if days:
+                conditions.append("ts >= datetime('now', ?)")
+                params.append(f'-{days} days')
             
             where_clause = " AND ".join(conditions) if conditions else "1=1"
             
@@ -353,6 +358,7 @@ class SQLiteStorage:
         self,
         limit: int = 50,
         action: str | None = None,
+        days: int | None = None,
     ) -> list[dict]:
         """查询控制变更列表（支持过滤）"""
         with self.connect() as conn:
@@ -362,6 +368,10 @@ class SQLiteStorage:
             if action:
                 conditions.append("action = ?")
                 params.append(action)
+            
+            if days:
+                conditions.append("ts >= datetime('now', ?)")
+                params.append(f'-{days} days')
             
             where_clause = " AND ".join(conditions) if conditions else "1=1"
             
@@ -381,6 +391,7 @@ class SQLiteStorage:
         self,
         limit: int = 50,
         normalized_action: str | None = None,
+        days: int | None = None,
     ) -> list[dict]:
         """查询决策事件列表（支持过滤）"""
         with self.connect() as conn:
@@ -390,6 +401,10 @@ class SQLiteStorage:
             if normalized_action:
                 conditions.append("normalized_action = ?")
                 params.append(normalized_action)
+            
+            if days:
+                conditions.append("ts >= datetime('now', ?)")
+                params.append(f'-{days} days')
             
             where_clause = " AND ".join(conditions) if conditions else "1=1"
             
