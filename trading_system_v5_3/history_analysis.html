@@ -234,6 +234,38 @@
       transform: translateY(0);
     }
     
+    /* 时间范围选择器 (UI-3.6) */
+    .range-group {
+      display: flex;
+      gap: var(--space-xs);
+      background: rgba(255,255,255,0.05);
+      padding: var(--space-xs);
+      border-radius: var(--radius-md);
+    }
+    
+    .range-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border-1);
+      background: transparent;
+      color: var(--text-2);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--hover-transition);
+    }
+    
+    .range-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-1);
+    }
+    
+    .range-btn.active {
+      background: rgba(59,130,246,0.15);
+      color: var(--info);
+      border-color: var(--info);
+    }
+    
     /* 统计卡片 - 20px 圆角，渐变边框 */
     .stats {
       display: grid;
@@ -587,6 +619,11 @@
         <div class="header-subtitle">基于 SQLite 的历史事件查询与分析</div>
       </div>
       <div class="header-controls">
+        <div class="range-group">
+          <button class="range-btn" data-days="7">7D</button>
+          <button class="range-btn active" data-days="30">30D</button>
+          <button class="range-btn" data-days="90">90D</button>
+        </div>
         <button class="refresh-btn" onclick="loadAll()">
           <span class="icon">🔄</span>
           <span>刷新</span>
@@ -656,6 +693,62 @@
   <script>
     const API_BASE = '/api/history';
 
+    // 辅助：API 请求（自动附加 days 参数）
+    function fetchHistory(endpoint) {
+      const u = new URL(endpoint, window.location.origin);
+      u.searchParams.set('days', String(currentRangeDays));
+      return fetch(u.pathname + u.search);
+    }
+
+    // ===== UI-3.6: 历史页 range 状态管理 =====
+    const DEFAULT_RANGE_DAYS = 30;
+    let currentRangeDays = DEFAULT_RANGE_DAYS;
+
+    // 从 URL 解析 days 参数
+    function getRangeDaysFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const raw = parseInt(params.get('days'), 10);
+      if ([7, 30, 90].includes(raw)) return raw;
+      return DEFAULT_RANGE_DAYS;
+    }
+
+    // 将 days 同步到 URL（不刷新页面）
+    function syncRangeDaysToUrl(days) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('days', String(days));
+      window.history.replaceState({}, '', url.toString());
+    }
+
+    // 更新 range-btn active 态
+    function updateRangeButtons(days) {
+      document.querySelectorAll('.range-btn').forEach((btn) => {
+        const btnDays = parseInt(btn.dataset.days, 10);
+        btn.classList.toggle('active', btnDays === days);
+      });
+    }
+
+    // 绑定 range-btn 事件
+    function bindRangeButtons() {
+      document.querySelectorAll('.range-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const days = parseInt(btn.dataset.days, 10);
+          if (![7, 30, 90].includes(days) || days === currentRangeDays) return;
+
+          currentRangeDays = days;
+          syncRangeDaysToUrl(days);
+          updateRangeButtons(days);
+          loadAll();
+        });
+      });
+    }
+
+    // 统一请求辅助函数（自动附加 days 参数）
+    function withDays(url) {
+      const u = new URL(url, window.location.origin);
+      u.searchParams.set('days', String(currentRangeDays));
+      return `${u.pathname}${u.search}`;
+    }
+
     // 格式化时间
     function formatTime(ts) {
       if (!ts) return '-';
@@ -693,7 +786,7 @@
     // 加载告警
     async function loadAlerts() {
       try {
-        const res = await fetch(`${API_BASE}/alerts?limit=20`);
+        const res = await fetchHistory('/alerts?limit=20');
         const data = await res.json();
         
         // 更新统计
@@ -748,7 +841,7 @@
     // 加载控制变更
     async function loadControl() {
       try {
-        const res = await fetch(`${API_BASE}/control?limit=20`);
+        const res = await fetchHistory('/control?limit=20');
         const data = await res.json();
         
         document.getElementById('stat-control').textContent = data.count || 0;
@@ -790,7 +883,7 @@
     // 加载决策
     async function loadDecisions() {
       try {
-        const res = await fetch(`${API_BASE}/decisions?limit=1`);
+        const res = await fetchHistory('/decisions?limit=1');
         const data = await res.json();
         
         document.getElementById('stat-decisions').textContent = data.summary?.reduce((a,b) => a + b.cnt, 0) || 0;
@@ -818,8 +911,15 @@
       ]);
     }
 
-    // 初始化
-    loadAll();
+    // 初始化（UI-3.6: 增加 range 状态管理）
+    function initPage() {
+      currentRangeDays = getRangeDaysFromUrl();
+      bindRangeButtons();
+      updateRangeButtons(currentRangeDays);
+      loadAll();
+    }
+
+    document.addEventListener('DOMContentLoaded', initPage);
     // 每 30 秒自动刷新
     setInterval(loadAll, 30000);
   </script>
