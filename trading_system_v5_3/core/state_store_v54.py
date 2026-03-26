@@ -219,6 +219,15 @@ class TradeStateStore:
             "timestamp": datetime.utcnow().isoformat()
         }
         
+        # V5.4.1 审计字段 (可选)
+        audit_fields = [
+            "signal_score", "signal_type", "trend_alignment",
+            "spread_bps", "volatility_regime", "cooldown_reason"
+        ]
+        for field in audit_fields:
+            if field in exit_data:
+                trade[field] = exit_data[field]
+
         # 验证必填字段
         required_fields = ["entry_price", "exit_price", "pnl", "exit_source", "position_size"]
         for field in required_fields:
