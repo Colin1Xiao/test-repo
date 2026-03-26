@@ -294,9 +294,11 @@
       <!-- 第一行：趋势图 + 百分位 -->
       <div class="stats-grid" style="margin-bottom: 0;">
         <!-- 趋势图区域 -->
-        <div class="stat-card" style="grid-column: span 3; padding: var(--space-md);">
+        <div class="stat-card" style="grid-column: span 3; padding: var(--space-md); position: relative; min-height: 180px;">
           <h3 style="margin-bottom: var(--space-xs);">📈 24h 请求趋势</h3>
-          <canvas id="trends-chart" height="70"></canvas>
+          <div style="position: relative; height: 140px;">
+            <canvas id="trends-chart"></canvas>
+          </div>
           <div id="trends-empty" class="empty-state" style="display:none;">
             <div class="icon">📊</div>
             <div class="message">暂无趋势数据</div>
