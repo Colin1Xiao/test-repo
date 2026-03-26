@@ -75,6 +75,11 @@
       /* Hover / Transition */
       --hover-transition: 0.2s ease;
       --hover-transform: translateY(-2px);
+      
+      /* Top Nav */
+      --top-nav-height: 60px;
+      --top-nav-bg: var(--bg-1);
+      --top-nav-border: var(--border-1);
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -88,6 +93,72 @@
     }
     
     .container { max-width: 1600px; margin: 0 auto; }
+    
+    /* ===== 顶部导航栏 (UI-3 Lite) ===== */
+    .top-nav {
+      background: var(--top-nav-bg);
+      border-bottom: 1px solid var(--top-nav-border);
+      padding: 0 var(--space-lg);
+      height: var(--top-nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top-nav-brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--info);
+    }
+
+    .top-nav-brand span {
+      font-size: 0.75rem;
+      color: var(--text-3);
+    }
+
+    .top-nav-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .top-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      color: var(--text-2);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all var(--hover-transition);
+      border: 1px solid transparent;
+    }
+
+    .top-nav-link:hover {
+      background: var(--bg-2);
+      color: var(--text-1);
+    }
+
+    .top-nav-link.active {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--info);
+      border-color: var(--info);
+    }
+
+    .top-nav-link i {
+      font-size: 14px;
+    }
+    
     /* 顶部控制栏 - 统一布局 */
     .header {
       display: grid;
@@ -434,6 +505,28 @@
   </style>
 </head>
 <body>
+  <!-- 顶部导航栏 -->
+  <nav class="top-nav">
+    <div class="top-nav-brand">
+      <h1>小龙交易系统 V5.4</h1>
+      <span>专业金融监控终端</span>
+    </div>
+    <div class="top-nav-links">
+      <a href="/" class="top-nav-link">
+        <span>📊</span>
+        <span>驾驶舱</span>
+      </a>
+      <a href="/history" class="top-nav-link active">
+        <span>📜</span>
+        <span>历史分析</span>
+      </a>
+      <a href="/reports" class="top-nav-link">
+        <span>📈</span>
+        <span>报表中心</span>
+      </a>
+    </div>
+  </nav>
+
   <div class="container">
     <div class="header">
       <div class="header-title-area">

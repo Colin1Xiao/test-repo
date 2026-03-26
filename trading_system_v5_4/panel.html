@@ -99,11 +99,76 @@
             overflow-x: hidden;
         }
 
+        /* ===== 顶部导航栏 (UI-3 Lite) ===== */
+        .top-nav {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 25px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-nav-brand h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .top-nav-brand span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .top-nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .top-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all var(--hover-transition);
+            border: 1px solid transparent;
+        }
+
+        .top-nav-link:hover {
+            background: var(--card-hover);
+            color: var(--text-primary);
+        }
+
+        .top-nav-link.active {
+            background: var(--primary-dark);
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+        }
+
+        .top-nav-link i {
+            font-size: 0.9rem;
+        }
+
         /* 布局容器 */
         .dashboard {
             display: grid;
             grid-template-columns: 280px 1fr;
-            min-height: 100vh;
+            min-height: calc(100vh - 60px);
         }
 
         /* 侧边栏 */
@@ -878,6 +943,28 @@
     </style>
 </head>
 <body>
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+        <div class="top-nav-brand">
+            <h1>小龙交易系统 V5.4</h1>
+            <span>专业金融监控终端</span>
+        </div>
+        <div class="top-nav-links">
+            <a href="/" class="top-nav-link active">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>驾驶舱</span>
+            </a>
+            <a href="/history" class="top-nav-link">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>历史分析</span>
+            </a>
+            <a href="/reports" class="top-nav-link">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>报表中心</span>
+            </a>
+        </div>
+    </nav>
+
     <!-- 状态栏 -->
     <div class="status-bar">
         <div class="status-item status-active">
