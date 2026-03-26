@@ -234,7 +234,14 @@ class TradeStateStore:
                      exit_source: str,
                      position_size: float,
                      stop_ok: bool = False,
-                     stop_verified: bool = False) -> Dict[str, Any]:
+                     stop_verified: bool = False,
+                     # 📊 V5.4.1 新增审计字段
+                     signal_score: float = None,
+                     signal_type: str = None,
+                     trend_alignment: float = None,
+                     spread_bps: float = None,
+                     volatility_regime: str = None,
+                     cooldown_reason: str = None) -> Dict[str, Any]:
         """
         记录完整交易（便捷方法）
         
@@ -246,6 +253,13 @@ class TradeStateStore:
             position_size: 持仓数量
             stop_ok: 止损是否成功
             stop_verified: 止损是否已验证
+            # V5.4.1 审计字段
+            signal_score: 信号最终评分
+            signal_type: 信号类型
+            trend_alignment: 趋势一致性分
+            spread_bps: 入场时点差
+            volatility_regime: 波动分桶
+            cooldown_reason: 冷却原因
         
         Returns:
             更新后的状态
@@ -259,6 +273,21 @@ class TradeStateStore:
             "stop_ok": stop_ok,
             "stop_verified": stop_verified
         }
+        
+        # V5.4.1 审计字段 (可选)
+        if signal_score is not None:
+            exit_data["signal_score"] = signal_score
+        if signal_type is not None:
+            exit_data["signal_type"] = signal_type
+        if trend_alignment is not None:
+            exit_data["trend_alignment"] = trend_alignment
+        if spread_bps is not None:
+            exit_data["spread_bps"] = spread_bps
+        if volatility_regime is not None:
+            exit_data["volatility_regime"] = volatility_regime
+        if cooldown_reason is not None:
+            exit_data["cooldown_reason"] = cooldown_reason
+        
         return self.record_event("exit", exit_data)
     
     def get_current_position(self) -> Optional[Dict[str, Any]]:
