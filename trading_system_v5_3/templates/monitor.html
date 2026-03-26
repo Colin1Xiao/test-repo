@@ -291,6 +291,29 @@
         </div>
       </div>
 
+      <!-- 第一行：趋势图 + 百分位 -->
+      <div class="stats-grid" style="margin-bottom: var(--space-md);">
+        <!-- 趋势图区域 -->
+        <div class="stat-card" style="grid-column: span 3;">
+          <h3>📈 24h 请求趋势</h3>
+          <canvas id="trends-chart" height="80"></canvas>
+          <div id="trends-empty" class="empty-state" style="display:none;">
+            <div class="icon">📊</div>
+            <div class="message">暂无趋势数据</div>
+          </div>
+        </div>
+        <!-- 百分位卡片 -->
+        <div class="stat-card" style="grid-column: span 1;">
+          <h3>⏱️ 响应时间分布</h3>
+          <div class="value" style="font-size: 24px;" id="p50-value">-</div>
+          <div class="trend" style="color:var(--text-2)">P50</div>
+          <div class="value" style="font-size: 24px; margin-top: var(--space-sm);" id="p90-value">-</div>
+          <div class="trend" style="color:var(--text-2)">P90</div>
+          <div class="value" style="font-size: 24px; margin-top: var(--space-sm);" id="p99-value">-</div>
+          <div class="trend" style="color:var(--text-2)">P99</div>
+        </div>
+      </div>
+
       <!-- 4 张卡片 -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -344,6 +367,17 @@
           <div class="empty-state">
             <div class="icon">✅</div>
             <div class="message">暂无慢查询数据</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top N 慢端点 -->
+      <div class="list-section">
+        <h2>🐍 Top 10 最慢端点</h2>
+        <div id="top-endpoints-list">
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无端点数据</div>
           </div>
         </div>
       </div>
@@ -528,6 +562,187 @@
       return str.length > maxLen ? str.slice(0, maxLen) + '...' : str;
     }
 
+    // UI-3.10C: 加载趋势数据
+    async function fetchTrends(hours = 24) {
+      try {
+        const res = await fetch(`/api/monitor/trends?hours=${hours}`);
+        const data = await res.json();
+        return data.ok ? data.data : null;
+      } catch (e) {
+        console.error('加载趋势失败:', e);
+        return null;
+      }
+    }
+
+    // UI-3.10C: 加载百分位数据
+    async function fetchPercentiles() {
+      try {
+        const res = await fetch('/api/monitor/percentiles');
+        const data = await res.json();
+        return data.ok ? data.data : null;
+      } catch (e) {
+        console.error('加载百分位失败:', e);
+        return null;
+      }
+    }
+
+    // UI-3.10C: 加载 Top N 端点数据
+    async function fetchTopEndpoints(limit = 10) {
+      try {
+        const res = await fetch(`/api/monitor/top-endpoints?limit=${limit}`);
+        const data = await res.json();
+        return data.ok ? data.data : null;
+      } catch (e) {
+        console.error('加载 Top N 失败:', e);
+        return null;
+      }
+    }
+
+    // UI-3.10C: 渲染趋势图
+    let trendsChartInstance = null;
+    function renderTrendsChart(buckets) {
+      const container = document.getElementById('trends-empty');
+      const canvas = document.getElementById('trends-chart');
+      
+      if (!buckets || buckets.length === 0) {
+        canvas.style.display = 'none';
+        container.style.display = 'block';
+        if (trendsChartInstance) {
+          trendsChartInstance.destroy();
+          trendsChartInstance = null;
+        }
+        return;
+      }
+      
+      container.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      const ctx = canvas.getContext('2d');
+      
+      // 销毁旧实例
+      if (trendsChartInstance) {
+        trendsChartInstance.destroy();
+      }
+      
+      trendsChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: buckets.map(b => b.ts.slice(11, 16)),
+          datasets: [
+            {
+              label: '请求量',
+              type: 'bar',
+              data: buckets.map(b => b.request_count),
+              backgroundColor: 'rgba(59, 130, 246, 0.6)',
+              borderColor: 'rgba(59, 130, 246, 1)',
+              borderWidth: 1,
+              yAxisID: 'y',
+              order: 2
+            },
+            {
+              label: '平均响应时间',
+              type: 'line',
+              data: buckets.map(b => b.avg_duration_ms),
+              borderColor: 'rgba(245, 158, 11, 1)',
+              borderWidth: 2,
+              pointBackgroundColor: '#fff',
+              pointRadius: 3,
+              yAxisID: 'y1',
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+            scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              ticks: { color: '#b6c1d1' }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              grid: { display: false },
+              ticks: { color: '#f59e0b' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#7f8a9e', maxTicksLimit: 12 }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#f5f7fb', usePointStyle: true }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.datasetIndex === 0) return `请求量: ${ctx.raw}`;
+                  return `平均: ${ctx.raw.toFixed(1)}ms`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // UI-3.10C: 渲染百分位卡片
+    function renderPercentiles(percentiles) {
+      if (!percentiles || percentiles.count === 0) {
+        document.getElementById('p50-value').textContent = '-';
+        document.getElementById('p90-value').textContent = '-';
+        document.getElementById('p99-value').textContent = '-';
+        return;
+      }
+      
+      document.getElementById('p50-value').textContent = (percentiles.p50_ms || 0).toFixed(1);
+      document.getElementById('p90-value').textContent = (percentiles.p90_ms || 0).toFixed(1);
+      document.getElementById('p99-value').textContent = (percentiles.p99_ms || 0).toFixed(1);
+    }
+
+    // UI-3.10C: 渲染 Top N 端点表格
+    function renderTopEndpoints(items) {
+      const container = document.getElementById('top-endpoints-list');
+      
+      if (!items || items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无端点数据</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<table class="table">
+        <thead>
+          <tr>
+            <th>端点</th>
+            <th>调用次数</th>
+            <th>平均耗时</th>
+            <th>最大耗时</th>
+            <th>慢请求</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td><code>${item.endpoint}</code></td>
+              <td>${item.count}</td>
+              <td class="duration">${item.avg_duration_ms.toFixed(1)}ms</td>
+              <td class="duration">${item.max_duration_ms.toFixed(1)}ms</td>
+              <td>${item.slow_count}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+    }
+
     // 加载全部数据
     async function loadData() {
       const loading = document.createElement('div');
@@ -538,23 +753,33 @@
       document.getElementById('slow-requests-list').replaceWith(loading);
       document.getElementById('frontend-errors-list').style.opacity = '0.5';
       document.getElementById('db-queries-list').style.opacity = '0.5';
+      document.getElementById('top-endpoints-list').style.opacity = '0.5';
       
       try {
         // 并行加载所有数据
-        const [perfRes, errRes, queryRes] = await Promise.all([
+        const [perfRes, errRes, queryRes, trendsRes, percentilesRes, topRes] = await Promise.all([
           fetch('/api/monitor/performance?hours=24').then(r => r.json()),
           fetch('/api/monitor/errors?hours=24').then(r => r.json()),
-          fetch('/api/monitor/db-queries?slow_only=true&limit=20').then(r => r.json())
+          fetch('/api/monitor/db-queries?slow_only=true&limit=20').then(r => r.json()),
+          fetch('/api/monitor/trends?hours=24').then(r => r.json()),
+          fetch('/api/monitor/percentiles').then(r => r.json()),
+          fetch('/api/monitor/top-endpoints?limit=10').then(r => r.json())
         ]);
         
         const performance = perfRes.ok ? perfRes.data : { performance: { stats: {} }, errors: { stats: {} } };
         const errors = errRes.ok ? errRes.data : { stats: {}, errors: [] };
         const queries = queryRes.ok ? queryRes.data : { slow_queries: [] };
+        const trendsData = trendsRes.ok ? trendsRes.data : null;
+        const percentilesData = percentilesRes.ok ? percentilesRes.data : null;
+        const topEndpointsData = topRes.ok ? topRes.data : null;
         
         updateStats(performance.performance.stats || {}, errors.stats || {});
         renderSlowRequests(performance.performance.slow_requests || []);
         renderFrontendErrors(errors.errors || []);
         renderSlowDbQueries(queries.slow_queries || []);
+        renderTrendsChart(trendsData?.buckets || []);
+        renderPercentiles(percentilesData || {});
+        renderTopEndpoints(topEndpointsData?.items || []);
         
         // 更新 freshness badge (使用 db-queries 的 freshness 如果有)
         if (queries.freshness && queries.freshness.age_sec !== undefined) {
@@ -566,6 +791,7 @@
         loading.remove();
         document.getElementById('frontend-errors-list').style.opacity = '1';
         document.getElementById('db-queries-list').style.opacity = '1';
+        document.getElementById('top-endpoints-list').style.opacity = '1';
         
       } catch (e) {
         console.error('加载数据失败:', e);
