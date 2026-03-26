@@ -3474,6 +3474,181 @@ def api_monitor_db_queries() -> Any:
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/api/monitor/trends")
+def api_monitor_trends() -> Any:
+    """
+    获取性能趋势数据（UI-3.10C 新增）
+    
+    参数:
+    - hours: 统计时长（目前固定 24）
+    """
+    try:
+        hours = int(request.args.get('hours', 24))
+        
+        conn = monitor_db._get_connection()
+        try:
+            # 计算时间窗口起点
+            from datetime import datetime, timedelta
+            cutoff = datetime.utcnow() - timedelta(hours=hours)
+            
+            # 按 1 小时 bucket 聚合
+            query = """
+                SELECT 
+                    strftime('%Y-%m-%d %H:00:00', created_at) as bucket_hour,
+                    COUNT(*) as request_count,
+                    AVG(duration_ms) as avg_duration_ms,
+                    SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) as error_count
+                FROM performance_logs
+                WHERE created_at >= ?
+                GROUP BY bucket_hour
+                ORDER BY bucket_hour ASC
+            """
+            cursor = conn.execute(query, [cutoff.isoformat()])
+            rows = cursor.fetchall()
+            
+            # 转换为前端需要的格式
+            buckets = []
+            for row in rows:
+                buckets.append({
+                    "ts": row[0] + ":00Z",  # ISO 8601 format
+                    "request_count": row[1],
+                    "avg_duration_ms": round(row[2], 1),
+                    "error_count": row[3]
+                })
+            
+            return jsonify({
+                "ok": True,
+                "data": {
+                    "hours": hours,
+                    "buckets": buckets
+                }
+            })
+        finally:
+            conn.close()
+    
+    except Exception as e:
+        logger_error(f"趋势数据查询失败：{e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/monitor/percentiles")
+def api_monitor_percentiles() -> Any:
+    """
+    获取响应时间百分位数据（UI-3.10C 新增）
+    
+    固定统计最近 24 小时
+    """
+    try:
+        hours = 24
+        
+        conn = monitor_db._get_connection()
+        try:
+            # 计算时间窗口
+            from datetime import datetime, timedelta, timezone
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+            
+            # 获取所有非慢请求的持续时间
+            query = """
+                SELECT duration_ms FROM performance_logs
+                WHERE created_at >= ?
+                ORDER BY duration_ms ASC
+            """
+            cursor = conn.execute(query, [cutoff.isoformat()])
+            durations = [row[0] for row in cursor.fetchall() if row[0] is not None]
+            
+            count = len(durations)
+            
+            if count == 0:
+                return jsonify({
+                    "ok": True,
+                    "data": {
+                        "window_hours": hours,
+                        "count": 0,
+                        "p50_ms": None,
+                        "p90_ms": None,
+                        "p99_ms": None
+                    }
+                })
+            
+            # 计算百分位
+            durations.sort()
+            p50 = durations[int(count * 0.50)]
+            p90 = durations[int(count * 0.90)]
+            p99 = durations[int(count * 0.99)]
+            
+            return jsonify({
+                "ok": True,
+                "data": {
+                    "window_hours": hours,
+                    "count": count,
+                    "p50_ms": round(p50, 1),
+                    "p90_ms": round(p90, 1),
+                    "p99_ms": round(p99, 1)
+                }
+            })
+        finally:
+            conn.close()
+    
+    except Exception as e:
+        logger_error(f"百分位数据查询失败：{e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/monitor/top-endpoints")
+def api_monitor_top_endpoints() -> Any:
+    """
+    获取最慢端点排行（UI-3.10C 新增）
+    
+    参数:
+    - limit: 返回数量（默认 10）
+    
+    按 avg_duration_ms desc 排序
+    """
+    try:
+        limit = int(request.args.get('limit', 10))
+        
+        conn = monitor_db._get_connection()
+        try:
+            query = """
+                SELECT 
+                    endpoint,
+                    COUNT(*) as count,
+                    AVG(duration_ms) as avg_duration_ms,
+                    MAX(duration_ms) as max_duration_ms,
+                    SUM(CASE WHEN is_slow = 1 THEN 1 ELSE 0 END) as slow_count
+                FROM performance_logs
+                GROUP BY endpoint
+                ORDER BY avg_duration_ms DESC
+                LIMIT ?
+            """
+            cursor = conn.execute(query, [limit])
+            rows = cursor.fetchall()
+            
+            items = []
+            for row in rows:
+                items.append({
+                    "endpoint": row[0],
+                    "count": row[1],
+                    "avg_duration_ms": round(row[2], 1),
+                    "max_duration_ms": round(row[3], 1),
+                    "slow_count": row[4]
+                })
+            
+            return jsonify({
+                "ok": True,
+                "data": {
+                    "limit": limit,
+                    "items": items
+                }
+            })
+        finally:
+            conn.close()
+    
+    except Exception as e:
+        logger_error(f"Top endpoints 查询失败：{e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # =============================================================================
 # 主页面路由
 # =============================================================================
