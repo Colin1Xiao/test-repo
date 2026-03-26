@@ -220,9 +220,11 @@ class TradeStateStore:
         }
         
         # V5.4.1 审计字段 (可选)
+        # V5.4.1 审计字段 (7 字段，signal_bucket 强制落盘)
         audit_fields = [
             "signal_score", "signal_type", "trend_alignment",
-            "spread_bps", "volatility_regime", "cooldown_reason"
+            "spread_bps", "volatility_regime", "cooldown_reason",
+            "signal_bucket"
         ]
         for field in audit_fields:
             if field in exit_data:
@@ -244,13 +246,14 @@ class TradeStateStore:
                      position_size: float,
                      stop_ok: bool = False,
                      stop_verified: bool = False,
-                     # 📊 V5.4.1 新增审计字段
+                     # 📊 V5.4.1 新增审计字段 (7 字段)
                      signal_score: float = None,
                      signal_type: str = None,
                      trend_alignment: float = None,
                      spread_bps: float = None,
                      volatility_regime: str = None,
-                     cooldown_reason: str = None) -> Dict[str, Any]:
+                     cooldown_reason: str = None,
+                     signal_bucket: str = None) -> Dict[str, Any]:
         """
         记录完整交易（便捷方法）
         
@@ -269,6 +272,7 @@ class TradeStateStore:
             spread_bps: 入场时点差
             volatility_regime: 波动分桶
             cooldown_reason: 冷却原因
+            signal_bucket: 信号分桶 (A/B/C/D)
         
         Returns:
             更新后的状态
@@ -296,6 +300,8 @@ class TradeStateStore:
             exit_data["volatility_regime"] = volatility_regime
         if cooldown_reason is not None:
             exit_data["cooldown_reason"] = cooldown_reason
+        if signal_bucket is not None:
+            exit_data["signal_bucket"] = signal_bucket
         
         return self.record_event("exit", exit_data)
     

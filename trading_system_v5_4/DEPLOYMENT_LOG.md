@@ -21,22 +21,53 @@
 
 ## 逐笔记录
 
-| # | 时间 | symbol | side | entry_price | stop_verified | exit_source | pnl | 异常 |
-|---|------|--------|------|-------------|---------------|-------------|-----|------|
-| 1 | | ETH/USDT:USDT | long | | | | | |
-| 2 | | ETH/USDT:USDT | long | | | | | |
-| 3 | | ETH/USDT:USDT | long | | | | | |
-| 4 | | ETH/USDT:USDT | long | | | | | |
-| 5 | | ETH/USDT:USDT | long | | | | | |
-| 6 | | ETH/USDT:USDT | long | | | | | |
-| 7 | | ETH/USDT:USDT | long | | | | | |
-| 8 | | ETH/USDT:USDT | long | | | | | |
-| 9 | | ETH/USDT:USDT | long | | | | | |
-| 10 | | ETH/USDT:USDT | long | | | | | |
+**signal_bucket 强制落盘** (A/B/C/D 必须记录)
+
+| # | 时间 | symbol | side | entry_price | signal_score | signal_bucket | spread_bps | volatility_regime | cooldown_reason | exit_source | pnl | 异常 |
+|---|------|--------|------|-------------|--------------|---------------|------------|-------------------|-----------------|-------------|-----|------|
+| 1 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 2 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 3 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 4 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 5 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 6 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 7 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 8 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 9 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 10 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 11 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 12 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 13 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 14 | | ETH/USDT:USDT | long | | | | | | | | | |
+| 15 | | ETH/USDT:USDT | long | | | | | | | | | |
+| ... | | ETH/USDT:USDT | long | | | | | | | | | |
+| 50 | | ETH/USDT:USDT | long | | | | | | | | | |
 
 ---
 
-## 每笔强制核验清单
+## 停机条件
+
+### 立即暂停条件 (满足任一项)
+
+- [ ] stop_verified=False
+- [ ] 平仓后残留 conditional 单
+- [ ] StateStore 记录缺字段
+- [ ] 出现重复开仓
+- [ ] accepted=True 但交易所侧无真实成交
+- [ ] 代理/价格源连续异常超过 3 次
+
+### 统计暂停条件 (10-15 笔后评估)
+
+- [ ] win_rate < 30%
+- [ ] avg_signal_score < 60
+- [ ] avg_spread_bps_at_entry > 3.0
+- [ ] avg_hold_seconds < 20
+
+**动作**: 满足立即暂停条件 → 立即停机检查；满足统计暂停条件 → 中止复盘
+
+---
+
+## 强制记录字段 (每笔必记)
 
 ### 开仓后核验
 

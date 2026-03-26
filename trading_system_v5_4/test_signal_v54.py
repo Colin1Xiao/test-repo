@@ -186,7 +186,8 @@ def test_state_store_audit_fields():
         trend_alignment=0.81,
         spread_bps=1.8,
         volatility_regime="low_normal",
-        cooldown_reason="none"
+        cooldown_reason="none",
+        signal_bucket="B"
     )
     print("   ✅ 交易已记录")
     
@@ -200,7 +201,8 @@ def test_state_store_audit_fields():
         "trend_alignment",
         "spread_bps",
         "volatility_regime",
-        "cooldown_reason"
+        "cooldown_reason",
+        "signal_bucket"
     ]
     
     all_present = True

@@ -85,6 +85,22 @@
 | avg_spread_bps | ≤2.5 | 收紧点差 |
 | TIME_EXIT 比例 | 下降 | 避免过早退出 |
 
+### 停机条件
+
+**立即暂停** (满足任一项):
+- stop_verified=False
+- 平仓后残留 conditional 单
+- StateStore 记录缺字段
+- 出现重复开仓
+- accepted=True 但交易所侧无真实成交
+- 代理/价格源连续异常超过 3 次
+
+**统计暂停** (10-15 笔后评估):
+- win_rate < 30%
+- avg_signal_score < 60
+- avg_spread_bps_at_entry > 3.0
+- avg_hold_seconds < 20
+
 ### 回滚条件
 
 | 条件 | 动作 |
