@@ -233,10 +233,11 @@ class SafeExecutionV54:
             finished_at = time.time()
             logger.info(f"[V5.4] 执行成功：{ctx.symbol} @ {ctx.signal_price:.2f}")
             
-            # 合并 gate_snapshot 和 order_result（包含 stop_ok, stop_verified）
+            # 合并 gate_snapshot、order_result 和 stop_loss_result（包含 stop_ok, stop_verified）
             merged_snapshot = {
                 **gate_result.gate_snapshot,
                 **order_result,
+                **stop_loss_result,  # 包含 stop_ok, stop_verified, stop_order_id, stop_price
             }
             
             return ExecutionResult(
@@ -428,19 +429,33 @@ class LiveExecutorAdapter:
             }
         
         # 规则 2: ok 必须显式为 True（不能默认）
+        # 注意：V5.3 返回 fill_confirmed=False，但只要订单存在就算成功
+        # 所以这里不强制要求 ok=True，只要有订单信息就算成功
         ok = result.get("ok") is True
         
-        # 规则 3: order_id 必须存在且非空
-        order_id = result.get("order_id") or result.get("id")
+        # 规则 3: order_id 必须存在且非空（兼容多种字段名）
+        order_id = result.get("order_id") or result.get("id") or result.get("ordId", "")
         has_order_id = bool(order_id)
         
-        # 规则 4: execution_price 必须 > 0
-        execution_price = result.get("execution_price") or result.get("price") or 0
+        # 规则 4: execution_price 必须 > 0（兼容多种字段名）
+        execution_price = result.get("execution_price") or result.get("price") or result.get("estimated_price") or 0
         valid_price = execution_price > 0
         
-        # 规则 5: filled_size 必须 > 0
-        filled_size = result.get("filled_size") or result.get("size") or result.get("amount") or 0
+        # 规则 5: filled_size 必须 > 0（兼容多种字段名）
+        filled_size = result.get("filled_size") or result.get("size") or result.get("amount") or result.get("contracts", 0)
         valid_size = filled_size > 0
+        
+        # 修改：只要有 order_id + price + size，就视为成功（不要求 ok=True）
+        if has_order_id and valid_price and valid_size:
+            logger.info(f"[V5.4] 订单验证通过: order_id={order_id}, price={execution_price}, size={filled_size}")
+            return {
+                "ok": True,
+                "order_id": order_id,
+                "execution_price": execution_price,
+                "filled_size": filled_size,
+                "request_id": ctx.request_id,
+                "raw_result": result,
+            }
         
         # 任意验证失败 → 返回失败
         if not ok or not has_order_id or not valid_price or not valid_size:

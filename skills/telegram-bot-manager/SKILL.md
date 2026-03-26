@@ -1,10 +1,6 @@
 ---
 name: telegram-bot-manager
 description: Manage and configure Telegram bots for OpenClaw. Use when setting up Telegram integrations, troubleshooting bot connectivity, configuring bot tokens, or managing Telegram channel/webhook settings. Handles bot registration, token validation, and network connectivity checks for api.telegram.org.
-metadata:
-  openclaw:
-    emoji: ✈️
-    version: 1.0.0
 ---
 
 # Telegram Bot Manager

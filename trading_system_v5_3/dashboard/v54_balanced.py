@@ -66,6 +66,13 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
             --text-tertiary: #64748b;
             --border-color: #334155;
             
+            /* 统一间距系统 (8px 基准) */
+            --space-xs: 0.25rem;   /* 4px */
+            --space-sm: 0.5rem;    /* 8px */
+            --space-md: 1rem;      /* 16px */
+            --space-lg: 1.5rem;    /* 24px */
+            --space-xl: 2rem;      /* 32px */
+            
             /* 间距系统 - 8px 基准 */
             --space-1: 0.25rem;   /* 4px */
             --space-2: 0.5rem;    /* 8px */
@@ -113,7 +120,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         /* 侧边栏 */
         .sidebar {
             background: var(--card-bg);
-            padding: 20px;
+            padding: var(--space-lg);
             border-right: 1px solid var(--border-color);
             position: sticky;
             top: 0;
@@ -153,11 +160,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
+            padding: var(--space-sm) var(--space-md);
+            margin-bottom: var(--space-xs);
             color: var(--text-primary);
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             transition: all 0.2s;
             cursor: pointer;
         }
@@ -179,7 +186,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         /* 主内容 */
         .main-content {
             background: var(--dark-bg);
-            padding: 25px;
+            padding: var(--space-xl);
         }
 
         .header {
@@ -227,8 +234,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         /* 卡片样式 */
         .card {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
             border: 1px solid var(--border-color);
             transition: all 0.2s;
         }
@@ -1023,6 +1030,6 @@ if __name__ == '__main__':
     print("✅ 3个优化图表（非阻塞）")
     print("✅ 智能刷新（前台5秒/后台10秒）")
     print("✅ 防抖更新机制")
-    print("🌐 http://localhost:8784/")
+    print("🌐 http://localhost:8785/")
     print("="*60)
-    app.run(host='0.0.0.0', port=8784, debug=False)
+    app.run(host='0.0.0.0', port=8785, debug=False)

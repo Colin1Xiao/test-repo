@@ -1,10 +1,6 @@
 ---
 name: gcal-pro
 description: Google Calendar integration for viewing, creating, and managing calendar events. Use when the user asks about their schedule, wants to add/edit/delete events, check availability, or needs a morning brief. Supports natural language like "What's on my calendar tomorrow?" or "Schedule lunch with Alex at noon Friday." Free tier provides read access; Pro tier ($12) adds create/edit/delete and morning briefs.
-metadata:
-  openclaw:
-    emoji: 📅
-    version: 1.0.0
 ---
 
 # gcal-pro

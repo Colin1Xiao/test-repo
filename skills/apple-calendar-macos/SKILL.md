@@ -1,23 +1,11 @@
 ---
-name: apple-calendar-macos
+name: Apple Calendar (MacOS)
+slug: apple-calendar-macos
+version: 1.0.0
+homepage: https://clawic.com/skills/apple-calendar-macos
 description: Use local CLI to manage Apple, Google, iCloud, Outlook, CalDAV, and other calendars synced in macOS Calendar, without API keys or OAuth.
-metadata:
-  openclaw:
-    emoji: 📅
-    version: 1.0.0
-    homepage: https://clawic.com/skills/apple-calendar-macos
-    changelog: Initial release with unified macOS Calendar operations, deterministic command fallback, and safety-first write verification.
-    requires:
-      bins: []
-      anyBins:
-        - apple-calendar-cli
-        - icalBuddy
-        - shortcuts
-        - osascript
-    os:
-      - darwin
-    configPaths:
-      - ~/apple-calendar-macos/
+changelog: Initial release with unified macOS Calendar operations, deterministic command fallback, and safety-first write verification.
+metadata: {"clawdbot":{"emoji":"📅","requires":{"bins":[],"anyBins":["apple-calendar-cli","icalBuddy","shortcuts","osascript"],"config":["~/apple-calendar-macos/"]},"os":["darwin"],"configPaths":["~/apple-calendar-macos/"]}}
 ---
 
 ## Setup

@@ -60,6 +60,31 @@ class TradeStateStore:
         
         # 🚀 初始化
         self._init_file()
+        self._restore_position_from_file()
+    
+    def _restore_position_from_file(self):
+        """从文件恢复当前持仓状态"""
+        state = self._read_file()
+        last_event = state.get('last_event')
+        
+        if last_event:
+            # 兼容两种格式：
+            # 旧格式：{'event': 'entry', 'symbol': ..., ...}
+            # 新格式：{'type': 'entry', 'data': {...}}
+            event_type = last_event.get('event') or last_event.get('type', '')
+            
+            if event_type == 'entry':
+                # 最后事件是开仓，当前有持仓
+                # 新格式需要从 data 字段获取
+                position_data = last_event.get('data', last_event)
+                self._current_position = position_data
+            elif event_type == 'exit':
+                # 最后事件是平仓，当前无持仓
+                self._current_position = None
+            else:
+                self._current_position = None
+        else:
+            self._current_position = None
     
     def _init_file(self):
         """初始化状态文件（如果不存在）"""
@@ -281,6 +306,9 @@ trade_state_store = TradeStateStore()
 
 def get_state_store() -> TradeStateStore:
     """获取 StateStore 实例"""
+    # 确保从文件恢复持仓状态
+    if trade_state_store._current_position is None:
+        trade_state_store._restore_position_from_file()
     return trade_state_store
 
 

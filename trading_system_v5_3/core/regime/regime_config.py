@@ -2,6 +2,10 @@
 """
 Regime配置
 每个市场状态对应的策略参数和评分权重
+
+V2 变更历史:
+- RANGE min_volume: 1.2 → 0.8 (2026-03-25: 降低门槛，积累 V3.8 Edge 样本)
+- RANGE min_price_change: 0.0015 → 0.001 (同上)
 """
 
 REGIME_CONFIG = {
@@ -9,8 +13,8 @@ REGIME_CONFIG = {
         "description": "震荡行情 - V2策略：高质量信号+紧止损",
         "emoji": "🟡",
         "min_score": 70,  # V2: 提高门槛 40 → 70
-        "min_volume": 1.2,  # V2: 必须放量 0.1 → 1.2
-        "min_price_change": 0.0015,  # V2: 新增动量过滤 +0.15%
+        "min_volume": 0.8,  # V2: 必须放量 1.2 → 0.8 (降低门槛以积累样本)
+        "min_price_change": 0.001,  # V2: 新增动量过滤 +0.15% → 0.1% (降低门槛)
         "take_profit": 0.0015,  # V2: 0.2% → 0.15%
         "stop_loss": 0.0005,  # V2: 0.5% → 0.05%
         "max_hold": 45,  # V2: 30s → 45s
@@ -78,19 +82,19 @@ def get_regime_weights(regime_type: str) -> dict:
     return config.get("weights", REGIME_CONFIG["range"]["weights"])
 
 
-# 阈值比较表（用于调试和日志）- V2 Updated
+# 阈值比较表（用于调试和日志）- V2 Updated (2026-03-25: 降低 RANGE 门槛)
 THRESHOLD_COMPARISON = """
 ┌─────────────┬────────┬────────┬────────┐
 │   参数      │ RANGE  │ TREND  │BREAKOUT│
 ├─────────────┼────────┼────────┼────────┤
 │ min_score   │   70   │   65   │   60   │
-│ min_volume  │  1.2x  │  0.6x  │  0.5x  │
-│ price_change│ +0.15% │   -    │   -    │
+│ min_volume  │  0.8x  │  0.6x  │  0.1x  │
+│ price_change│ +0.1%  │   -    │   -    │
 │ take_profit │  0.15% │  0.4%  │  0.6%  │
 │ stop_loss   │  0.05% │  0.8%  │  1.0%  │
 │ max_hold    │  45s   │  90s   │  120s  │
 │ trend权重   │  0.15  │  0.40  │  0.30  │
 │ volume权重  │  0.30  │  0.10  │  0.15  │
 └─────────────┴────────┴────────┴────────┘
-V2 RANGE: 更高门槛 + 更紧止损 + 更快止盈
+V2 RANGE (2026-03-25): min_volume 1.2→0.8x, min_price_change 0.15%→0.1% (积累样本)
 """

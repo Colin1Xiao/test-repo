@@ -5,7 +5,7 @@
 """
 
 import os
-import sys
+import re
 import shutil
 import argparse
 from pathlib import Path
@@ -33,21 +33,6 @@ def get_file_category(file_path):
     return 'others'
 
 
-def get_size_category(size_bytes, ranges):
-    """根据文件大小返回类别"""
-    size_mb = size_bytes / (1024 * 1024)
-    if not ranges:
-        ranges = [10, 100, 1024]  # 10MB, 100MB, 1GB
-    
-    for i, threshold in enumerate(ranges):
-        if size_mb < threshold:
-            if i == 0:
-                return f"below_{threshold}MB"
-            else:
-                return f"{ranges[i-1]}MB_to_{threshold}MB"
-    return f"above_{ranges[-1]}MB"
-
-
 def organize_by_type(source_dir, dry_run=True, move=False):
     """按文件类型分类"""
     source_path = Path(source_dir)
@@ -59,7 +44,16 @@ def organize_by_type(source_dir, dry_run=True, move=False):
     
     # 收集文件
     for file_path in source_path.rglob('*'):
+        if file_path.is_symlink():
+            continue
         if file_path.is_file():
+            # Skip files already in a category subdir
+            try:
+                rel = file_path.relative_to(source_path)
+                if rel.parts[0] in FILE_TYPES or rel.parts[0] == 'others':
+                    continue
+            except (ValueError, IndexError):
+                pass
             category = get_file_category(file_path)
             files_by_type[category].append(file_path)
     
@@ -78,7 +72,12 @@ def organize_by_type(source_dir, dry_run=True, move=False):
     if dry_run:
         print(f"\n这是一个预览。使用 --execute 来执行实际移动。")
         return
-    
+
+    confirm = input("\n确认执行? (yes/no): ")
+    if confirm.lower() != 'yes':
+        print("操作已取消")
+        return
+
     # 执行移动
     for category, files in files_by_type.items():
         target_dir = source_path / category
@@ -87,6 +86,10 @@ def organize_by_type(source_dir, dry_run=True, move=False):
         for file_path in files:
             try:
                 target_path = target_dir / file_path.name
+                counter = 1
+                while target_path.exists():
+                    target_path = target_dir / f"{file_path.stem}_{counter}{file_path.suffix}"
+                    counter += 1
                 if move:
                     shutil.move(str(file_path), str(target_path))
                 else:
@@ -106,7 +109,16 @@ def organize_by_date(source_dir, date_format='year/month', dry_run=True, move=Fa
     files_by_date = defaultdict(list)
     
     for file_path in source_path.rglob('*'):
+        if file_path.is_symlink():
+            continue
         if file_path.is_file():
+            # Skip files already in a date subdir
+            try:
+                rel = file_path.relative_to(source_path)
+                if len(rel.parts) > 1 and re.match(r'^\d{4}$', rel.parts[0]):
+                    continue
+            except (ValueError, IndexError):
+                pass
             try:
                 mtime = file_path.stat().st_mtime
                 date = datetime.fromtimestamp(mtime)
@@ -140,7 +152,12 @@ def organize_by_date(source_dir, date_format='year/month', dry_run=True, move=Fa
     if dry_run:
         print(f"\n这是一个预览。使用 --execute 来执行实际移动。")
         return
-    
+
+    confirm = input("\n确认执行? (yes/no): ")
+    if confirm.lower() != 'yes':
+        print("操作已取消")
+        return
+
     # 执行移动
     for date_key, files in files_by_date.items():
         target_dir = source_path / date_key.replace('/', os.sep)
@@ -149,6 +166,10 @@ def organize_by_date(source_dir, date_format='year/month', dry_run=True, move=Fa
         for file_path in files:
             try:
                 target_path = target_dir / file_path.name
+                counter = 1
+                while target_path.exists():
+                    target_path = target_dir / f"{file_path.stem}_{counter}{file_path.suffix}"
+                    counter += 1
                 if move:
                     shutil.move(str(file_path), str(target_path))
                 else:

@@ -1,0 +1,676 @@
+#!/usr/bin/env python3
+# -*- utf-8 -*-
+
+"""
+storage_sqlite.py
+
+SQLite 存储层 - 双写模式（A2 稳定性增强：异常处理）
+
+用法:
+ from storage_sqlite import SQLiteStorage
+ storage = SQLiteStorage()
+ storage.insert_alert(...)
+ storage.insert_control_audit(...)
+ storage.insert_decision_event(...)
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import sqlite3
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from storage_exceptions import (
+    StorageError,
+    DatabaseNotInitializedError,
+    TableNotFoundError,
+    ColumnNotFoundError,
+    QueryFailedError,
+    DatabaseLockedError,
+    SchemaMismatchError,
+)
+
+DEFAULT_DB_PATH = Path("data") / "panel_v41.db"
+
+# 日志配置
+logger = logging.getLogger(__name__)
+
+
+def handle_sqlite_errors(func):
+    """
+    SQLite 查询错误处理装饰器（A2 稳定性增强）
+    
+    统一捕获 SQLite 异常并转换为 StorageError 子类
+    """
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except sqlite3.OperationalError as e:
+            error_msg = str(e).lower()
+            
+            # 表不存在
+            if "no such table" in error_msg:
+                table_name = error_msg.split("no such table:")[-1].strip() if "no such table:" in error_msg else "unknown"
+                logger.warning(f"[SQLite 表不存在] {func.__name__}: {table_name}")
+                raise TableNotFoundError(table_name, {"function": func.__name__})
+            
+            # 列不存在
+            elif "no such column" in error_msg:
+                col_name = error_msg.split("no such column:")[-1].strip() if "no such column:" in error_msg else "unknown"
+                logger.warning(f"[SQLite 列不存在] {func.__name__}: {col_name}")
+                raise ColumnNotFoundError(col_name, None, {"function": func.__name__})
+            
+            # 数据库锁定
+            elif "database is locked" in error_msg or "locked" in error_msg:
+                logger.warning(f"[SQLite 数据库锁定] {func.__name__}")
+                raise DatabaseLockedError(f"Database locked during {func.__name__}")
+            
+            # 其他操作错误
+            else:
+                logger.error(f"[SQLite 操作错误] {func.__name__}: {e}")
+                raise QueryFailedError(str(e), original_error=str(e), details={"function": func.__name__})
+        
+        except sqlite3.DatabaseError as e:
+            logger.error(f"[SQLite 数据库错误] {func.__name__}: {e}")
+            raise QueryFailedError(str(e), original_error=str(e), details={"function": func.__name__})
+        
+        except sqlite3.Error as e:
+            logger.error(f"[SQLite 通用错误] {func.__name__}: {e}")
+            raise QueryFailedError(str(e), original_error=str(e), details={"function": func.__name__})
+        
+        except StorageError:
+            # 已经是 StorageError，直接抛出
+            raise
+        
+        except Exception as e:
+            # 其他未知异常
+            logger.error(f"[SQLite 未知错误] {func.__name__}: {type(e).__name__} - {e}")
+            raise QueryFailedError(f"Unexpected error in {func.__name__}: {str(e)}", original_error=str(e), details={"function": func.__name__})
+    
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
+class SQLiteStorage:
+    """SQLite 存储 - 双写模式（A2 稳定性增强）"""
+
+    def __init__(self, db_path: str | Path = DEFAULT_DB_PATH) -> None:
+        self.db_path = str(db_path)
+        self._initialized = False
+        self._last_error = None
+    
+    def check_initialized(self) -> bool:
+        """检查数据库是否已初始化"""
+        try:
+            with self.connect() as conn:
+                cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1")
+                cur.fetchone()
+                self._initialized = True
+                self._last_error = None
+                return True
+        except Exception as e:
+            self._initialized = False
+            self._last_error = str(e)
+            return False
+    
+    @property
+    def last_error(self) -> str | None:
+        """获取最后错误信息"""
+        return self._last_error
+
+    def connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA busy_timeout=5000;")
+        return conn
+
+    def insert_control_audit(
+        self,
+        ts: str,
+        action: str,
+        operator: str | None,
+        reason: str | None,
+        before_obj: dict[str, Any],
+        after_obj: dict[str, Any],
+    ) -> int:
+        """插入控制变更审计记录"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO control_audit(ts, action, operator, reason, before_json, after_json)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ts,
+                    action,
+                    operator,
+                    reason,
+                    json.dumps(before_obj, ensure_ascii=False),
+                    json.dumps(after_obj, ensure_ascii=False),
+                ),
+            )
+            conn.commit()
+            return int(cur.lastrowid)
+
+    def insert_alert(
+        self,
+        ts: str,
+        level: str,
+        type_: str,
+        source: str | None,
+        title: str,
+        message: str,
+        dedup_count: int = 1,
+        context: dict[str, Any] | None = None,
+    ) -> int:
+        """插入告警记录"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO alerts(ts, level, type, source, title, message, dedup_count, context_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ts,
+                    level,
+                    type_,
+                    source,
+                    title,
+                    message,
+                    dedup_count,
+                    json.dumps(context or {}, ensure_ascii=False),
+                ),
+            )
+            conn.commit()
+            return int(cur.lastrowid)
+
+    def insert_decision_event(
+        self,
+        ts: str,
+        raw_action: str | None,
+        normalized_action: str,
+        signal: str | None,
+        confidence: float | None,
+        structure_bias: str | None,
+        risk_check: str | None,
+        position_state: str | None,
+        reasons: list[str] | None,
+        summary: str | None,
+    ) -> int:
+        """插入决策事件记录"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO decision_events(
+                    ts, raw_action, normalized_action, signal, confidence,
+                    structure_bias, risk_check, position_state, reasons_json, summary
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ts,
+                    raw_action,
+                    normalized_action,
+                    signal,
+                    confidence,
+                    structure_bias,
+                    risk_check,
+                    position_state,
+                    json.dumps(reasons or [], ensure_ascii=False),
+                    summary,
+                ),
+            )
+            conn.commit()
+            return int(cur.lastrowid)
+
+    # ==================== 查询方法（A2 稳定性增强：@handle_sqlite_errors） ====================
+
+    @handle_sqlite_errors
+    def get_recent_alerts(self, limit: int = 50, level: str | None = None) -> list[dict]:
+        """获取最近告警"""
+        with self.connect() as conn:
+            if level:
+                cur = conn.execute(
+                    """
+                    SELECT * FROM alerts 
+                    WHERE level = ? 
+                    ORDER BY ts DESC 
+                    LIMIT ?
+                    """,
+                    (level, limit),
+                )
+            else:
+                cur = conn.execute(
+                    "SELECT * FROM alerts ORDER BY ts DESC LIMIT ?", (limit,)
+                )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_control_changes(self, days: int = 7, limit: int = 100) -> list[dict]:
+        """获取最近控制变更"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT * FROM control_audit 
+                WHERE ts > datetime('now', '-{} days')
+                ORDER BY ts DESC 
+                LIMIT ?
+                """.format(days),
+                (limit,),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_decision_stats(self, days: int = 7) -> list[dict]:
+        """获取决策统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT normalized_action, COUNT(*) as cnt 
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY normalized_action
+                ORDER BY cnt DESC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_recent_decisions(self, limit: int = 100) -> list[dict]:
+        """获取最近决策事件"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                "SELECT * FROM decision_events ORDER BY ts DESC LIMIT ?", (limit,)
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_alert_summary(self, days: int = 1) -> dict:
+        """获取告警摘要（今日）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT level, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE DATE(ts) = DATE('now')
+                GROUP BY level
+                """,
+            )
+            result = {"CRITICAL": 0, "WARN": 0, "INFO": 0}
+            for row in cur.fetchall():
+                result[row["level"]] = row["cnt"]
+            return result
+
+    @handle_sqlite_errors
+    def get_schema_version(self) -> str | None:
+        """获取 schema 版本"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                "SELECT value FROM schema_meta WHERE key = 'schema_version'"
+            )
+            row = cur.fetchone()
+            return row["value"] if row else None
+
+    # ==================== 只读分析查询 ====================
+
+    @handle_sqlite_errors
+    def list_alerts(
+        self,
+        limit: int = 50,
+        level: str | None = None,
+        alert_type: str | None = None,
+    ) -> list[dict]:
+        """查询告警列表（支持过滤）"""
+        with self.connect() as conn:
+            conditions = []
+            params = []
+            
+            if level:
+                conditions.append("level = ?")
+                params.append(level)
+            
+            if alert_type:
+                conditions.append("type = ?")
+                params.append(alert_type)
+            
+            where_clause = " AND ".join(conditions) if conditions else "1=1"
+            
+            query = f"""
+                SELECT * FROM alerts 
+                WHERE {where_clause}
+                ORDER BY ts DESC 
+                LIMIT ?
+            """
+            params.append(limit)
+            
+            cur = conn.execute(query, params)
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def list_control_audits(
+        self,
+        limit: int = 50,
+        action: str | None = None,
+    ) -> list[dict]:
+        """查询控制变更列表（支持过滤）"""
+        with self.connect() as conn:
+            conditions = []
+            params = []
+            
+            if action:
+                conditions.append("action = ?")
+                params.append(action)
+            
+            where_clause = " AND ".join(conditions) if conditions else "1=1"
+            
+            query = f"""
+                SELECT * FROM control_audit 
+                WHERE {where_clause}
+                ORDER BY ts DESC 
+                LIMIT ?
+            """
+            params.append(limit)
+            
+            cur = conn.execute(query, params)
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def list_decision_events(
+        self,
+        limit: int = 50,
+        normalized_action: str | None = None,
+    ) -> list[dict]:
+        """查询决策事件列表（支持过滤）"""
+        with self.connect() as conn:
+            conditions = []
+            params = []
+            
+            if normalized_action:
+                conditions.append("normalized_action = ?")
+                params.append(normalized_action)
+            
+            where_clause = " AND ".join(conditions) if conditions else "1=1"
+            
+            query = f"""
+                SELECT * FROM decision_events 
+                WHERE {where_clause}
+                ORDER BY ts DESC 
+                LIMIT ?
+            """
+            params.append(limit)
+            
+            cur = conn.execute(query, params)
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_alert_summary(self, days: int = 7) -> dict:
+        """获取告警统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT level, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY level
+                """.format(days),
+            )
+            result = {"CRITICAL": 0, "WARN": 0, "INFO": 0, "total": 0}
+            for row in cur.fetchall():
+                result[row["level"]] = row["cnt"]
+                result["total"] += row["cnt"]
+            return result
+
+    @handle_sqlite_errors
+    def get_decision_action_summary(self, days: int = 7) -> list[dict]:
+        """获取决策动作统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT normalized_action, COUNT(*) as cnt 
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY normalized_action
+                ORDER BY cnt DESC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    # ==================== P3-3 报表聚合查询 ====================
+
+    # --- Alerts 相关 ---
+
+    @handle_sqlite_errors
+    def get_alert_summary(self, days: int = 7) -> dict:
+        """获取告警统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT level, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY level
+                """.format(days),
+            )
+            result = {"total": 0, "CRITICAL": 0, "WARN": 0, "INFO": 0}
+            for row in cur.fetchall():
+                result[row["level"]] = row["cnt"]
+                result["total"] += row["cnt"]
+            return result
+
+    @handle_sqlite_errors
+    def get_alert_daily_counts(self, days: int = 7) -> list[dict]:
+        """获取告警每日统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT substr(ts, 1, 10) as day, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY day
+                ORDER BY day ASC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_alert_level_daily_counts(self, days: int = 7) -> list[dict]:
+        """获取告警级别每日统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT substr(ts, 1, 10) as day, level, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY day, level
+                ORDER BY day ASC, level ASC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_alert_type_top(self, limit: int = 10, days: int = 7) -> list[dict]:
+        """获取告警类型 Top N（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT type, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY type
+                ORDER BY cnt DESC
+                LIMIT ?
+                """.format(days),
+                (limit,),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_alert_source_top(self, limit: int = 10, days: int = 7) -> list[dict]:
+        """获取告警来源 Top N（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT source, COUNT(*) as cnt 
+                FROM alerts 
+                WHERE ts > datetime('now', '-{} days')
+                AND source IS NOT NULL
+                GROUP BY source
+                ORDER BY cnt DESC
+                LIMIT ?
+                """.format(days),
+                (limit,),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    # --- Decisions 相关 ---
+
+    @handle_sqlite_errors
+    def get_decision_summary(self, days: int = 7) -> dict:
+        """获取决策统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT COUNT(*) as total 
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                """.format(days),
+            )
+            row = cur.fetchone()
+            return {"total": row["total"] if row else 0}
+
+    @handle_sqlite_errors
+    def get_decision_action_distribution(self, days: int = 7) -> list[dict]:
+        """获取决策动作分布（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT normalized_action, COUNT(*) as cnt 
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY normalized_action
+                ORDER BY cnt DESC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_decision_reject_rate(self, days: int = 7) -> float:
+        """获取决策拒绝率（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT 
+                  SUM(CASE WHEN normalized_action IN ('reject_long', 'reject_short') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) as reject_rate
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                """.format(days),
+            )
+            row = cur.fetchone()
+            return row["reject_rate"] if row and row["reject_rate"] else 0.0
+
+    @handle_sqlite_errors
+    def get_decision_avg_confidence(self, days: int = 7) -> float:
+        """获取决策平均置信度（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT AVG(confidence) as avg_confidence 
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                AND confidence IS NOT NULL
+                """.format(days),
+            )
+            row = cur.fetchone()
+            return row["avg_confidence"] if row and row["avg_confidence"] else 0.0
+
+    @handle_sqlite_errors
+    def get_decision_daily_counts(self, days: int = 7) -> list[dict]:
+        """获取决策每日统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT substr(ts, 1, 10) as day, COUNT(*) as cnt 
+                FROM decision_events 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY day
+                ORDER BY day ASC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    # --- Control 相关 ---
+
+    @handle_sqlite_errors
+    def get_control_summary(self, days: int = 7) -> dict:
+        """获取控制变更统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT COUNT(*) as total 
+                FROM control_audit 
+                WHERE ts > datetime('now', '-{} days')
+                """.format(days),
+            )
+            row = cur.fetchone()
+            return {"total": row["total"] if row else 0}
+
+    @handle_sqlite_errors
+    def get_control_daily_counts(self, days: int = 7) -> list[dict]:
+        """获取控制变更每日统计（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT substr(ts, 1, 10) as day, COUNT(*) as cnt 
+                FROM control_audit 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY day
+                ORDER BY day ASC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_control_action_distribution(self, days: int = 7) -> list[dict]:
+        """获取控制变更动作分布（最近 N 天）"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT action, COUNT(*) as cnt 
+                FROM control_audit 
+                WHERE ts > datetime('now', '-{} days')
+                GROUP BY action
+                ORDER BY cnt DESC
+                """.format(days),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    @handle_sqlite_errors
+    def get_latest_mode_change(self) -> dict | None:
+        """获取最近一次模式切换"""
+        with self.connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT *
+                FROM control_audit
+                WHERE action IN ('enable', 'disable', 'freeze', 'unfreeze')
+                ORDER BY ts DESC
+                LIMIT 1
+                """,
+            )
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+
+# ==================== 全局实例 ====================
+
+_default_storage: SQLiteStorage | None = None
+
+
+def get_storage(db_path: str | Path = DEFAULT_DB_PATH) -> SQLiteStorage:
+    """获取全局存储实例"""
+    global _default_storage
+    if _default_storage is None:
+        _default_storage = SQLiteStorage(db_path)
+    return _default_storage

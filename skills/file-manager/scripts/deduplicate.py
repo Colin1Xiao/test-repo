@@ -4,34 +4,15 @@
 基于文件内容哈希检测重复文件
 """
 
-import os
 import sys
-import hashlib
 import json
+import shutil
 import argparse
 from pathlib import Path
 from collections import defaultdict
 
-
-def calculate_hash(file_path, algorithm='blake2b', chunk_size=8192):
-    """计算文件哈希值"""
-    if algorithm == 'blake2b':
-        hasher = hashlib.blake2b(digest_size=32)
-    elif algorithm == 'md5':
-        hasher = hashlib.md5()
-    elif algorithm == 'sha256':
-        hasher = hashlib.sha256()
-    else:
-        hasher = hashlib.blake2b(digest_size=32)
-    
-    try:
-        with open(file_path, 'rb') as f:
-            while chunk := f.read(chunk_size):
-                hasher.update(chunk)
-        return hasher.hexdigest()
-    except Exception as e:
-        print(f"错误: 无法读取 {file_path}: {e}")
-        return None
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utils import calculate_hash
 
 
 def find_duplicates(directory, min_size=1, max_size=None):
@@ -46,6 +27,8 @@ def find_duplicates(directory, min_size=1, max_size=None):
     # 第一步: 按文件大小分组
     print("扫描文件大小...")
     for file_path in path.rglob('*'):
+        if file_path.is_symlink():
+            continue
         if file_path.is_file():
             try:
                 size = file_path.stat().st_size
@@ -98,7 +81,8 @@ def main():
     parser.add_argument('--scan-only', action='store_true', help='仅扫描并显示结果')
     parser.add_argument('--keep', choices=['oldest', 'newest', 'shortest'], 
                        default='oldest', help='保留策略')
-    parser.add_argument('--action', choices=['delete', 'move', 'link'], 
+    # 'link' (hardlink/symlink replacement) is not yet implemented
+    parser.add_argument('--action', choices=['delete', 'move'],
                        default='delete', help='对重复文件的操作')
     parser.add_argument('--to', help='移动重复文件的目标目录 (用于 --action move)')
     parser.add_argument('--min-size', type=int, default=1, 
@@ -110,14 +94,28 @@ def main():
                        help='包含空文件')
     
     args = parser.parse_args()
-    
-    # 查找重复
+
+    if args.action == 'move' and not args.to:
+        parser.error("使用 --action move 时必须指定 --to 目标目录")
+
+    # 空文件单独扫描报告，不参与哈希去重
+    if args.include_empty:
+        empty_files = [
+            f for f in Path(args.directory).rglob('*')
+            if not f.is_symlink() and f.is_file() and f.stat().st_size == 0
+        ]
+        if empty_files:
+            print(f"\n发现 {len(empty_files)} 个空文件 (空文件不参与自动去重操作):")
+            for ef in empty_files:
+                print(f"  {ef}")
+
+    # 查找重复 (min_size 始终 >= 1，空文件不参与哈希去重)
     duplicates = find_duplicates(
-        args.directory, 
-        min_size=0 if args.include_empty else args.min_size,
+        args.directory,
+        min_size=max(1, args.min_size),
         max_size=args.max_size
     )
-    
+
     if not duplicates:
         print("未发现重复文件")
         return
@@ -194,7 +192,7 @@ def main():
                     while target.exists():
                         target = quarantine_path / f"{f.stem}_{counter}{f.suffix}"
                         counter += 1
-                    f.rename(target)
+                    shutil.move(str(f), str(target))
                     print(f"移动: {f} → {target}")
                 processed += 1
             except Exception as e:

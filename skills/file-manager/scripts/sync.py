@@ -4,37 +4,30 @@
 支持单向镜像同步和双向同步
 """
 
-import os
 import sys
-import hashlib
 import shutil
 import argparse
 from pathlib import Path
-from datetime import datetime
-from collections import defaultdict
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utils import calculate_hash
 
 
-def calculate_hash(file_path):
-    """计算文件哈希"""
-    hasher = hashlib.blake2b(digest_size=32)
-    try:
-        with open(file_path, 'rb') as f:
-            while chunk := f.read(8192):
-                hasher.update(chunk)
-        return hasher.hexdigest()
-    except:
-        return None
-
-
-def should_exclude(file_path, exclude_patterns):
+def should_exclude(file_path, exclude_patterns, base_path=None):
     """检查文件是否应该被排除"""
     name = file_path.name
+    if base_path is not None:
+        rel = file_path.relative_to(base_path)
+        parts = rel.parts
+    else:
+        parts = file_path.parts
     for pattern in exclude_patterns:
         if pattern.startswith('*'):
             if name.endswith(pattern[1:]):
                 return True
-        elif pattern in name:
-            return True
+        else:
+            if pattern in parts:
+                return True
     return False
 
 
@@ -55,14 +48,18 @@ def sync_mirror(source, target, exclude=None, dry_run=True, delete=False):
     # 获取源目录文件列表
     source_files = {}
     for file_path in source_path.rglob('*'):
-        if file_path.is_file() and not should_exclude(file_path, exclude):
+        if file_path.is_symlink():
+            continue
+        if file_path.is_file() and not should_exclude(file_path, exclude, base_path=source_path):
             rel_path = file_path.relative_to(source_path)
             source_files[rel_path] = file_path
-    
+
     # 获取目标目录文件列表
     target_files = {}
     for file_path in target_path.rglob('*'):
-        if file_path.is_file():
+        if file_path.is_symlink():
+            continue
+        if file_path.is_file() and not should_exclude(file_path, exclude, base_path=target_path):
             rel_path = file_path.relative_to(target_path)
             target_files[rel_path] = file_path
     
@@ -88,7 +85,9 @@ def sync_mirror(source, target, exclude=None, dry_run=True, delete=False):
                 # 大小相同，检查哈希
                 src_hash = calculate_hash(src_file)
                 tgt_hash = calculate_hash(tgt_file)
-                if src_hash != tgt_hash:
+                if src_hash is None or tgt_hash is None:
+                    stats['skipped'] += 1
+                elif src_hash != tgt_hash:
                     actions.append(('update', src_file, tgt_file))
                 else:
                     stats['skipped'] += 1
@@ -119,7 +118,13 @@ def sync_mirror(source, target, exclude=None, dry_run=True, delete=False):
     if dry_run:
         print("\n这是预览模式。使用 --execute 执行实际同步。")
         return
-    
+
+    # 确认执行
+    confirm = input("\n确认执行同步? (yes/no): ")
+    if confirm.lower() != 'yes':
+        print("操作已取消")
+        return
+
     # 执行操作
     for action, src, tgt in actions:
         try:
@@ -178,7 +183,7 @@ def main():
     else:
         print("请指定同步模式: --mirror 或 --bidirectional")
         print(f"\n示例:")
-        print(f"  python sync.py ~/Work ~/Backup/Work --mirror --exclude ".git,*.tmp" --execute")
+        print(f"  python sync.py ~/Work ~/Backup/Work --mirror --exclude '.git,*.tmp' --execute")
 
 
 if __name__ == '__main__':

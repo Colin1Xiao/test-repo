@@ -1,17 +1,12 @@
 ---
 name: pr-reviewer
+version: 1.0.1
 description: Automated GitHub PR code review with diff analysis, lint integration, and structured reports. Use when reviewing pull requests, checking for security issues, error handling gaps, test coverage, or code style problems. Supports Go, Python, and JavaScript/TypeScript. Requires `gh` CLI authenticated with repo access.
 metadata:
   openclaw:
-    emoji: 👁️
-    version: 1.0.1
     requires:
-      bins:
-        - gh
-        - python3
-      anyBins:
-        - golangci-lint
-        - ruff
+      bins: ["gh", "python3"]
+      anyBins: ["golangci-lint", "ruff"]
 ---
 
 # PR Reviewer

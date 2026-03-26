@@ -37,6 +37,12 @@ DISABLE_EXECUTION_ENGINE = True
 # 🔥 V5.4 Safety Test：禁用 Guardian 干预
 SAFETY_TEST_MODE = True  # Safety Test 阶段，Guardian 只观察不干预
 
+# 🔥 Smoke Test 模式（一次性隔离测试）
+SMOKE_TEST_MODE = False  # 关闭 Smoke Test
+SMOKE_TEST_THRESHOLD = 50
+SMOKE_TEST_MAX_TRADES = 1
+SMOKE_TEST_COMPLETED = 0
+
 # ========== V4.x 核心组件 ==========
 from regime.regime_detector import RegimeDetector
 from regime.regime_types import MarketRegime
@@ -60,6 +66,13 @@ from feedback_engine import FeedbackEngine
 
 # ========== V5.4 安全执行链（唯一真相源）==========
 from core.safe_execution import SafeExecutionV54 as SafeExecutor, TradeResult
+
+# 🔥 调试：验证 SafeExecutionV54 是否正确加载
+import inspect
+print(f"[DEBUG] SafeExecutor loaded from: {inspect.getfile(SafeExecutor)}")
+print(f"[DEBUG] Has try_execute: {hasattr(SafeExecutor, 'try_execute')}")
+print(f"[DEBUG] Methods: {[m for m in dir(SafeExecutor) if not m.startswith('_')]}")
+
 from core.capital_controller_v2 import CapitalControllerV2
 from minimal_executor import execute_signal, close_trade, record_trade
 from parameter_optimizer import ParameterOptimizer
@@ -86,7 +99,7 @@ class V52System:
     任何异常都会触发安全机制
     """
     
-    def __init__(self, config_path: str = None, testnet: bool = True, shadow_mode: bool = True):
+    def __init__(self, config_path: str = None, testnet: bool = True, shadow_mode: bool = False):
         """
         初始化系统
         
@@ -219,7 +232,13 @@ class V52System:
     
     def _save_trade(self, trade: Dict[str, Any]):
         """保存交易记录到文件"""
-        trade_file = BASE_DIR / 'logs' / 'trade_history.jsonl'
+        # 🔥 Smoke Test 模式：写入专用文件，不污染生产数据
+        if SMOKE_TEST_MODE:
+            trade_file = BASE_DIR / 'data' / 'smoke_test_trades.jsonl'
+            print(f"🔥 [SMOKE TEST] 写入专用日志: {trade_file}")
+        else:
+            trade_file = BASE_DIR / 'logs' / 'trade_history.jsonl'
+        
         try:
             # 转换不可序列化的对象
             trade_copy = {}
@@ -266,12 +285,10 @@ class V52System:
                     self.execution_engine = None
                     print("   ⚠️ 旧执行引擎已禁用 (DISABLE_EXECUTION_ENGINE = True)")
                     
-                    # 初始化 SafeExecutor（传入 state_file 路径，确保数据一致性）
-                    state_file = str(self.log_dir / "system_state.jsonl")
+                    # 初始化 SafeExecutor（V5.4 安全执行链）
                     default_symbol = self.config.get('symbols', ['ETH/USDT:USDT'])[0]
-                    self.safe_executor = SafeExecutor(self.executor.exchange, default_symbol, state_file)
+                    self.safe_executor = SafeExecutor(self.executor.exchange, default_symbol)
                     print("   ✅ SafeExecutor 初始化成功 (V5.4 安全执行链)")
-                    print(f"   📊 数据源: {state_file}")
                     print(f"   🎯 默认交易对: {default_symbol}")
                     
                     # 初始化动态保证金控制器 V2
@@ -340,6 +357,18 @@ class V52System:
     
     def get_account_equity_usdt(self) -> float:
         """获取账户权益（统一接口）"""
+        # 优先从 state_store 读取最新 equity
+        try:
+            if hasattr(self, 'state_store') and self.state_store:
+                last_trade = getattr(self.state_store, 'last_trade', None)
+                if last_trade:
+                    equity = last_trade.get('equity_usdt', 0.0)
+                    if equity > 0:
+                        return float(equity)
+        except Exception:
+            pass
+        
+        # 回退到简单的属性检查
         if hasattr(self, "account_equity_usdt"):
             return float(self.account_equity_usdt)
         
@@ -353,6 +382,18 @@ class V52System:
         if hasattr(self, "executor") and self.executor:
             if hasattr(self.executor, "balance"):
                 return float(self.executor.balance)
+        
+        # 如果所有方法都失败，返回 state_store.json 的 equity
+        try:
+            import json
+            state_file = Path(__file__).parent / "logs" / "state_store.json"
+            if state_file.exists():
+                with open(state_file) as f:
+                    ss = json.load(f)
+                    capital = ss.get("capital", {})
+                    return float(capital.get("equity_usdt", 0.0))
+        except Exception:
+            pass
         
         return 0.0
     
@@ -477,12 +518,16 @@ class V52System:
                     return {'action': 'hold', 'symbol': symbol}
             
             # ========== 4. 评分 ==========
+            # 🔥 Smoke Test 模式：强制传入低阈值
+            force_threshold = SMOKE_TEST_THRESHOLD if SMOKE_TEST_MODE else None
+            
             score_result = self.scoring_engine.calculate_score(
                 ohlcv_df=df,
                 current_price=current_price,
                 spread_bps=2.0,  # 默认值，实际应从盘口获取
                 rl_decision='ALLOW',
-                regime=regime
+                regime=regime,
+                force_threshold=force_threshold  # 🔥 Smoke Test 阈值覆盖
             )
             score = score_result.total_score if hasattr(score_result, 'total_score') else score_result
             
@@ -696,6 +741,22 @@ class V52System:
                     # 平仓后再停止
                     return {'action': 'force_exit', 'reason': guardian_report.reason}
                 
+                # 🔥 Smoke Test 模式：完成 1 笔后自动停止
+                global SMOKE_TEST_COMPLETED
+                if SMOKE_TEST_MODE:
+                    SMOKE_TEST_COMPLETED += 1
+                    print(f"\n🔥 [SMOKE TEST] 完成第 {SMOKE_TEST_COMPLETED}/{SMOKE_TEST_MAX_TRADES} 笔交易")
+                    
+                    # 写入 Smoke Test 专用日志
+                    smoke_log = BASE_DIR / 'data' / 'smoke_test_trades.jsonl'
+                    with open(smoke_log, 'a') as f:
+                        f.write(json.dumps(trade) + '\n')
+                    
+                    if SMOKE_TEST_COMPLETED >= SMOKE_TEST_MAX_TRADES:
+                        print(f"\n✅ [SMOKE TEST] 完成！自动停止系统")
+                        self.running = False
+                        return {'action': 'smoke_test_complete', 'trade': trade}
+                
                 # 安全检查
                 safety_result = self.safety.check_and_rollback({
                     'execution_score': trade.get('execution_quality_score', 1.0),
@@ -768,7 +829,14 @@ class V52System:
                 'decision': str(decision_trace.get('final', 'UNKNOWN')),
                 'checks': {
                     'score_ok': bool(decision_trace.get('score_ok', False)),
-                    'volume_ok': bool(decision_trace.get('volume_ok', False))
+                    'volume_ok': bool(decision_trace.get('volume_ok', False)),
+                    'price_change_ok': bool(decision_trace.get('price_change_ok', True))
+                },
+                'context': {
+                    'symbol': symbol,
+                    'score': to_python(score),
+                    'volume': to_python(volume_ratio),
+                    'regime': regime
                 }
             }
             
@@ -791,9 +859,16 @@ class V52System:
         Returns:
             (should_trade, reason, decision_trace)
         """
-        min_score = strategy_config.get('min_score', 70)  # V2: 默认70
-        min_volume = strategy_config.get('min_volume', 1.2)  # V2: 默认1.2
-        min_price_change = strategy_config.get('min_price_change', 0.0)  # V2: 动量过滤
+        # 🔥 Smoke Test 模式：临时降低阈值
+        if SMOKE_TEST_MODE:
+            min_score = SMOKE_TEST_THRESHOLD  # 使用 Smoke Test 阈值 (50)
+            min_volume = 0.1  # 大幅降低成交量要求
+            min_price_change = -1.0  # 禁用动量过滤（允许负值）
+            print(f"🔥 [SMOKE TEST] 使用临时阈值: score={min_score}, volume={min_volume}, momentum={min_price_change}")
+        else:
+            min_score = strategy_config.get('min_score', 70)  # V2: 默认70
+            min_volume = strategy_config.get('min_volume', 1.2)  # V2: 默认1.2
+            min_price_change = strategy_config.get('min_price_change', 0.0)  # V2: 动量过滤
         
         # 决策追踪
         decision = {
@@ -901,6 +976,8 @@ class V52System:
                 "buy",
                 capital_decision.position_size,
                 context={
+                    "requested_position_size": capital_decision.position_size,  # 理论值
+                    "entry_price": entry_price,  # 入场价格
                     "margin_usdt": capital_decision.margin_usdt,
                     "notional_usdt": capital_decision.notional_usdt,
                     "equity_usdt": capital_decision.equity_usdt,
@@ -908,6 +985,7 @@ class V52System:
                     "capital_reason": capital_decision.reason,
                     "leverage": capital_decision.leverage,
                     "risk_pct": capital_decision.risk_pct,
+                    "smoke_test_mode": SMOKE_TEST_MODE,  # 生产: False, Smoke Test: True
                 },
             )
         except Exception as e:

@@ -1,0 +1,12 @@
+# OKX API 配置模板
+# 复制此文件为 config.py 并填写你的真实 API 密钥
+# 权限要求：只读（读取账户、持仓）- 不需要交易/提现权限
+
+OKX_API_KEY = "你的 API Key"
+OKX_API_SECRET = "你的 API Secret"
+OKX_API_PASSPHRASE = "你的 API 口令"
+
+# 安全提示：
+# 1. 不要将此文件提交到 git
+# 2. 设置文件权限：chmod 600 config.py
+# 3. 建议使用只读 API 密钥

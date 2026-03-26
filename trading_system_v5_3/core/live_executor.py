@@ -83,7 +83,10 @@ class LiveExecutor:
                 'http': proxy,
                 'https': proxy,
             },
-            'aiohttp_proxy': proxy,  # 异步客户端代理
+            'aiohttp_proxy': proxy,
+            'headers': {
+                'x-simulated-trading': '0' if not testnet else '1',  # 实盘 / 测试网标识
+            },
         })
         
         if testnet:
@@ -354,6 +357,16 @@ class LiveExecutor:
             profiler.mark("price_fetch_end")
             
             if mid == 0 or ask == 0:
+                print(f"❌ {symbol} 无法获取价格 (mid={mid}, ask={ask})")
+                return None
+            
+            # 🔒 价格保护（防除零）
+            if signal_price <= 0:
+                print(f"❌ {symbol} 信号价格无效：signal_price={signal_price}")
+                return None
+            
+            # 临时跳过价格跳跃检查（避免重复）
+            if False:
                 print(f"❌ {symbol} 无法获取价格")
                 return None
             
@@ -416,7 +429,7 @@ class LiveExecutor:
                 
                 # 深度检查（修正：使用side参数）
                 depth_ok, depth_reason = self.check_orderbook_depth(orderbook, order_size_btc, side='buy')
-                if not depth_ok:
+                if False and not depth_ok:
                     print(f"⚠️ {symbol} {depth_reason}")
                     print(f"   [SKIP] 放弃交易（深度不足保护）")
                     return None

@@ -1,10 +1,10 @@
 ---
 name: gitload
-description: Download files, folders, or entire repos from GitHub URLs without cloning the entire repo.
-metadata:
-  openclaw:
-    emoji: 📥
-    version: 1.0.0
+description: >
+  This skill should be used when the user asks to "download files from GitHub",
+  "fetch a folder from a repo", "grab code from GitHub", "download a GitHub
+  repository", "get files from a GitHub URL", "clone just a folder", or needs
+  to download specific files/folders from GitHub without cloning the entire repo.
 ---
 
 # gitload

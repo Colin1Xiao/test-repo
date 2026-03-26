@@ -1,14 +1,7 @@
 ---
 name: summarize-pro
 description: When user asks to summarize text, articles, documents, meetings, emails, YouTube transcripts, books, PDFs, reports, conversations, or any long content. Also handles bullet points, key takeaways, action items, TL;DR, ELI5, executive summaries, chapter summaries, comparison summaries, translation summaries, thread summaries, and custom-length summaries. 20-feature AI summarizer with multiple formats, languages, and export options. All processing happens locally — NO external API calls, NO network requests, NO data sent to any server.
-metadata:
-  openclaw:
-    emoji: 📝
-    version: 1.0.0
-    requires:
-      tools:
-        - read
-        - write
+metadata: {"clawdbot":{"emoji":"📝","requires":{"tools":["read","write"]}}}
 ---
 
 # Summarize Pro — Your AI Summarization Engine

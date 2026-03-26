@@ -1,10 +1,6 @@
 ---
 name: lite-sqlite
 description: Fast lightweight local SQLite database for OpenClaw agents with minimal RAM and storage usage. Use when creating or managing SQLite databases for storing agent data efficiently. Ideal for local data persistence quick agent data storage low-memory databases small-scale applications and agent memo and caching storage.
-metadata:
-  openclaw:
-    emoji: 🗄️
-    version: 1.0.0
 ---
 
 # Lite SQLite - Lightweight Local Database

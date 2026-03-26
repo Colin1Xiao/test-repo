@@ -107,7 +107,8 @@ class ScoringEngineV43:
         current_price: float,
         spread_bps: float = 2.0,
         rl_decision: str = 'ALLOW',
-        regime: MarketRegime = None
+        regime: MarketRegime = None,
+        force_threshold: int = None  # 🔥 Smoke Test 模式：强制覆盖阈值
     ) -> ScoreBreakdownV43:
         """
         计算评分（支持动态权重）
@@ -162,8 +163,12 @@ class ScoringEngineV43:
         # 限制范围
         total_score = max(0, min(100, total_score))
         
-        # 获取动态阈值
-        threshold = self.get_threshold(regime if regime else self.current_regime)
+        # 获取动态阈值（Smoke Test 模式可强制覆盖）
+        if force_threshold is not None:
+            threshold = force_threshold
+            print(f"🔥 [SMOKE TEST] 评分引擎使用强制阈值: {threshold}")
+        else:
+            threshold = self.get_threshold(regime if regime else self.current_regime)
         
         # 判断是否达标
         is_qualified = total_score >= threshold

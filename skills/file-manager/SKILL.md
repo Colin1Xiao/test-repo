@@ -1,10 +1,6 @@
 ---
 name: file-manager
 description: OpenClaw自动化文件管理助手，用于批量文件操作、智能分类、重复文件清理、文件重命名、目录同步等任务。当用户需要整理文件、批量重命名、清理重复文件、同步目录或自动化文件工作流时使用此技能。
-metadata:
-  openclaw:
-    emoji: 📁
-    version: 1.0.0
 ---
 
 # File Manager - OpenClaw 自动化文件管理
@@ -21,8 +17,8 @@ python scripts/organize.py <source_dir> --by-type
 # 按日期分类 (年/月/日)
 python scripts/organize.py <source_dir> --by-date --date-format year/month
 
-# 按文件大小分类
-python scripts/organize.py <source_dir> --by-size --size-ranges "10MB,100MB,1GB"
+# 按文件大小分类 (尚未实现)
+# python scripts/organize.py <source_dir> --by-size --size-ranges "10MB,100MB,1GB"
 ```
 
 ### 2. 批量重命名 (`batch_rename`)
@@ -33,10 +29,10 @@ python scripts/organize.py <source_dir> --by-size --size-ranges "10MB,100MB,1GB"
 python scripts/batch_rename.py <pattern> --prefix "IMG_" --suffix "_2024"
 
 # 使用正则替换
-python scripts/batch_rename.py "IMG_(\d+)" --replace "Photo_\1"
+python scripts/batch_rename.py "*.jpg" --replace "IMG_(\d+)" "Photo_\1"
 
 # 序列号重命名
-python scripts/batch_rename.py "*.jpg" --sequence --start 1 --pad 4
+python scripts/batch_rename.py "*.jpg" --sequence --padding 4
 ```
 
 ### 3. 重复文件清理 (`deduplicate`)
@@ -60,22 +56,11 @@ python scripts/deduplicate.py <directory> --action move --to <quarantine_dir>
 # 单向同步 (源 → 目标)
 python scripts/sync.py <source> <target> --mirror
 
-# 双向同步
+# 双向同步 (尚未实现)
 python scripts/sync.py <dir1> <dir2> --bidirectional
 
 # 排除特定文件
 python scripts/sync.py <source> <target> --exclude "*.tmp,*.log,.git"
-```
-
-### 5. 文件监控 (`watch`)
-监控目录变化并触发动作。
-
-```bash
-# 监控并记录变化
-python scripts/watch.py <directory> --log changes.log
-
-# 监控并自动执行命令
-python scripts/watch.py <directory> --on-change "python scripts/organize.py {path}"
 ```
 
 ## 使用模式
@@ -90,14 +75,14 @@ python scripts/organize.py ~/Downloads --by-type --move
 
 **场景2: 清理重复照片**
 ```python
-# 找出并删除重复照片，保留高质量版本
-python scripts/deduplicate.py ~/Pictures --compare-resolution --keep best
+# 扫描重复照片
+python scripts/deduplicate.py ~/Pictures --scan-only
 ```
 
 **场景3: 批量整理项目文件**
 ```python
-# 按日期整理并按类型分类
-python scripts/organize.py ./projects --by-date --by-type --date-format year/month
+# 按日期整理项目文件
+python scripts/organize.py ./projects --by-date --date-format year/month
 ```
 
 **场景4: 自动备份工作目录**
@@ -122,37 +107,23 @@ python scripts/sync.py ~/Work ~/Backups/Work --exclude "node_modules,.git,*.tmp"
 
 ### 同步工作流
 1. 分析源和目标差异
-2. 处理冲突 (保留新/保留旧/保留两者)
-3. 执行同步
-4. 生成同步报告
+2. 预览待同步的文件列表
+3. 确认后执行同步
+4. 显示同步统计
 
 ## 安全原则
 
-- **预览优先**: 所有修改操作默认执行 dry-run，确认后再执行
-- **备份保护**: 删除操作优先移动到隔离区而非永久删除
-- **递归警告**: 递归操作需要显式确认
-- **日志记录**: 所有操作记录到日志文件便于审计
+- **预览优先**: 所有修改操作默认执行 dry-run 预览，需加 --execute 才执行
+- **操作确认**: 执行前需要用户输入 yes 确认
+- **符号链接安全**: 遍历目录时跳过符号链接，避免无限递归
+- **冲突保护**: 目标文件已存在时自动重命名或跳过，不会覆盖
 
 ## ⚙️ 依赖安装与环境初始化
-
-### 依赖安装
-
-本 skill 依赖以下 Python 包：
-
-```bash
-pip install tqdm colorama
-```
-
-或使用 requirements.txt（如果存在）：
-```bash
-pip install -r requirements.txt
-```
 
 ### 环境要求
 
 - Python 3.8+
-- tqdm >= 4.60.0 (进度条)
-- colorama >= 0.4.4 (Windows 彩色输出)
+- 无外部依赖，仅使用 Python 标准库
 
 ---
 

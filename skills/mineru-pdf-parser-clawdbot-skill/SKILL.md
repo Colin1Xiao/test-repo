@@ -1,10 +1,6 @@
 ---
 name: mineru-pdf
 description: Parse PDFs locally (CPU) into Markdown/JSON using MinerU. Assumes MinerU creates per‑doc output folders; supports table/image extraction.
-metadata:
-  openclaw:
-    emoji: 📄
-    version: 1.0.0
 ---
 
 # MinerU PDF

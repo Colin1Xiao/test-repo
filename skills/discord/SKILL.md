@@ -1,10 +1,6 @@
 ---
 name: discord
-description: Use when you need to control Discord from OpenClaw via the discord tool: send messages, react, post or upload stickers, upload emojis, run polls, manage threads/pins/search, fetch permissions or member/role/channel info, or handle moderation actions in Discord DMs or channels.
-metadata:
-  openclaw:
-    emoji: 💬
-    version: 1.0.0
+description: Use when you need to control Discord from Clawdbot via the discord tool: send messages, react, post or upload stickers, upload emojis, run polls, manage threads/pins/search, fetch permissions or member/role/channel info, or handle moderation actions in Discord DMs or channels.
 ---
 
 # Discord Actions

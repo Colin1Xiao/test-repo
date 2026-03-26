@@ -1,13 +1,6 @@
 ---
 name: broken-link-checker
-description: Verify external URLs (http/https) for availability (200-399 status code).
-metadata:
-  openclaw:
-    emoji: 🔗
-    version: 1.0.0
-    requires:
-      bins:
-        - node
+description: verify external URLs (http/https) for availability (200-399 status code).
 ---
 
 # Broken Link Checker

@@ -3,27 +3,27 @@
   "skills": {
     "skill-vetter": {
       "version": "1.0.0",
-      "installedAt": 1773179838542
+      "installedAt": 1774477581679
     },
     "tavily-search": {
       "version": "1.0.0",
       "installedAt": 1773180169529
     },
     "file-manager": {
-      "version": "1.0.0",
-      "installedAt": 1773180178893
+      "version": "1.2.0",
+      "installedAt": 1774477616415
     },
     "cron-scheduler": {
       "version": "1.0.0",
-      "installedAt": 1773180187591
+      "installedAt": 1774477596008
     },
     "self-improving": {
-      "version": "1.2.10",
-      "installedAt": 1773180191093
+      "version": "1.2.16",
+      "installedAt": 1774477586490
     },
     "daily-digest": {
       "version": "1.0.0",
-      "installedAt": 1773180195199
+      "installedAt": 1774477591416
     },
     "notion": {
       "version": "1.0.0",
@@ -31,7 +31,7 @@
     },
     "openai-whisper": {
       "version": "1.0.0",
-      "installedAt": 1773220284054
+      "installedAt": 1774477771955
     },
     "openai-whisper-api": {
       "version": "1.0.0",
@@ -43,7 +43,7 @@
     },
     "apple-calendar-macos": {
       "version": "1.0.0",
-      "installedAt": 1773440227570
+      "installedAt": 1774477777688
     },
     "apple-reminders": {
       "version": "1.0.0",
@@ -51,15 +51,15 @@
     },
     "gcal-pro": {
       "version": "1.0.0",
-      "installedAt": 1773440273668
+      "installedAt": 1774477681399
     },
     "broken-link-checker": {
       "version": "1.0.0",
-      "installedAt": 1773440406503
+      "installedAt": 1774477732082
     },
     "summarize-pro": {
       "version": "1.0.0",
-      "installedAt": 1773440427961
+      "installedAt": 1774477718890
     },
     "zhipu-web-search": {
       "version": "1.0.8",
@@ -67,15 +67,15 @@
     },
     "markdown-formatter": {
       "version": "1.0.0",
-      "installedAt": 1773440724365
+      "installedAt": 1774477670641
     },
     "json-render-table": {
       "version": "0.2.0",
-      "installedAt": 1773440793089
+      "installedAt": 1774477658522
     },
     "chart-image": {
       "version": "2.6.18",
-      "installedAt": 1774380795813
+      "installedAt": 1774477627147
     },
     "skill-mermaid-diagrams": {
       "version": "1.0.0",
@@ -83,27 +83,27 @@
     },
     "afrexai-stakeholder-report": {
       "version": "1.0.0",
-      "installedAt": 1773441104564
+      "installedAt": 1774477742610
     },
     "ai-ppt-generator": {
-      "version": "1.1.3",
-      "installedAt": 1773441140048
+      "version": "1.1.4",
+      "installedAt": 1774477748434
     },
     "telegram-bot-manager": {
       "version": "1.0.0",
-      "installedAt": 1773441210436
+      "installedAt": 1774477675868
     },
     "slack": {
       "version": "1.0.0",
-      "installedAt": 1773441239063
+      "installedAt": 1774477607011
     },
     "discord": {
       "version": "1.0.1",
-      "installedAt": 1773441265752
+      "installedAt": 1774477611607
     },
     "lite-sqlite": {
       "version": "1.0.0",
-      "installedAt": 1773441305997
+      "installedAt": 1774477767331
     },
     "pg": {
       "version": "1.0.0",
@@ -115,11 +115,11 @@
     },
     "gitload": {
       "version": "1.0.0",
-      "installedAt": 1773441495205
+      "installedAt": 1774477695362
     },
     "pr-reviewer": {
       "version": "1.0.1",
-      "installedAt": 1773441956110
+      "installedAt": 1774477752907
     },
     "google-workspace-mcp": {
       "version": "1.0.0",
@@ -127,23 +127,23 @@
     },
     "mineru-pdf-parser-clawdbot-skill": {
       "version": "1.0.0",
-      "installedAt": 1773442730122
+      "installedAt": 1774477737573
     },
     "find-skills-plus": {
       "version": "1.0.0",
-      "installedAt": 1774370905147
+      "installedAt": 1774477724083
     },
     "frontend-design-3": {
       "version": "0.1.0",
-      "installedAt": 1774370904981
+      "installedAt": 1774477700432
     },
     "simplify": {
       "version": "1.0.2",
-      "installedAt": 1774370905372
+      "installedAt": 1774477634318
     },
     "agent-browser": {
       "version": "0.2.0",
-      "installedAt": 1774378436034
+      "installedAt": 1774477663270
     },
     "openclaw-tavily-search": {
       "version": "0.1.0",
@@ -151,15 +151,23 @@
     },
     "email-management": {
       "version": "1.0.0",
-      "installedAt": 1774379235417
+      "installedAt": 1774477687266
     },
     "react-best-practices": {
       "version": "1.0.0",
-      "installedAt": 1774386643994
+      "installedAt": 1774477708411
     },
     "web-design": {
       "version": "1.0.0",
-      "installedAt": 1774387383705
+      "installedAt": 1774477713971
+    },
+    "ui-ux-pro-max": {
+      "version": "0.1.0",
+      "installedAt": 1774477761163
+    },
+    "multi-search-engine": {
+      "version": "2.0.1",
+      "installedAt": 1774477621282
     }
   }
 }

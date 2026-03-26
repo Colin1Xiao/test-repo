@@ -67,7 +67,7 @@ class CapitalControllerV2:
         risk_pct_cap: float = 0.03,  # 正常模式 3%
         micro_risk_pct_cap: float = 0.05,  # 微型模式 5%
         min_notional_usdt: float = 5.0,  # 交易所最小名义仓位
-        min_position_size: float = 0.002,  # 最小持仓数量
+        min_position_size: float = 0.01,  # 最小持仓数量 (OKX 要求 >= 0.01)
     ) -> None:
         if base_risk_fraction <= 0 or base_risk_fraction > 1:
             raise ValueError("base_risk_fraction must be in (0, 1]")

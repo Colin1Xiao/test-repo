@@ -4,8 +4,6 @@
 支持正则表达式、序列号、日期替换等
 """
 
-import os
-import sys
 import re
 import argparse
 from pathlib import Path
@@ -92,7 +90,20 @@ def batch_rename(pattern, directory='.', **kwargs):
         
         if new_name != old_name:
             operations.append((file_path, file_path.parent / new_name))
-    
+
+    # Check for collisions
+    target_names = [str(new) for _, new in operations]
+    seen = set()
+    collisions = set()
+    for t in target_names:
+        if t in seen:
+            collisions.add(t)
+        seen.add(t)
+    if collisions:
+        print(f"警告: 检测到 {len(collisions)} 个目标文件名冲突")
+        for c in collisions:
+            print(f"  冲突: {c}")
+
     return operations
 
 
@@ -109,7 +120,7 @@ def main():
   python batch_rename.py "IMG_(\\d+)" --replace "Photo_\\1"
   
   # 序列号重命名
-  python batch_rename.py "*.jpg" --sequence --template "img_{n:04d}"
+  python batch_rename.py "*.jpg" --sequence --template "img_{n}" --padding 4
   
   # 添加日期后缀
   python batch_rename.py "*.pdf" --add-date --date-format "%Y%m%d"
@@ -194,6 +205,10 @@ def main():
     
     for old_path, new_path in operations:
         try:
+            if new_path.exists():
+                print(f"✗ 跳过 {old_path.name}: 目标文件已存在 {new_path.name}")
+                failed += 1
+                continue
             old_path.rename(new_path)
             print(f"✓ {old_path.name} → {new_path.name}")
             success += 1

@@ -1,10 +1,6 @@
 ---
 name: slack
-description: Use when you need to control Slack from OpenClaw via the slack tool, including reacting to messages or pinning/unpinning items in Slack channels or DMs.
-metadata:
-  openclaw:
-    emoji: 💼
-    version: 1.0.0
+description: Use when you need to control Slack from Clawdbot via the slack tool, including reacting to messages or pinning/unpinning items in Slack channels or DMs.
 ---
 
 # Slack Actions

@@ -21,6 +21,13 @@ from typing import Dict, Optional, Callable
 from datetime import datetime
 from dataclasses import dataclass
 
+# V5.4 Safe Execution 集成
+# 添加 V5.4 安全链：Lock → Gate → Entry → Stop Loss → Record
+from core.safe_execution_assembly import (
+    get_safe_execution_v54_cached,
+    signal_to_execution_context,
+)
+
 
 @dataclass
 class Signal:
@@ -174,14 +181,37 @@ class ExecutionEngine:
             task = None
             
             try:
-                # 🔥 使用固定的 event loop
+                # 🔥 V5.4 Safe Execution 集成
                 async def execute_async():
-                    return await self.executor.execute_signal(
-                        symbol=signal.symbol,
-                        signal_price=signal.signal_price,
-                        margin_usd=signal.margin_usd,
-                        signal_time=datetime.fromtimestamp(signal.timestamp)
-                    )
+                    # Step 1: Signal → ExecutionContext 映射
+                    ctx = signal_to_execution_context(signal)
+                    if ctx is None:
+                        print(f"❌ Signal 转 ExecutionContext 失败")
+                        return None
+                    
+                    # Step 2: 调用 SafeExecutionV54 (包含 Lock + Gate + Stop)
+                    safe_exec = get_safe_execution_v54_cached()
+                    if safe_exec is None:
+                        print(f"❌ SafeExecutionV54 未装配")
+                        return None
+                    
+                    # Step 3: 执行并返回结果
+                    result = await safe_exec.execute_entry(ctx)
+                    
+                    # 封装符合旧接口的返回格式
+                    if result.accepted:
+                        return {
+                            "ok": True,
+                            "execution_price": result.order_result.get("execution_price", 0),
+                            "filled_size": result.order_result.get("filled_size", 0),
+                            "order_id": result.order_result.get("order_id", ""),
+                            "stop_ok": result.gate_snapshot.get("stop_ok", False),
+                            "stop_verified": result.gate_snapshot.get("stop_verified", False),
+                            "v54_enabled": True,
+                        }
+                    else:
+                        print(f"⚠️ SafeExecutionV54 拒绝：{result.reason}")
+                        return None
                 
                 # 创建 task
                 task = self.loop.create_task(execute_async())

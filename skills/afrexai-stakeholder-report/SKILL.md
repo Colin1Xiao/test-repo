@@ -1,15 +1,6 @@
----
-name: afrexai-stakeholder-report
-description: Generate executive-ready stakeholder reports from raw project data. Covers status updates, risk flags, milestone tracking, budget variance, and next-period outlook.
-metadata:
-  openclaw:
-    emoji: 📊
-    version: 1.0.0
----
-
 # Stakeholder Report Generator
 
-Generate executive-ready stakeholder reports from raw project data.
+Generate executive-ready stakeholder reports from raw project data. Covers status updates, risk flags, milestone tracking, budget variance, and next-period outlook.
 
 ## When to Use
 - Weekly/monthly stakeholder updates

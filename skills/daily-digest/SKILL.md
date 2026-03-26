@@ -1,19 +1,10 @@
----
-name: daily-digest
-description: Generate a daily digest from memory and interactions, stored as journals/digest/digest-YYYY-MM-DD.md. Extracts decisions, lessons, actions, and questions from memory files.
-metadata:
-  openclaw:
-    emoji: 📰
-    version: 1.0.0
----
+# daily-digest Skill
 
-# Daily Digest Skill
-
-Generate a daily digest from memory and interactions, stored as journals/digest/digest-YYYY-MM-DD.md.
+Purpose: Generate a daily digest from memory and interactions, stored as journals/digest/digest-YYYY-MM-DD.md.
 
 Usage:
 - Run the digest_daily.py script to generate today's digest.
-- Optional: integrate with OpenClaw to run automatically via a cron job or a scheduler.
+- Optional: integrate with clawdbot to run automatically via a cron job or a scheduler.
 
 Notes:
 - The script reads memory/YYYY-MM-DD.md and optionally memory/YYYY-MM-DD.md from yesterday to extract decisions, lessons, actions, and questions.

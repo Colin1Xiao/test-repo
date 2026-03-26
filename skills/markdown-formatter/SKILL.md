@@ -2,18 +2,16 @@
 name: markdown-formatter
 description: Format and beautify markdown documents with configurable styles. Preserve structure, fix formatting, ensure consistency.
 metadata:
-  openclaw:
-    version: 1.0.0
-    author: Vernox
-    license: MIT
-    tags:
-      - markdown
-      - formatter
-      - beautifier
-      - text
-      - formatting
-      - documentation
-    category: tools
+  {
+    "openclaw":
+      {
+        "version": "1.0.0",
+        "author": "Vernox",
+        "license": "MIT",
+        "tags": ["markdown", "formatter", "beautifier", "text", "formatting", "documentation"],
+        "category": "tools"
+      }
+  }
 ---
 
 # Markdown-Formatter - Beautify Your Markdown

@@ -1,16 +1,9 @@
----
-name: cron-scheduler
-description: Manage scheduled tasks and automation on your system using cron. Create, manage, and monitor scheduled tasks (cron jobs) on your machine. Automate backups, health checks, cleanup scripts, API calls, notifications — anything that should run on a schedule.
-metadata:
-  openclaw:
-    emoji: ⏰
-    version: 1.0.0
-    category: automation
----
-
 # Cron Scheduler
 
 Manage scheduled tasks and automation on your system using cron.
+
+**Category:** automation, productivity
+**API Key Required:** No
 
 ## What It Does
 

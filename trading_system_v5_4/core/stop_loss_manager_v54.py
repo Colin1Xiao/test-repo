@@ -91,17 +91,39 @@ class StopLossManagerV54:
         """
         started_at = time.time()
         
-        # ========== Step 1: 计算止损价格 ==========
+        # ========== Step 1: 获取当前市场价格 ==========
+        try:
+            ticker = await self.exchange.fetch_ticker(symbol)
+            current_price = ticker['last']
+            logger.info(f"[StopLoss] 当前价格: {current_price:.2f}")
+        except Exception as e:
+            logger.warning(f"[StopLoss] 获取当前价格失败: {e}，使用入场价")
+            current_price = entry_price
+        
+        # ========== Step 2: 计算止损价格 ==========
         if side == "buy":
             # 做多：止损价 = 入场价 × (1 - stop_loss_pct)
             stop_price = entry_price * (1 - self.stop_loss_pct)
             stop_side = "sell"
+            
+            # 确保止损价低于当前价格（OKX 要求）
+            if stop_price >= current_price:
+                # 价格已跌破止损价，使用当前价下方 0.3% 作为止损
+                stop_price = current_price * (1 - 0.003)
+                logger.warning(f"[StopLoss] 价格已跌破原止损价，调整为: {stop_price:.2f}")
+                
         else:
             # 做空：止损价 = 入场价 × (1 + stop_loss_pct)
             stop_price = entry_price * (1 + self.stop_loss_pct)
             stop_side = "buy"
+            
+            # 确保止损价高于当前价格（OKX 要求）
+            if stop_price <= current_price:
+                # 价格已涨破止损价，使用当前价上方 0.3% 作为止损
+                stop_price = current_price * (1 + 0.003)
+                logger.warning(f"[StopLoss] 价格已涨破原止损价，调整为: {stop_price:.2f}")
         
-        logger.info(f"[StopLoss] {symbol} 止损计算：entry={entry_price:.2f}, stop={stop_price:.2f} ({self.stop_loss_pct*100}%)")
+        logger.info(f"[StopLoss] {symbol} 止损计算：entry={entry_price:.2f}, current={current_price:.2f}, stop={stop_price:.2f} ({self.stop_loss_pct*100}%)")
         
         # ========== Step 2: 提交止损单到交易所 ==========
         stop_order_id = ""
@@ -200,6 +222,10 @@ class StopLossManagerV54:
         """
         二次验证：确认止损单真正存在于交易所
         
+        注意：止损单是条件单 (algo order)，需要用专门的 API 查询
+        - 普通订单：fetch_open_orders
+        - 条件单：fetch_open_orders + 指定参数，或直接调用 algo 订单 API
+        
         Args:
             symbol: 交易对
             expected_order_id: 预期订单 ID
@@ -209,8 +235,18 @@ class StopLossManagerV54:
             True = 止损单存在，False = 未找到
         """
         try:
-            # 获取所有未完成订单（包括条件单）
-            open_orders = await self.exchange.fetch_open_orders(symbol)
+            # 方法 1: 使用 ccxt 的 fetch_open_orders 查询条件单
+            # OKX 的条件单需要通过特定参数查询
+            try:
+                # 尝试查询条件单 (algo orders)
+                # ccxt 的 OKX 实现中，fetch_open_orders 支持 ordType 参数
+                open_orders = await self.exchange.fetch_open_orders(
+                    symbol,
+                    params={'ordType': 'conditional'}
+                )
+            except Exception:
+                # Fallback: 查询所有订单
+                open_orders = await self.exchange.fetch_open_orders(symbol)
             
             if not open_orders:
                 logger.warning(f"[StopLoss] 验证失败：无未完成订单")
@@ -218,9 +254,16 @@ class StopLossManagerV54:
             
             # 查找止损单
             for order in open_orders:
-                order_id = order.get("id", "")
-                order_type = order.get("type", "")
-                order_price = order.get("price", 0) or order.get("stopPrice", 0)
+                order_id = order.get("id", "") or order.get("algoId", "")
+                info = order.get("info", {})
+                order_type = order.get("type", "") or order.get("ordType", "") or info.get("ordType", "")
+                # 从 info 读取 slTriggerPx（ccxt 的 OKX 实现中，条件单参数在 info 里）
+                order_price = (
+                    order.get("slTriggerPx") or 
+                    info.get("slTriggerPx") or 
+                    order.get("stopPrice") or 
+                    order.get("price", 0)
+                )
                 
                 # 匹配订单 ID
                 if order_id == expected_order_id:
@@ -228,11 +271,12 @@ class StopLossManagerV54:
                     return True
                 
                 # 或者匹配止损价（fallback）
-                if order_type == "conditional" and abs(order_price - expected_stop_price) < 0.01:
+                if order_type == "conditional" and order_price and abs(float(order_price) - expected_stop_price) < 0.1:
                     logger.info(f"[StopLoss] 验证通过：匹配止损价 {expected_stop_price:.2f}")
                     return True
             
             logger.warning(f"[StopLoss] 验证失败：未找到订单 {expected_order_id}")
+            logger.warning(f"[StopLoss] 查询到的订单：{len(open_orders)} 个")
             return False
             
         except Exception as e:
