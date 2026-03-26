@@ -2,11 +2,11 @@
 
 **日期**: 2026-03-27  
 **版本**: UI-3.6 Enhancement  
-**提交范围**: `c497a96` → `9fc07cd`
+**提交范围**: `c497a96` → `f17beb1`
 
 ---
 
-## 1️⃣ 历史页 range-btn 功能化
+## 1️⃣ 历史页 range-btn 功能化（已完成）
 
 ### 目标
 
@@ -182,12 +182,87 @@ def parse_days_arg(request_obj, default=30, allowed=(7, 30, 90)):
 
 ---
 
+## 2️⃣ 历史页状态组件统一（已完成）
+
+### 目标
+
+统一三页的：
+
+* `loading` - 加载中状态
+* `error` - 加载失败状态
+* `empty` - 空数据状态（成功但无数据）
+* `stale` - 数据陈旧（待实现）
+* `delayed` - 数据延迟（待实现）
+
+### 改动文件
+
+| 文件 | 行位置 | 说明 |
+|------|--------|------|
+| `history_analysis.html` | ~550 | 新增 .state-stack / .state-hint 样式 |
+| `history_analysis.html` | ~775 | 新增 renderLoading / renderEmpty / renderError |
+| `history_analysis.html` | ~860 | loadAlerts 使用 renderEmpty |
+| `history_analysis.html` | ~903 | loadControl 使用 renderEmpty |
+| `history_analysis.html` | ~812 | renderBarChart 使用 renderEmpty |
+
+### 功能实现
+
+#### 统一渲染函数
+```javascript
+function renderLoading(containerId, text = '正在加载数据...')
+function renderEmpty(containerId, text = '暂无数据', hint = '')
+function renderError(containerId, text = '加载失败', hint = '请稍后重试')
+```
+
+#### Empty 状态文案
+| 场景 | 主文案 | Hint |
+|------|--------|------|
+| 告警列表 | 最近所选周期内暂无告警 | 可切换到 30D / 90D 查看更长周期 |
+| 控制变更 | 最近所选周期内暂无控制变更 | 当前系统未发生人工干预或模式切换 |
+| 决策图表 | 最近所选周期内暂无决策样本 | 等待后续新数据写入 |
+
+#### CSS 样式
+```css
+.state-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.state-hint {
+  font-size: 12px;
+  color: var(--text-3);
+}
+```
+
+### 关键改进
+
+**之前**: 空列表显示 `<div class="loading">无告警记录</div>`  
+**现在**: 空列表显示 `<div class="empty-state">` 带明确文案和 hint
+
+**语义区分**:
+- `loading`: 数据正在加载中
+- `empty`: 请求成功但无数据（正常状态）
+- `error`: 请求失败（异常状态）
+
+### 验收清单
+
+- [x] 首次打开显示 loading
+- [x] 请求成功但空列表显示 empty（带 hint）
+- [x] 请求失败显示 error
+- [x] 自动刷新时空列表不误闪 loading
+- [x] empty 状态有明确文案和 hint
+- [x] 三处 empty 文案场景化（告警/控制/决策）
+
+---
+
 ## 提交历史
 
 | Commit | 哈希 | 说明 |
 |--------|------|------|
 | 1 | `c497a96` | 历史页支持 7D/30D/90D 时间范围切换 |
 | 2 | `9fc07cd` | 统一历史接口 days 参数解析逻辑 |
+| 3 | `f17beb1` | 历史页统一状态渲染函数 |
 
 ---
 
