@@ -2150,14 +2150,52 @@ INDEX_TEMPLATE = r"""
     
     .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
     
-    /* 响应式 */
+    /* ===== 响应式统一 (UI-3.5) ===== */
     @media (max-width: 1280px) {
       .grid.top, .grid.mid, .grid.low { grid-template-columns: 1fr 1fr; }
+      
+      .header {
+        gap: var(--space-md);
+      }
+      
+      .header-controls {
+        justify-content: flex-start;
+      }
     }
-    @media (max-width: 860px) {
+    
+    @media (max-width: 768px) {
       .grid.top, .grid.mid, .grid.low { grid-template-columns: 1fr; }
-      .header { grid-template-columns: 1fr; align-items: flex-start; }
-      .meta { justify-content: flex-start; }
+      
+      .header {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+      }
+      
+      .header-title {
+        font-size: 22px;
+      }
+      
+      .header-title .icon {
+        font-size: 26px;
+      }
+      
+      .header-subtitle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-xs);
+      }
+      
+      .status-group {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: var(--space-xs);
+      }
+      
+      .header-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
