@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐉 小龙报表中心</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      /* 色彩系统 - 保持原有 */
+      --bg-0: #0a0f19;
+      --bg-1: #121a27;
+      --bg-2: #182233;
+      --text-1: #f5f7fb;
+      --text-2: #b6c1d1;
+      --text-3: #7f8a9e;
+      --danger: #ef4444;
+      --danger-light: rgba(239,68,68,0.15);
+      --warning: #f59e0b;
+      --warning-light: rgba(245,158,11,0.15);
+      --success: #22c55e;
+      --success-light: rgba(34,197,94,0.15);
+      --info: #3b82f6;
+      --info-light: rgba(59,130,246,0.15);
+      
+      /* 边框系统 */
+      --border-1: rgba(255,255,255,0.05);
+      --border-2: rgba(255,255,255,0.1);
+      
+      /* 间距系统 */
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 18px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      
+      /* 字体系统 */
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      
+      /* 阴影系统 */
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+      
+      /* ===== UI-3 Lite Tokens ===== */
+      /* Badge */
+      --badge-height: 24px;
+      --badge-radius: 6px;
+      --badge-padding-x: 10px;
+      --badge-padding-y: 4px;
+      --badge-font-size: 12px;
+      --badge-font-weight: 600;
+      --badge-line-height: 1.5;
+      
+      /* Loading / Empty / Error */
+      --spinner-size: 40px;
+      --spinner-border-width: 3px;
+      --empty-min-height: 120px;
+      --empty-font-size: 13px;
+      --empty-color: var(--text-3);
+      --empty-padding: 20px;
+      --error-padding: 12px 16px;
+      --error-radius: 8px;
+      --error-border-left: 4px;
+      --error-gap: 10px;
+      
+      /* Chart Header */
+      --chart-title-size: 14px;
+      --chart-title-weight: 600;
+      --chart-header-padding: 18px;
+      --chart-title-gap: 10px;
+      --chart-icon-size: 16px;
+      --chart-min-height: 220px;
+      
+      /* Hover / Transition */
+      --hover-transition: 0.2s ease;
+      --hover-transform: translateY(-2px);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: radial-gradient(circle at top, #142033 0%, var(--bg-0) 45%);
+      color: var(--text-1);
+      font: 14px/1.5 var(--font-sans);
+      min-height: 100vh;
+      padding: var(--spacing-lg);
+    }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    /* ==================== 头部区域 ==================== */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-2);
+    }
+    
+    .header-main {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+    
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+    
+    .header-title .icon {
+      font-size: 32px;
+    }
+    
+    .header-subtitle {
+      color: var(--text-2);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+    
+    .freshness-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      height: var(--badge-height);
+      padding: var(--badge-padding-y) var(--badge-padding-x);
+      background: var(--bg-2);
+      border: 1px solid var(--border-1);
+      border-radius: var(--badge-radius);
+      font-size: var(--badge-font-size);
+      font-weight: var(--badge-font-weight);
+      line-height: var(--badge-line-height);
+    }
+    
+    .freshness-badge.fresh { border-color: var(--success); color: var(--success); background: var(--success-light); }
+    .freshness-badge.delayed { border-color: var(--warning); color: var(--warning); background: var(--warning-light); }
+    .freshness-badge.stale { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
+    .freshness-badge.unknown { border-color: var(--text-3); color: var(--text-3); }
+    
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+    
+    .range-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-1);
+      color: var(--text-2);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      min-width: 56px;
+    }
+    
+    .range-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--border-2);
+    }
+    
+    .range-btn.active {
+      background: linear-gradient(135deg, var(--info), #2563eb);
+      color: white;
+      border-color: var(--info);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    
+    .refresh-btn {
+      background: linear-gradient(135deg, var(--info), #2563eb);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+    
+    .refresh-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    }
+    
+    .refresh-btn:active {
+      transform: translateY(0);
+    }
+    
+    .last-updated {
+      color: var(--text-3);
+      font-size: 12px;
+      padding: 8px 12px;
+      background: var(--bg-1);
+      border-radius: 8px;
+      border: 1px solid var(--border-1);
+      min-width: 120px;
+      text-align: center;
+    }
+    
+    /* ==================== 错误提示 ==================== */
+    .error-banner {
+      background: linear-gradient(90deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05));
+      border: 1px solid var(--danger);
+      border-left: 4px solid var(--danger);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .error-banner .icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    /* ==================== 加载状态 ==================== */
+    .loading-state {
+      text-align: center;
+      padding: 80px var(--spacing-lg);
+      color: var(--text-3);
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border-1);
+      border-top-color: var(--info);
+      border-radius: 50%;
+      margin: 0 auto var(--spacing-md);
+      animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+      font-size: 14px;
+    }
+    
+    /* ==================== 统计卡片 ==================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .stat-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: 16px;
+      padding: var(--spacing-lg);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--info), var(--info-light));
+    }
+    
+    .stat-card:hover {
+      transform: var(--hover-transform);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-2);
+      transition: all var(--hover-transition);
+    }
+    
+    .stat-card.alerts { border-top-color: var(--warning); }
+    .stat-card.alerts::before { background: linear-gradient(90deg, var(--warning), var(--warning-light)); }
+    
+    .stat-card.decisions { border-top-color: var(--success); }
+    .stat-card.decisions::before { background: linear-gradient(90deg, var(--success), var(--success-light)); }
+    
+    .stat-card.control { border-top-color: var(--info); }
+    .stat-card.control::before { background: linear-gradient(90deg, var(--info), var(--info-light)); }
+    
+    .stat-card h3 {
+      font-size: 15px;
+      color: var(--text-2);
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-weight: 600;
+    }
+    
+    .stat-card h3 .icon {
+      font-size: 18px;
+    }
+    
+    .stat-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-xs);
+    }
+    
+    .metric {
+      background: rgba(255,255,255,0.03);
+      padding: var(--spacing-sm);
+      border-radius: 12px;
+      border: 1px solid var(--border-1);
+      transition: all 0.2s ease;
+    }
+    
+    .metric:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-2);
+    }
+    
+    .metric-label {
+      color: var(--text-3);
+      font-size: 11px;
+      margin-bottom: var(--spacing-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    
+    .metric-value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    
+    .metric-value.critical { color: var(--danger); }
+    .metric-value.warn { color: var(--warning); }
+    .metric-value.info { color: var(--info); }
+    .metric-value.success { color: var(--success); }
+    .metric-value.neutral { color: var(--text-1); }
+    
+    /* ==================== 图表区 ==================== */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .chart-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: 16px;
+      padding: var(--spacing-md);
+      transition: all 0.3s ease;
+    }
+    
+    .chart-card {
+      transition: all var(--hover-transition);
+    }
+    
+    .chart-card:hover {
+      transform: var(--hover-transform);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-2);
+    }
+    
+    .chart-card h3 {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-weight: 600;
+    }
+    
+    .chart-card h3 .icon {
+      font-size: 16px;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .chart-container {
+      position: relative;
+      min-height: 220px;
+      transition: all 0.3s ease;
+    }
+    
+    .chart-container.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-0);
+      z-index: 9999;
+      padding: var(--spacing-xl);
+      animation: fadeIn 0.3s ease;
+    }
+    
+    /* ==================== Top 列表 ==================== */
+    .top-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .top-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: 16px;
+      padding: var(--spacing-md);
+      transition: all 0.3s ease;
+    }
+    
+    .top-card {
+      transition: all var(--hover-transition);
+    }
+    
+    .top-card:hover {
+      transform: var(--hover-transform);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-2);
+    }
+    
+    .top-card h3 {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-weight: 600;
+    }
+    
+    .top-card h3 .icon {
+      font-size: 16px;
+    }
+    
+    .top-table-container {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .top-table-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .top-table-container::-webkit-scrollbar-track {
+      background: var(--bg-1);
+      border-radius: 3px;
+    }
+    
+    .top-table-container::-webkit-scrollbar-thumb {
+      background: var(--border-1);
+      border-radius: 3px;
+    }
+    
+    .top-table-container::-webkit-scrollbar-thumb:hover {
+      background: var(--border-2);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    th, td {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      text-align: left;
+      border-bottom: 1px solid var(--border-1);
+    }
+    
+    th {
+      color: var(--text-3);
+      font-weight: 600;
+      padding-top: var(--spacing-md);
+      padding-bottom: var(--spacing-xs);
+    }
+    
+    td {
+      color: var(--text-2);
+    }
+    
+    /* Top 3 奖牌样式 */
+    .rank-1 { color: var(--warning); }
+    .rank-2 { color: var(--text-3); }
+    .rank-3 { color: #cd7f32; }
+    
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--bg-2);
+      font-weight: 800;
+      font-size: 12px;
+      margin-right: var(--spacing-sm);
+    }
+    
+    .rank-1 .rank-badge { color: var(--warning); border: 2px solid var(--warning); }
+    .rank-2 .rank-badge { color: var(--text-3); border: 2px solid var(--text-3); }
+    .rank-3 .rank-badge { color: #cd7f32; border: 2px solid #cd7f32; }
+    
+    .metric-value.big {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    
+    /* ==================== 动画 keyframes ==================== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 顶部控制栏 -->
+    <div class="header">
+      <div class="header-main">
+        <div class="header-title">
+          <span class="icon">📊</span>
+          <span>报表中心</span>
+        </div>
+        <div class="header-subtitle">
+          <span>基于 SQLite 的数据分析与趋势统计</span>
+          <span class="freshness-badge" id="freshness-badge">
+            <span class="icon">●</span>
+            <span id="freshness-text">正在加载...</span>
+          </span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button class="range-btn" data-days="1">1D</button>
+        <button class="range-btn active" data-days="7">7D</button>
+        <button class="range-btn" data-days="30">30D</button>
+        <button class="refresh-btn" onclick="loadAll()">
+          <span class="icon">🔄</span>
+          <span>刷新</span>
+        </button>
+        <span class="last-updated" id="last-updated">--:--:--</span>
+      </div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div id="error-box" class="error-banner" style="display: none;">
+      <span class="icon">⚠️</span>
+      <span id="error-message"></span>
+    </div>
+
+    <!-- 加载状态 -->
+    <div id="loading" class="loading-state" style="display: none;">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">正在加载数据...</div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid" id="stats-grid" style="display: none;">
+      <!-- 告警卡片 -->
+      <div class="stat-card alerts">
+        <h3><span class="icon">🚨</span>告警统计</h3>
+        <div class="stat-metrics">
+          <div class="metric">
+            <div class="metric-label">总数</div>
+            <div class="metric-value neutral" id="alerts-total">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">CRITICAL</div>
+            <div class="metric-value critical" id="alerts-critical">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">WARN</div>
+            <div class="metric-value warn" id="alerts-warn">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">INFO</div>
+            <div class="metric-value info" id="alerts-info">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 决策卡片 -->
+      <div class="stat-card decisions">
+        <h3><span class="icon">🧠</span>决策统计</h3>
+        <div class="stat-metrics">
+          <div class="metric">
+            <div class="metric-label">总数</div>
+            <div class="metric-value neutral" id="decisions-total">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">拒绝率</div>
+            <div class="metric-value" id="decisions-reject-rate">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">平均置信度</div>
+            <div class="metric-value success" id="decisions-confidence">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">主要动作</div>
+            <div class="metric-value neutral" id="decisions-top-action">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 控制卡片 -->
+      <div class="stat-card control">
+        <h3><span class="icon">🎛️</span>控制变更</h3>
+        <div class="stat-metrics">
+          <div class="metric">
+            <div class="metric-label">总变更</div>
+            <div class="metric-value neutral" id="control-total">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">主要动作</div>
+            <div class="metric-value neutral" id="control-top-action">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">最近切换</div>
+            <div class="metric-value info" id="control-latest-action">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">操作者</div>
+            <div class="metric-value neutral" id="control-operator">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图表区 -->
+    <div class="charts-grid" id="charts-grid" style="display: none;">
+      <!-- 告警趋势 -->
+      <div class="chart-card">
+        <h3><span class="icon">📈</span>告警每日趋势</h3>
+        <div class="chart-container">
+          <canvas id="alert-trend-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- 告警级别堆叠 -->
+      <div class="chart-card">
+        <h3><span class="icon">📊</span>告警级别分布（每日）</h3>
+        <div class="chart-container">
+          <canvas id="alert-level-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- 决策动作分布 -->
+      <div class="chart-card">
+        <h3><span class="icon">🎯</span>决策动作分布</h3>
+        <div class="chart-container">
+          <canvas id="decision-action-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- 控制变更趋势 -->
+      <div class="chart-card">
+        <h3><span class="icon">📉</span>控制变更趋势</h3>
+        <div class="chart-container">
+          <canvas id="control-trend-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 列表 -->
+    <div class="top-section" id="top-section" style="display: none;">
+      <!-- 告警类型 Top -->
+      <div class="top-card">
+        <h3><span class="icon">🔝</span>告警类型 Top 10</h3>
+        <div class="top-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>类型</th>
+                <th>次数</th>
+              </tr>
+            </thead>
+            <tbody id="alert-types-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 告警来源 Top -->
+      <div class="top-card">
+        <h3><span class="icon">🔝</span>告警来源 Top 10</h3>
+        <div class="top-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>来源</th>
+                <th>次数</th>
+              </tr>
+            </thead>
+            <tbody id="alert-sources-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 最近控制动作 -->
+      <div class="top-card">
+        <h3><span class="icon">📋</span>最近控制动作</h3>
+        <div class="top-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>动作</th>
+                <th>操作者</th>
+              </tr>
+            </thead>
+            <tbody id="control-actions-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/reports';
+    let currentDays = 7;
+    let chartInstances = {};
+    let refreshTimer = null;
+
+    // 格式化时间
+    function formatTime(ts) {
+      if (!ts) return '-';
+      return ts.replace('T', ' ').slice(0, 19);
+    }
+
+    // 格式化日期
+    function formatDate(day) {
+      if (!day) return '-';
+      return day.slice(5); // MM-DD
+    }
+
+    // 显示错误
+    function showError(msg) {
+      const errorBox = document.getElementById('error-box');
+      const errorMessage = document.getElementById('error-message');
+      errorMessage.textContent = msg;
+      errorBox.style.display = 'flex';
+      setTimeout(() => { errorBox.style.display = 'none'; }, 5000);
+    }
+
+    // 更新最后刷新时间
+    function updateLastUpdated() {
+      const now = new Date();
+      document.getElementById('last-updated').textContent = 
+        `更新于 ${now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
+    }
+
+    // 更新 Freshness 状态
+    function updateFreshnessBadge(freshness) {
+      const badge = document.getElementById('freshness-badge');
+      const text = document.getElementById('freshness-text');
+      
+      if (!freshness) {
+        text.textContent = '数据不足';
+        badge.className = 'freshness-badge';
+        return;
+      }
+      
+      const overall = freshness.overall || 'unknown';
+      text.textContent = {
+        fresh: '数据新鲜',
+        delayed: '数据延迟',
+        stale: '数据陈旧',
+        unknown: '未知状态'
+      }[overall] || '未知状态';
+      
+      badge.className = `freshness-badge ${overall}`;
+    }
+
+    // 加载报表数据
+    async function fetchReports(days) {
+      try {
+        const [alerts, decisions, control] = await Promise.all([
+          fetch(`${API_BASE}/alerts?days=${days}`).then(r => r.json()),
+          fetch(`${API_BASE}/decisions?days=${days}`).then(r => r.json()),
+          fetch(`${API_BASE}/control?days=${days}`).then(r => r.json())
+        ]);
+        return { alerts, decisions, control };
+      } catch (e) {
+        showError(`加载失败：${e.message}`);
+        return null;
+      }
+    }
+
+    // 渲染统计卡片
+    function renderCards(data) {
+      const { alerts, decisions, control } = data;
+
+      // 告警卡片
+      document.getElementById('alerts-total').textContent = alerts.summary?.total || 0;
+      document.getElementById('alerts-critical').textContent = alerts.summary?.CRITICAL || 0;
+      document.getElementById('alerts-warn').textContent = alerts.summary?.WARN || 0;
+      document.getElementById('alerts-info').textContent = alerts.summary?.INFO || 0;
+
+      // 决策卡片
+      document.getElementById('decisions-total').textContent = decisions.summary?.total || 0;
+      document.getElementById('decisions-reject-rate').textContent = 
+        `${((decisions.summary?.reject_rate || 0) * 100).toFixed(1)}%`;
+      document.getElementById('decisions-confidence').textContent = 
+        decisions.summary?.avg_confidence?.toFixed(3) || '0.000';
+      
+      const topAction = decisions.series?.action_distribution?.[0];
+      document.getElementById('decisions-top-action').textContent = topAction?.action || '-';
+
+      // 控制卡片
+      document.getElementById('control-total').textContent = control.summary?.total || 0;
+      const controlTopAction = control.series?.action_distribution?.[0];
+      document.getElementById('control-top-action').textContent = controlTopAction?.action || '-';
+      
+      const latestMode = control.latest_mode_change;
+      document.getElementById('control-latest-action').textContent = latestMode ? latestMode.action : '-';
+      document.getElementById('control-operator').textContent = latestMode ? (latestMode.operator || '-') : '-';
+    }
+
+    // 渲染图表
+    function renderCharts(data) {
+      const { alerts, decisions, control } = data;
+
+      // 告警趋势图
+      renderLineChart('alert-trend-chart', chartInstances.alertTrend, {
+        labels: alerts.series?.daily_counts?.map(d => formatDate(d.day)) || [],
+        datasets: [{
+          label: '告警数',
+          data: alerts.series?.daily_counts?.map(d => d.value) || [],
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          fill: true,
+          tension: 0.4
+        }],
+        title: '每日告警趋势'
+      }, (chart) => { chartInstances.alertTrend = chart; });
+
+      // 告警级别堆叠图
+      renderStackedBarChart('alert-level-chart', chartInstances.alertLevel, {
+        labels: alerts.series?.level_daily?.map(d => d.day.slice(5)) || [],
+        datasets: [
+          { label: 'CRITICAL', data: alerts.series?.level_daily?.map(d => d.CRITICAL) || [], backgroundColor: '#ef4444' },
+          { label: 'WARN', data: alerts.series?.level_daily?.map(d => d.WARN) || [], backgroundColor: '#f59e0b' },
+          { label: 'INFO', data: alerts.series?.level_daily?.map(d => d.INFO) || [], backgroundColor: '#3b82f6' }
+        ],
+        title: '告警级别分布'
+      }, (chart) => { chartInstances.alertLevel = chart; });
+
+      // 决策动作分布图
+      renderDoughnutChart('decision-action-chart', chartInstances.decisionAction, {
+        labels: decisions.series?.action_distribution?.map(d => d.action) || [],
+        data: decisions.series?.action_distribution?.map(d => d.count) || [],
+        backgroundColor: ['#7f8a9e', '#22c55e', '#ef4444', '#f59e0b']
+      }, (chart) => { chartInstances.decisionAction = chart; });
+
+      // 控制变更趋势图
+      renderLineChart('control-trend-chart', chartInstances.controlTrend, {
+        labels: control.series?.daily_counts?.map(d => formatDate(d.day)) || [],
+        datasets: [{
+          label: '变更数',
+          data: control.series?.daily_counts?.map(d => d.value) || [],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true,
+          tension: 0.4
+        }],
+        title: '控制变更趋势'
+      }, (chart) => { chartInstances.controlTrend = chart; });
+    }
+
+    // 通用线图渲染
+    function renderLineChart(canvasId, existingChart, config, callback) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (existingChart) {
+        existingChart.data.labels = config.labels;
+        existingChart.data.datasets = config.datasets;
+        existingChart.update('none');
+        callback(existingChart);
+      } else {
+        const chart = new Chart(ctx, {
+          type: 'line',
+          data: config,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              title: { display: true, text: config.title, color: '#b6c1d1' }
+            },
+            scales: {
+              x: { ticks: { color: '#7f8a9e' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+              y: { ticks: { color: '#7f8a9e' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+          }
+        });
+        callback(chart);
+      }
+    }
+
+    // 通用堆叠柱状图渲染
+    function renderStackedBarChart(canvasId, existingChart, config, callback) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (existingChart) {
+        existingChart.data.labels = config.labels;
+        existingChart.data.datasets = config.datasets;
+        existingChart.update('none');
+        callback(existingChart);
+      } else {
+        const chart = new Chart(ctx, {
+          type: 'bar',
+          data: config,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#b6c1d1' } },
+              title: { display: true, text: config.title, color: '#b6c1d1' }
+            },
+            scales: {
+              x: { stacked: true, ticks: { color: '#7f8a9e' }, grid: { display: false } },
+              y: { stacked: true, ticks: { color: '#7f8a9e' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+          }
+        });
+        callback(chart);
+      }
+    }
+
+    // 通用环形图渲染
+    function renderDoughnutChart(canvasId, existingChart, config, callback) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (existingChart) {
+        existingChart.data.labels = config.labels;
+        existingChart.data.datasets[0].data = config.data;
+        existingChart.update('none');
+        callback(existingChart);
+      } else {
+        const chart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: config.labels,
+            datasets: [{ data: config.data, backgroundColor: config.backgroundColor, borderWidth: 0 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#b6c1d1' } },
+              title: { display: true, text: '决策动作分布', color: '#b6c1d1' }
+            }
+          }
+        });
+        callback(chart);
+      }
+    }
+
+    // 渲染 Top 列表（优化版）
+    function renderTopLists(data) {
+      const { alerts, control } = data;
+
+      // 告警类型 Top
+      const typesBody = document.getElementById('alert-types-body');
+      const topTypes = (alerts.top?.types || []).slice(0, 10);
+      typesBody.innerHTML = topTypes.length > 0 ? topTypes.map((t, i) => {
+        const rankClass = i < 3 ? `rank-${i + 1}` : '';
+        const rankBadge = i < 3 ? `🥇` : `TOP ${i + 1}`;
+        return `
+        <tr>
+          <td class="${rankClass}">
+            <span class="rank-badge">${rankBadge}</span>
+            <span>${t.type}</span>
+          </td>
+          <td class="${rankClass}">
+            <span class="metric-value big" style="text-align:right">${t.count}</span>
+          </td>
+        </tr>
+      `}).join('') : '<tr><td colspan="2" style="text-align:center;color:var(--text-3);padding:20px">暂无数据</td></tr>';
+
+      // 告警来源 Top
+      const sourcesBody = document.getElementById('alert-sources-body');
+      const topSources = (alerts.top?.sources || []).slice(0, 10);
+      sourcesBody.innerHTML = topSources.length > 0 ? topSources.map((s, i) => {
+        const rankClass = i < 3 ? `rank-${i + 1}` : '';
+        const rankBadge = i < 3 ? `🥇` : `TOP ${i + 1}`;
+        return `
+        <tr>
+          <td class="${rankClass}">
+            <span class="rank-badge">${rankBadge}</span>
+            <span>${s.source || '-'}</span>
+          </td>
+          <td class="${rankClass}">
+            <span class="metric-value big" style="text-align:right">${s.count}</span>
+          </td>
+        </tr>
+      `}).join('') : '<tr><td colspan="2" style="text-align:center;color:var(--text-3);padding:20px">暂无数据</td></tr>';
+
+      // 最近控制动作
+      const actionsBody = document.getElementById('control-actions-body');
+      const latestActions = control.latest_mode_change ? [control.latest_mode_change] : [];
+      actionsBody.innerHTML = latestActions.length > 0 ? latestActions.map(a => `
+        <tr>
+          <td class="timestamp">${formatTime(a.ts)}</td>
+          <td><span class="badge badge-info">${a.action}</span></td>
+          <td>${a.operator || '-'}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--text-3);padding:20px">暂无数据</td></tr>';
+    }
+
+    // 加载全部数据
+    async function loadAll() {
+      const loading = document.getElementById('loading');
+      const statsGrid = document.getElementById('stats-grid');
+      const chartsGrid = document.getElementById('charts-grid');
+      const topSection = document.getElementById('top-section');
+
+      loading.style.display = 'block';
+      statsGrid.style.display = 'none';
+      chartsGrid.style.display = 'none';
+      topSection.style.display = 'none';
+
+      const data = await fetchReports(currentDays);
+      
+      loading.style.display = 'none';
+
+      if (data) {
+        statsGrid.style.display = 'grid';
+        chartsGrid.style.display = 'grid';
+        topSection.style.display = 'grid';
+        
+        renderCards(data);
+        renderCharts(data);
+        renderTopLists(data);
+        updateLastUpdated();
+        
+        // 更新 Freshness 状态
+        updateFreshnessBadge(data.alerts.freshness || {});
+      }
+    }
+
+    // 绑定范围按钮
+    function bindRangeButtons() {
+      document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentDays = parseInt(btn.dataset.days);
+          loadAll();
+        });
+      });
+    }
+
+    // 启动自动刷新
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(loadAll, 30000); // 30 秒
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      bindRangeButtons();
+      loadAll();
+      startAutoRefresh();
+    });
+  </script>
+</body>
+</html>

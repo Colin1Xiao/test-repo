@@ -14,6 +14,7 @@
     
     <style>
         :root {
+            /* 基础色 - 保持原有 */
             --primary-color: #2b6cb0;
             --primary-dark: #1a365d;
             --success-color: #38a169;
@@ -33,6 +34,55 @@
             --table-header: #2d3748;
             --table-row-1: #4a5568;
             --table-row-2: #2d3748;
+            
+            /* ===== UI-3 Lite Tokens ===== */
+            /* Badge */
+            --badge-height: 24px;
+            --badge-radius: 6px;
+            --badge-padding-x: 10px;
+            --badge-padding-y: 4px;
+            --badge-font-size: 12px;
+            --badge-font-weight: 600;
+            --badge-line-height: 1.5;
+            --badge-success-bg: rgba(56, 161, 105, 0.15);
+            --badge-success-border: #38a169;
+            --badge-success-color: #38a169;
+            --badge-warning-bg: rgba(236, 201, 75, 0.15);
+            --badge-warning-border: #ecc94b;
+            --badge-warning-color: #ecc94b;
+            --badge-danger-bg: rgba(229, 62, 62, 0.15);
+            --badge-danger-border: #e53e3e;
+            --badge-danger-color: #e53e3e;
+            --badge-info-bg: rgba(49, 151, 149, 0.15);
+            --badge-info-border: #319795;
+            --badge-info-color: #319795;
+            --badge-neutral-bg: rgba(255, 255, 255, 0.05);
+            --badge-neutral-border: rgba(255, 255, 255, 0.1);
+            --badge-neutral-color: #a0aec0;
+            
+            /* Loading / Empty / Error */
+            --spinner-size: 40px;
+            --spinner-border-width: 3px;
+            --empty-min-height: 120px;
+            --empty-font-size: 13px;
+            --empty-color: var(--text-secondary);
+            --empty-padding: 20px;
+            --error-padding: 12px 16px;
+            --error-radius: 8px;
+            --error-border-left: 4px;
+            --error-gap: 10px;
+            
+            /* Chart Header */
+            --chart-title-size: 14px;
+            --chart-title-weight: 600;
+            --chart-header-padding: 18px;
+            --chart-title-gap: 10px;
+            --chart-icon-size: 16px;
+            --chart-min-height: 220px;
+            
+            /* Hover / Transition */
+            --hover-transition: 0.2s ease;
+            --hover-transform: translateY(-2px);
         }
 
         * {
@@ -176,17 +226,20 @@
             }
         }
 
-        /* 卡片样式 */
+        /* 卡片样式 (UI-3 Lite) */
         .card {
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 20px;
+            padding: var(--chart-header-padding);
             border: 1px solid var(--border-color);
-            transition: all 0.3s;
+            transition: all var(--hover-transition);
         }
 
         .card:hover {
             background: var(--card-hover);
+            transform: var(--hover-transform);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .card-header {
@@ -197,11 +250,15 @@
         }
 
         .card-title {
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: var(--chart-title-size);
+            font-weight: var(--chart-title-weight);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: var(--chart-title-gap);
+        }
+        
+        .card-title i {
+            font-size: var(--chart-icon-size);
         }
 
         .card-title i {
@@ -256,20 +313,50 @@
             background: var(--table-row-2);
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
+        /* ===== Badge 统一样式 (UI-3 Lite) ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: var(--badge-height);
+            padding: var(--badge-padding-y) var(--badge-padding-x);
+            border-radius: var(--badge-radius);
+            font-size: var(--badge-font-size);
+            font-weight: var(--badge-font-weight);
+            line-height: var(--badge-line-height);
+            border: 1px solid;
+            white-space: nowrap;
         }
 
-        .status-active { background: var(--success-light); color: var(--success-color); }
-        .status-active-dot { background: var(--success-color); }
-        .status-pending { background: var(--warning-light); color: var(--warning-color); }
-        .status-pending-dot { background: var(--warning-color); }
-        .status-inactive { background: var(--danger-light); color: var(--danger-color); }
-        .status-inactive-dot { background: var(--danger-color); }
+        .badge-success {
+            background: var(--badge-success-bg);
+            border-color: var(--badge-success-border);
+            color: var(--badge-success-color);
+        }
+
+        .badge-warning {
+            background: var(--badge-warning-bg);
+            border-color: var(--badge-warning-border);
+            color: var(--badge-warning-color);
+        }
+
+        .badge-danger {
+            background: var(--badge-danger-bg);
+            border-color: var(--badge-danger-border);
+            color: var(--badge-danger-color);
+        }
+
+        .badge-info {
+            background: var(--badge-info-bg);
+            border-color: var(--badge-info-border);
+            color: var(--badge-info-color);
+        }
+
+        .badge-neutral {
+            background: var(--badge-neutral-bg);
+            border-color: var(--badge-neutral-border);
+            color: var(--badge-neutral-color);
+        }
 
         .status-dot {
             display: inline-block;
@@ -278,6 +365,10 @@
             border-radius: 50%;
             margin-right: 5px;
         }
+
+        .status-active-dot { background: var(--success-color); }
+        .status-pending-dot { background: var(--warning-color); }
+        .status-inactive-dot { background: var(--danger-color); }
 
         /* 指标卡片 */
         .metric-card {
@@ -319,7 +410,7 @@
             gap: 5px;
         }
 
-        /* 按钮样式 */
+        /* 按钮样式 (UI-3 Lite) */
         .btn {
             padding: 8px 16px;
             border: none;
@@ -327,7 +418,16 @@
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all var(--hover-transition);
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-primary {
@@ -693,12 +793,88 @@
         }
 
         /* 数据表奇偶行颜色 */
+        .data-table tr {
+            transition: background var(--hover-transition);
+        }
+        
         .data-table tr:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .positive { color: var(--success-color); }
         .negative { color: var(--danger-color); }
+        
+        /* ===== Loading State ===== */
+        .loading-spinner {
+            width: var(--spinner-size);
+            height: var(--spinner-size);
+            border: var(--spinner-border-width) solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--info-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--empty-min-height);
+            color: var(--empty-color);
+            gap: 12px;
+            padding: 40px 20px;
+        }
+        
+        .loading-text {
+            font-size: var(--empty-font-size);
+            color: var(--empty-color);
+        }
+        
+        /* ===== Empty State ===== */
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--empty-min-height);
+            padding: var(--empty-padding);
+            color: var(--empty-color);
+            font-size: var(--empty-font-size);
+            text-align: center;
+        }
+        
+        /* ===== Error Banner ===== */
+        .error-banner {
+            display: flex;
+            align-items: center;
+            gap: var(--error-gap);
+            padding: var(--error-padding);
+            background: linear-gradient(90deg, rgba(229, 62, 62, 0.1), rgba(229, 62, 62, 0.05));
+            border: 1px solid var(--danger-color);
+            border-left: var(--error-border-left) solid var(--danger-color);
+            border-radius: var(--error-radius);
+            color: var(--danger-color);
+            animation: fadeIn 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .error-banner .icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -1005,35 +1181,35 @@
                                 <td>STR-2024-184</td>
                                 <td>ma_fast: 20→22</td>
                                 <td class="positive">+0.24%</td>
-                                <td><span class="status-badge status-active">已应用</span></td>
+                                <td><span class="badge badge-success">已应用</span></td>
                             </tr>
                             <tr>
                                 <td>05:10:15</td>
                                 <td>STR-2024-183</td>
                                 <td>stop_loss: 3.5%→3.2%</td>
                                 <td class="positive">+0.18%</td>
-                                <td><span class="status-badge status-active">已应用</span></td>
+                                <td><span class="badge badge-success">已应用</span></td>
                             </tr>
                             <tr>
                                 <td>05:08:45</td>
                                 <td>STR-2024-182</td>
                                 <td>take_profit: 8%→9%</td>
                                 <td class="positive">+0.32%</td>
-                                <td><span class="status-badge status-active">已应用</span></td>
+                                <td><span class="badge badge-success">已应用</span></td>
                             </tr>
                             <tr>
                                 <td>05:07:22</td>
                                 <td>STR-2024-181</td>
                                 <td>position_size: 0.8→0.75</td>
                                 <td class="negative">-0.12%</td>
-                                <td><span class="status-badge status-active">已应用</span></td>
+                                <td><span class="badge badge-success">已应用</span></td>
                             </tr>
                             <tr>
                                 <td>05:05:10</td>
                                 <td>STR-2024-180</td>
                                 <td>risk_ratio: 0.5→0.6</td>
                                 <td class="negative">-0.08%</td>
-                                <td><span class="status-badge status-pending">待观察</span></td>
+                                <td><span class="badge badge-warning">待观察</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1067,7 +1243,7 @@
                                 <td class="positive">LONG</td>
                                 <td>$2,456.32</td>
                                 <td>0.85 ETH</td>
-                                <td><span class="status-badge status-active">执行中</span></td>
+                                <td><span class="badge badge-success">执行中</span></td>
                             </tr>
                             <tr>
                                 <td>05:12:15</td>
@@ -1075,7 +1251,7 @@
                                 <td class="negative">SHORT</td>
                                 <td>$2,452.18</td>
                                 <td>0.62 ETH</td>
-                                <td><span class="status-badge status-active">执行中</span></td>
+                                <td><span class="badge badge-success">执行中</span></td>
                             </tr>
                             <tr>
                                 <td>05:08:45</td>
@@ -1083,7 +1259,7 @@
                                 <td class="positive">LONG</td>
                                 <td>$2,448.95</td>
                                 <td>1.20 ETH</td>
-                                <td><span class="status-badge status-active">已平仓</span></td>
+                                <td><span class="badge badge-neutral">已平仓</span></td>
                             </tr>
                             <tr>
                                 <td>05:05:32</td>
@@ -1091,7 +1267,7 @@
                                 <td class="positive">LONG</td>
                                 <td>$2,438.72</td>
                                 <td>1.50 ETH</td>
-                                <td><span class="status-badge status-active">执行中</span></td>
+                                <td><span class="badge badge-success">执行中</span></td>
                             </tr>
                         </tbody>
                     </table>
