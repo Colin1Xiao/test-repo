@@ -28,11 +28,11 @@
       --border-2: rgba(255,255,255,0.1);
       
       /* 间距系统 */
-      --spacing-xs: 8px;
-      --spacing-sm: 12px;
-      --spacing-md: 18px;
-      --spacing-lg: 24px;
-      --spacing-xl: 32px;
+      --space-xs: 8px;
+      --space-sm: 12px;
+      --space-md: 18px;
+      --space-lg: 24px;
+      --space-xl: 32px;
       
       /* 字体系统 */
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -89,7 +89,7 @@
       color: var(--text-1);
       font: 14px/1.5 var(--font-sans);
       min-height: 100vh;
-      padding: var(--spacing-lg);
+      padding: var(--space-lg);
     }
     
     .container {
@@ -101,7 +101,7 @@
     .top-nav {
       background: var(--top-nav-bg);
       border-bottom: 1px solid var(--top-nav-border);
-      padding: 0 var(--spacing-lg);
+      padding: 0 var(--space-lg);
       height: var(--top-nav-height);
       display: flex;
       align-items: center;
@@ -114,7 +114,7 @@
     .top-nav-brand {
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
     }
 
     .top-nav-brand h1 {
@@ -130,13 +130,13 @@
 
     .top-nav-links {
       display: flex;
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
     }
 
     .top-nav-link {
       display: flex;
       align-items: center;
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
       padding: 8px 16px;
       color: var(--text-2);
       text-decoration: none;
@@ -167,16 +167,16 @@
       display: grid;
       grid-template-columns: 1fr auto;
       align-items: center;
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-xl);
-      padding-bottom: var(--spacing-md);
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-md);
       border-bottom: 1px solid var(--border-2);
     }
     
     .header-main {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
     }
     
     .header-title {
@@ -185,7 +185,7 @@
       letter-spacing: -0.02em;
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
     }
     
     .header-title .icon {
@@ -197,13 +197,13 @@
       font-size: 13px;
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
     }
     
     .freshness-badge {
       display: inline-flex;
       align-items: center;
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
       height: var(--badge-height);
       padding: var(--badge-padding-y) var(--badge-padding-x);
       background: var(--bg-2);
@@ -222,7 +222,7 @@
     .header-controls {
       display: flex;
       align-items: center;
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
     }
     
     .range-btn {
@@ -262,7 +262,7 @@
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
     }
     
     .refresh-btn:hover {
@@ -291,12 +291,12 @@
       border: 1px solid var(--danger);
       border-left: 4px solid var(--danger);
       border-radius: 8px;
-      padding: var(--spacing-md);
-      margin-bottom: var(--spacing-lg);
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
       color: var(--danger);
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
       animation: fadeIn 0.3s ease;
     }
     
@@ -308,7 +308,7 @@
     /* ==================== 加载状态 ==================== */
     .loading-state {
       text-align: center;
-      padding: 80px var(--spacing-lg);
+      padding: 80px var(--space-lg);
       color: var(--text-3);
     }
     
@@ -318,7 +318,7 @@
       border: 3px solid var(--border-1);
       border-top-color: var(--info);
       border-radius: 50%;
-      margin: 0 auto var(--spacing-md);
+      margin: 0 auto var(--space-md);
       animation: spin 1s linear infinite;
     }
     
@@ -330,15 +330,15 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-xl);
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
     }
     
     .stat-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid var(--border-2);
       border-radius: 16px;
-      padding: var(--spacing-lg);
+      padding: var(--space-lg);
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
@@ -373,10 +373,10 @@
     .stat-card h3 {
       font-size: 15px;
       color: var(--text-2);
-      margin-bottom: var(--spacing-md);
+      margin-bottom: var(--space-md);
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
       font-weight: 600;
     }
     
@@ -387,12 +387,12 @@
     .stat-metrics {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: var(--spacing-xs);
+      gap: var(--space-xs);
     }
     
     .metric {
       background: rgba(255,255,255,0.03);
-      padding: var(--spacing-sm);
+      padding: var(--space-sm);
       border-radius: 12px;
       border: 1px solid var(--border-1);
       transition: all 0.2s ease;
@@ -406,7 +406,7 @@
     .metric-label {
       color: var(--text-3);
       font-size: 11px;
-      margin-bottom: var(--spacing-xs);
+      margin-bottom: var(--space-xs);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-weight: 600;
@@ -428,15 +428,15 @@
     .charts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-xl);
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
     }
     
     .chart-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid var(--border-2);
       border-radius: 16px;
-      padding: var(--spacing-md);
+      padding: var(--space-md);
       transition: all 0.3s ease;
     }
     
@@ -453,10 +453,10 @@
     .chart-card h3 {
       font-size: 14px;
       color: var(--text-2);
-      margin-bottom: var(--spacing-md);
+      margin-bottom: var(--space-md);
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
       font-weight: 600;
     }
     
@@ -468,7 +468,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: var(--spacing-sm);
+      margin-bottom: var(--space-sm);
     }
     
     .chart-container {
@@ -487,7 +487,7 @@
       height: 100%;
       background: var(--bg-0);
       z-index: 9999;
-      padding: var(--spacing-xl);
+      padding: var(--space-xl);
       animation: fadeIn 0.3s ease;
     }
     
@@ -495,15 +495,15 @@
     .top-section {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-xl);
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
     }
     
     .top-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid var(--border-2);
       border-radius: 16px;
-      padding: var(--spacing-md);
+      padding: var(--space-md);
       transition: all 0.3s ease;
     }
     
@@ -520,10 +520,10 @@
     .top-card h3 {
       font-size: 14px;
       color: var(--text-2);
-      margin-bottom: var(--spacing-md);
+      margin-bottom: var(--space-md);
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
+      gap: var(--space-sm);
       font-weight: 600;
     }
     
@@ -561,7 +561,7 @@
     }
     
     th, td {
-      padding: var(--spacing-xs) var(--spacing-sm);
+      padding: var(--space-xs) var(--space-sm);
       text-align: left;
       border-bottom: 1px solid var(--border-1);
     }
@@ -569,8 +569,8 @@
     th {
       color: var(--text-3);
       font-weight: 600;
-      padding-top: var(--spacing-md);
-      padding-bottom: var(--spacing-xs);
+      padding-top: var(--space-md);
+      padding-bottom: var(--space-xs);
     }
     
     td {
@@ -592,7 +592,7 @@
       background: var(--bg-2);
       font-weight: 800;
       font-size: 12px;
-      margin-right: var(--spacing-sm);
+      margin-right: var(--space-sm);
     }
     
     .rank-1 .rank-badge { color: var(--warning); border: 2px solid var(--warning); }
