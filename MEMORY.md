@@ -428,36 +428,6 @@ _精选的重要信息，跨会话持久化_
 4. **灰度配置**: 30% 流量，一致性哈希
 5. **模型映射**: CODE/REASON/LONG/CN → 对应模型
 
-### 2026-03-24
-1. **动态保证金控制器 V2 完成**:
-   - `core/capital_controller_v2.py` 创建
-   - 支持 equity/drawdown/edge/risk 联动
-   - 输出 margin/notional/position_size/capital_state
-2. **OKX API 完全绕过 ccxt**:
-   - 开仓：`POST /api/v5/trade/order`
-   - 止损单：`conditional` 类型 + `slTriggerPx`
-   - 平仓：`POST /api/v5/trade/order`
-   - 保护单清理：`POST /api/v5/trade/cancel-algos`
-   - 余额查询：`GET /api/v5/account/balance`
-3. **修复合约规格错误**:
-   - ❌ 错误假设：1 张 = 10 ETH
-   - ✅ 正确规格：1 张 = **0.1 ETH**
-   - ✅ 最小张数：**0.01 张**
-4. **Safety Test V5.4 全部通过 (3/3)**:
-   - ✅ Execution Lock: 无重复开仓
-   - ✅ Position Gate: 单仓控制
-   - ✅ Stop Loss: 存在且可验证
-   - ✅ TIME_EXIT: 30s 触发
-   - ✅ Exit Source: 正确记录
-5. **系统状态**: 🟢 **GO** - 系统安全验证通过
-6. **第一阶段限制**: 单模型替换，不启用 chain
-7. **验收标准**:
-   - 真实请求进入 hook
-   - Python bridge 被调用
-   - gray_hit=true 时发生 modelOverride
-   - 实际执行模型不再总是固定 primary
-   - 路由日志里开始出现真实流量样本
-
 ### 2026-03-26
 1. **V5.4 文档化完成** - RC 状态达成:
    - ✅ `V5_4_ARCHITECTURE.md` (1,269 行) - 完整架构、调用顺序、失败语义
@@ -477,6 +447,20 @@ _精选的重要信息，跨会话持久化_
    - Stop Loss: 交易所侧真实止损单
    - Exit Source: 正确记录
    - StateStore: 完整落盘 (5 字段)
+
+### 2026-03-26 (实盘验证完成)
+1. **V5.4 实盘验证完成** - 生产就绪版本:
+   - ✅ 第 1 笔：开仓 + 止损单提交 + 验证 (8/8 通过)
+   - ✅ 第 2 笔：Position Gate 重复保护 (5/5 通过)
+   - ✅ 第 3 笔补测：V5.4 管控下退出 + StateStore 更新 (4/4 通过)
+2. **关键修复**:
+   - StateStore 持仓恢复逻辑 (`_restore_position_from_file`)
+   - StopLossManager 条件单验证 API (`ordType: conditional`)
+   - stop_loss_result 传递到 gate_snapshot
+   - safe_execution_assembly 环境变量支持
+3. **版本状态**: ✅ **v5.4.0-verified** - 生产就绪
+4. **Git 提交**: `7dff5d1` - feat(V5.4): 实盘验证完成 - 生产就绪版本
+5. **结论**: V5.4 核心安全链 + 退出审计链，全部实盘验证通过。具备生产就绪条件。
 
 ---
 
