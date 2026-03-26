@@ -85,6 +85,11 @@ from config_version_manager import ConfigVersionManager
 from system_monitor import SystemMonitor
 from safety_controller import SafetyController, SafetyStatus
 
+# ========== V5.4.1 信号链 Adapter ==========
+import sys
+sys.path.insert(0, '/Users/colin/.openclaw/workspace/trading_system_v5_4/core')
+from v54_signal_adapter import get_v54_adapter
+
 # ========== 持仓管理（核心安全模块）==========
 from position_manager import PositionManager, get_position_manager
 
@@ -132,6 +137,12 @@ class V52System:
         self._init_v4x_components()
         self._init_v51_components()
         self._init_v52_components()
+        
+        # ========== V5.4.1 信号链 Adapter ==========
+        self.v54_adapter = get_v54_adapter('/Users/colin/.openclaw/workspace/trading_system_v5_4/config/signal_config_v54.json')
+        print("✅ V5.4.1 信号链 Adapter 已加载")
+        print(f"   配置：entry_threshold=68, spread_gate=3.0bps")
+        print("")
         
         # ========== 持仓管理器（核心安全模块）==========
         self.position_manager = get_position_manager()
@@ -538,16 +549,42 @@ class V52System:
             price_change = (df['close'].iloc[-1] - df['close'].iloc[-5]) / df['close'].iloc[-5]  # 5周期变化
             
             # ========== 5. 执行条件检查 ==========
-            # 🔍 DEBUG: 打印检查参数
-            print(f"\n[CHECK] symbol={symbol}, score={score}, volume={volume_ratio:.2f}x, momentum={price_change*100:.2f}%")
-            print(f"[CHECK] strategy_config: min_score={strategy_config.get('min_score')}, min_volume={strategy_config.get('min_volume')}, min_price_change={strategy_config.get('min_price_change', 0)}")
-            
             should_trade, trade_reason, decision_trace = self._check_execution_conditions(
                 score=score,
                 volume_ratio=volume_ratio,
                 strategy_config=strategy_config,
-                price_change=price_change  # V2: 传入动量
+                price_change=price_change
             )
+            
+            # ========== 5.5 V5.4.1 信号链检查 ==========
+            if should_trade and hasattr(self, 'v54_adapter') and self.v54_adapter:
+                v54_allowed, v54_reason, v54_context = self.v54_adapter.adapt_v53_signal(
+                    symbol=symbol,
+                    score=score,
+                    volume_ratio=volume_ratio,
+                    price_change=price_change,
+                    regime=regime.value,
+                    current_price=current_price,
+                    spread_bps=2.0
+                )
+                
+                # 记录 V5.4.1 统计
+                v54_stats = self.v54_adapter.get_stats()
+                print(f"\n📊 V5.4.1 统计：候选={v54_stats['candidate_signals']}, "
+                      f"L2 拒绝={v54_stats['l2_rejected']}, L3 拒绝={v54_stats['l3_rejected']}, "
+                      f"允许={v54_stats['trades_allowed']}")
+                
+                # 如果 V5.4.1 拒绝，跳过执行
+                if not v54_allowed:
+                    print(f"⚠️ V5.4.1 拒绝：{v54_reason}")
+                    if 'l2_reason' in v54_context:
+                        print(f"   L2 原因：{v54_context['l2_reason']}")
+                    elif 'l3_result' in v54_context:
+                        print(f"   L3 原因：{v54_context['l3_result']['reason']}")
+                    return {'action': 'v54_rejected', 'symbol': symbol, 'reason': v54_reason}
+                
+                # 保存 V5.4.1 context 用于审计字段记录
+                self._v54_context = v54_context
             
             # 🔍 DEBUG: 打印检查结果和决策追踪
             print(f"[CHECK] should_trade={should_trade}, reason={trade_reason}")
