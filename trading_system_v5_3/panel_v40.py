@@ -2170,19 +2170,24 @@ INDEX_TEMPLATE = r"""
 
   <div class="shell">
     <div class="header">
-      <div class="header-title-area">
-        <div class="title">
-          <h1><span class="icon">🐉</span>小龙交易驾驶舱</h1>
-          <p>实时交易监控与决策分析系统</p>
+      <div class="header-main">
+        <div class="header-title">
+          <span class="icon">🐉</span>
+          <span>小龙交易驾驶舱</span>
+        </div>
+        <div class="header-subtitle">
+          <span>实时交易监控与决策分析系统</span>
+          <span class="status-group">
+            <span class="badge {{ 'state-ok' if vm.control.enabled else 'state-error' }}" id="system-enabled">{{ '系统启用' if vm.control.enabled else '系统关闭' }}</span>
+            <span class="badge {{ 'state-error' if vm.control.frozen else 'state-ok' }}" id="system-frozen">{{ '冻结' if vm.control.frozen else '运行中' }}</span>
+            <span class="badge {{ 'state-ok' if (vm.health or {}).get('overall') == 'ok' else 'state-warn' if (vm.health or {}).get('overall') == 'warn' else 'state-error' }}" id="health-overall">{{ (vm.health or {}).get('overall') | upper }}</span>
+          </span>
         </div>
       </div>
-      <div class="meta">
-        <span class="chip">数据时间：<span id="as-of">{{ vm.as_of }}</span></span>
-        <span class="chip">最后更新：<span id="last-updated">--:--:--</span></span>
-        <span class="badge {{ 'state-ok' if vm.control.enabled else 'state-error' }}" id="system-enabled">{{ '系统启用' if vm.control.enabled else '系统关闭' }}</span>
-        <span class="badge {{ 'state-error' if vm.control.frozen else 'state-ok' }}" id="system-frozen">{{ '已冻结' if vm.control.frozen else '运行中' }}</span>
-        <span class="badge {{ 'state-ok' if (vm.health or {}).get('overall') == 'ok' else 'state-warn' if (vm.health or {}).get('overall') == 'warn' else 'state-error' }}" id="health-overall">{{ '系统正常' if (vm.health or {}).get('overall') == 'ok' else '注意' if (vm.health or {}).get('overall') == 'warn' else '异常' }}</span>
-        <span class="chip">快照延迟：<span id="health-snapshot-age">{{ (vm.health or {}).get('snapshot_age_sec', 0) }}</span>s</span>
+      <div class="header-controls">
+        <span class="chip">数据：<span id="as-of">{{ vm.as_of }}</span></span>
+        <span class="chip">更新：<span id="last-updated">--:--:--</span></span>
+        <span class="chip">延迟：<span id="health-snapshot-age">{{ (vm.health or {}).get('snapshot_age_sec', 0) }}</span>s</span>
       </div>
     </div>
 

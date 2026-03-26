@@ -529,17 +529,19 @@
 
   <div class="container">
     <div class="header">
-      <div class="header-title-area">
+      <div class="header-main">
         <div class="header-title">
           <span class="icon">📜</span>
           <span>历史分析</span>
         </div>
         <div class="header-subtitle">基于 SQLite 的历史事件查询与分析</div>
       </div>
-      <button class="refresh-btn" onclick="loadAll()">
-        <span class="icon">🔄</span>
-        <span>刷新</span>
-      </button>
+      <div class="header-controls">
+        <button class="refresh-btn" onclick="loadAll()">
+          <span class="icon">🔄</span>
+          <span>刷新</span>
+        </button>
+      </div>
     </div>
 
     <!-- 统计卡片 -->
