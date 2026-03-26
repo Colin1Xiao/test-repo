@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🐉 小龙交易驾驶舱</title>
+  
+  <!-- UI-3.9 PWA 支持 -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#121a27">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="小龙交易">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/freshness-badge.js"></script>
+  <script src="/static/error-tracker.js"></script>
+  <style>
+    :root {
+      /* 色彩系统 - 深色克制风格 */
+      --bg-0: #0a0f19;        /* 主背景 */
+      --bg-1: #121a27;        /* 卡片背景 */
+      --bg-2: #182233;        /* 次级容器 */
+      --text-1: #f5f7fb;      /* 主文本 */
+      --text-2: #b6c1d1;      /* 次级文本 */
+      --text-3: #7f8a9e;      /* 灰色文本 */
+      
+      /* 状态色 - 语义固定 */
+      --danger: #ef4444;      /* CRITICAL */
+      --danger-light: rgba(239,68,68,0.15);
+      --warning: #f59e0b;     /* WARN */
+      --warning-light: rgba(245,158,11,0.15);
+      --success: #22c55e;     /* SUCCESS */
+      --success-light: rgba(34,197,94,0.15);
+      --info: #3b82f6;        /* INFO */
+      --info-light: rgba(59,130,246,0.15);
+      
+      /* 边框系统 */
+      --border-1: rgba(255,255,255,0.05);  /* 弱边框 */
+      --border-2: rgba(255,255,255,0.1);   /* 中边框 */
+      
+      /* 阴影系统 */
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+      
+      /* 圆角系统 */
+      --radius-lg: 20px;      /* 大卡片 */
+      --radius-md: 12px;      /* 小卡片/按钮 */
+      --radius-sm: 8px;       /* badge */
+      --radius-pill: 999px;   /* pill */
+      
+      /* 间距系统 */
+      --space-xs: 8px;
+      --space-sm: 12px;
+      --space-md: 18px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      
+      /* ===== UI-3 Lite Tokens ===== */
+      /* Top Nav */
+      --top-nav-height: 60px;
+      --top-nav-bg: var(--bg-1);
+      --top-nav-border: var(--border-1);
+      
+      /* Badge */
+      --badge-height: 24px;
+      --badge-radius: 6px;
+      --badge-padding-x: 10px;
+      --badge-padding-y: 4px;
+      --badge-font-size: 12px;
+      --badge-font-weight: 600;
+      
+      /* UI-3.7: Freshness Badge */
+      --freshness-fresh: #22c55e;
+      --freshness-delayed: #f59e0b;
+      --freshness-stale: #ef4444;
+      --freshness-threshold-fresh: 30;
+      --freshness-threshold-delayed: 60;
+      
+      /* Loading / Empty / Error */
+      --spinner-size: 40px;
+      --spinner-border-width: 3px;
+      --empty-min-height: 120px;
+      
+      /* Chart Header */
+      --chart-title-size: 14px;
+      --chart-header-padding: 18px;
+      
+      /* Hover */
+      --hover-transition: 0.2s ease;
+      --hover-transform: translateY(-2px);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: radial-gradient(circle at top, #142033 0%, var(--bg-0) 45%);
+      color: var(--text-1);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      padding: var(--space-lg);
+      min-height: 100vh;
+    }
+    
+    .shell {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    /* ===== 顶部导航栏 (UI-3 Lite) ===== */
+    .top-nav {
+      background: var(--top-nav-bg);
+      border-bottom: 1px solid var(--top-nav-border);
+      padding: 0 var(--space-lg);
+      height: var(--top-nav-height);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      margin-bottom: var(--space-lg);
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* 导航兜底强约束（防止被覆盖） */
+    .top-nav-brand, .top-nav-links {
+      visibility: visible;
+    }
+
+    .top-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .top-nav-brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--info);
+    }
+
+    .top-nav-brand span {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .top-nav-links {
+      display: flex;
+      gap: var(--space-xs);
+    }
+
+    .top-nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: 8px 16px;
+      color: var(--text-2);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all var(--hover-transition);
+      border: 1px solid transparent;
+    }
+
+    .top-nav-link:hover {
+      background: var(--bg-2);
+      color: var(--text-1);
+    }
+
+    .top-nav-link.active {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--info);
+      border-color: var(--info);
+    }
+    
+    /* ===== Header 体系统一 (UI-3.5) ===== */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--border-2);
+    }
+    
+    .header-main {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .header-title .icon {
+      font-size: 32px;
+    }
+    
+    .header-subtitle {
+      color: var(--text-2);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    
+    /* 状态组（首页专用） */
+    .status-group {
+      display: flex;
+      gap: var(--space-xs);
+      margin-left: var(--space-md);
+      padding-left: var(--space-md);
+      border-left: 1px solid var(--border-1);
+    }
+    
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    
+    .chip, .badge {
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    
+    .chip {
+      background: var(--bg-2);
+      border: 1px solid var(--border-1);
+      color: var(--text-2);
+    }
+    
+    .badge {
+      border: 1px solid var(--border-1);
+      background: var(--bg-2);
+      color: var(--text-2);
+    }
+    
+    /* Badge 状态色 - 语义固定 */
+    .badge.state-ok, .badge.pnl-positive, .badge.side-long {
+      background: var(--success-light);
+      color: var(--success);
+      border-color: var(--success);
+    }
+    
+    .badge.state-error, .badge.pnl-negative, .badge.side-short {
+      background: var(--danger-light);
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    
+    .badge.state-warn {
+      background: var(--warning-light);
+      color: var(--warning);
+      border-color: var(--warning);
+    }
+    
+    .badge.state-neutral {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-2);
+      border-color: var(--border-1);
+    }
+    
+    /* UI-3.9: Freshness Badge 颜色类 */
+    .badge.freshness-fresh {
+      background: var(--freshness-fresh);
+      color: #000;
+      border-color: var(--freshness-fresh);
+    }
+    
+    .badge.freshness-delayed {
+      background: var(--freshness-delayed);
+      color: #000;
+      border-color: var(--freshness-delayed);
+    }
+    
+    .badge.freshness-stale {
+      background: var(--freshness-stale);
+      color: #fff;
+      border-color: var(--freshness-stale);
+    }
+    
+    .badge.freshness-neutral {
+      background: var(--bg-2);
+      color: var(--text-2);
+      border-color: var(--border-1);
+    }
+    
+    .badge.side-long, .badge.side-short {
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    /* 网格布局 */
+    .grid { display: grid; gap: var(--space-lg); }
+    .grid.top { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
+    .grid.mid { grid-template-columns: 1.3fr 1fr; margin-top: var(--space-md); }
+    .grid.low { grid-template-columns: 1fr 1fr 1fr; margin-top: var(--space-md); }
+    
+    /* 卡片 - 20px 圆角，渐变边框 */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--info), rgba(59,130,246,0.3));
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .card h2, .card h3 {
+      margin: 0 0 var(--space-md);
+      font-size: 15px;
+      color: var(--text-2);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .card h2 .icon, .card h3 .icon { font-size: 18px; }
+    /* 英雄数据区 */
+    .hero-symbol { font-size: 24px; font-weight: 800; margin-bottom: var(--space-xs); }
+    .hero-price { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+    .hero-change { margin-top: var(--space-sm); display: inline-flex; }
+    
+    /* KPI 网格 */
+    .kpis { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-xs); }
+    
+    .kpi {
+      padding: var(--space-sm);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-1);
+      transition: all 0.2s ease;
+    }
+    
+    .kpi:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-2);
+    }
+    
+    .kpi-label { color: var(--text-3); font-size: 11px; margin-bottom: var(--space-xs); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .kpi-value { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    
+    /* 行布局 */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--border-1);
+    }
+    
+    .row:last-child { border-bottom: 0; }
+    .row .label { color: var(--text-3); font-size: 13px; }
+    .row .value { font-weight: 700; font-size: 14px; }
+    
+    .sub { color: var(--text-2); font-size: 12px; }
+
+    /* Tab 切换 */
+    .tabs {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+      flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+      border: 1px solid var(--border-1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-2);
+      padding: 10px 16px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    
+    .tab-btn:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-2);
+    }
+    
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--info), #2563eb);
+      color: white;
+      border-color: var(--info);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    
+    /* 表格 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    th, td {
+      padding: var(--space-xs) var(--space-sm);
+      border-bottom: 1px solid var(--border-1);
+      text-align: left;
+      vertical-align: top;
+    }
+    
+    th { color: var(--text-3); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; padding-top: var(--space-md); padding-bottom: var(--space-xs); }
+    td { color: var(--text-2); }
+    td.num, th.num { text-align: right; }
+    .muted { color: var(--text-3); }
+    
+    /* 空状态 */
+    .empty {
+      border: 1px dashed var(--border-2);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      text-align: center;
+      color: var(--text-3);
+      background: rgba(255,255,255,0.02);
+    }
+    
+    /* 控制区按钮 */
+    .controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-sm); }
+    
+    .btn {
+      border: 0;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s ease;
+      font-size: 13px;
+    }
+    
+    .btn-primary { background: linear-gradient(135deg, var(--info), #2563eb); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+    
+    .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
+    .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.4); }
+    
+    .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: #1a1a1a; }
+    .btn-warning:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.4); }
+    
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+    
+    /* ===== 响应式统一 (UI-3.5) ===== */
+    @media (max-width: 1280px) {
+      .grid.top, .grid.mid, .grid.low { grid-template-columns: 1fr 1fr; }
+      
+      .header {
+        gap: var(--space-md);
+      }
+      
+      .header-controls {
+        justify-content: flex-start;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .grid.top, .grid.mid, .grid.low { grid-template-columns: 1fr; }
+      
+      .header {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+      }
+      
+      .header-title {
+        font-size: 22px;
+      }
+      
+      .header-title .icon {
+        font-size: 26px;
+      }
+      
+      .header-subtitle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-xs);
+      }
+      
+      .status-group {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: var(--space-xs);
+      }
+      
+      .header-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航栏 -->
+  <nav class="top-nav">
+    <div class="top-nav-brand">
+      <h1>🐉 小龙交易系统 V5.4</h1>
+      <span>专业金融监控终端</span>
+    </div>
+    <div class="top-nav-links">
+      <a href="/" class="top-nav-link active">
+        <span>📊</span>
+        <span>驾驶舱</span>
+      </a>
+      <a href="/history" class="top-nav-link">
+        <span>📜</span>
+        <span>历史分析</span>
+      </a>
+      <a href="/reports" class="top-nav-link">
+        <span>📈</span>
+        <span>报表中心</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <div class="header">
+      <div class="header-main">
+        <div class="header-title">
+          <span class="icon">🐉</span>
+          <span>小龙交易驾驶舱</span>
+        </div>
+        <div class="header-subtitle">
+          <span>实时交易监控与决策分析系统</span>
+          <span class="status-group">
+            <span class="badge {{ 'state-ok' if vm.control.enabled else 'state-error' }}" id="system-enabled">{{ '系统启用' if vm.control.enabled else '系统关闭' }}</span>
+            <span class="badge {{ 'state-error' if vm.control.frozen else 'state-ok' }}" id="system-frozen">{{ '冻结' if vm.control.frozen else '运行中' }}</span>
+            <span class="badge {{ 'state-ok' if (vm.health or {}).get('overall') == 'ok' else 'state-warn' if (vm.health or {}).get('overall') == 'warn' else 'state-error' }}" id="health-overall">{{ (vm.health or {}).get('overall') | upper }}</span>
+          </span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <span class="chip">数据：<span id="as-of">{{ vm.as_of }}</span></span>
+        <span class="chip">更新：<span id="last-updated">--:--:--</span></span>
+        <span class="chip" id="freshness-badge">{{ render_freshness_badge(freshness.get('worker_heartbeat_age_sec', 0) if freshness else (vm.health or {}).get('snapshot_age_sec', 0)) }}</span>
+      </div>
+    </div>
+
+    <div class="grid top">
+      <section class="card">
+        <h2>市场与决策摘要</h2>
+        <div class="hero-symbol" id="hero-symbol">{{ vm.symbol }}</div>
+        <div class="hero-price" id="hero-price">{{ vm.market.price }}</div>
+        <div class="hero-change badge {{ 'pnl-positive' if vm.market.change > 0 else 'pnl-negative' if vm.market.change < 0 else 'state-neutral' }}" id="hero-change">{{ '%.2f'|format(vm.market.change) }}%</div>
+        <div class="kpis" style="margin-top:14px;">
+          <div class="kpi"><div class="kpi-label">方向偏置</div><div class="kpi-value" id="summary-bias">{{ vm.summary.bias }}</div></div>
+          <div class="kpi"><div class="kpi-label">市场状态</div><div class="kpi-value" id="summary-regime">{{ vm.summary.regime }}</div></div>
+          <div class="kpi"><div class="kpi-label">置信度</div><div class="kpi-value" id="summary-confidence">{{ '%.1f'|format(vm.summary.confidence_pct) }}%</div></div>
+          <div class="kpi"><div class="kpi-label">风险状态</div><div class="kpi-value"><span class="badge {{ 'state-ok' if vm.summary.risk_state == 'ok' else 'state-warn' if vm.summary.risk_state == 'warn' else 'state-error' }}" id="summary-risk">{{ vm.summary.risk_state|upper }}</span></div></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>当前仓位</h2>
+        <div class="kpis">
+          <div class="kpi"><div class="kpi-label">方向</div><div class="kpi-value"><span id="position-side" class="badge {{ 'side-long' if vm.position.side == 'LONG' else 'side-short' if vm.position.side == 'SHORT' else 'state-neutral' }}">{{ vm.position.side }}</span></div></div>
+          <div class="kpi"><div class="kpi-label">仓位</div><div class="kpi-value" id="position-size">{{ '%.4f'|format(vm.position.size) }}</div></div>
+          <div class="kpi"><div class="kpi-label">入场价</div><div class="kpi-value" id="position-entry">{{ '%.2f'|format(vm.position.entry_price) }}</div></div>
+          <div class="kpi"><div class="kpi-label">标记价</div><div class="kpi-value" id="position-mark">{{ '%.2f'|format(vm.position.mark_price) }}</div></div>
+        </div>
+        <div class="row"><span class="label">未实现盈亏</span><span class="value"><span id="position-pnl" class="badge {{ 'pnl-positive' if vm.position.unrealized_pnl > 0 else 'pnl-negative' if vm.position.unrealized_pnl < 0 else 'state-neutral' }}">{{ '%.2f'|format(vm.position.unrealized_pnl) }}</span></span></div>
+        <div class="row"><span class="label">杠杆</span><span class="value" id="position-leverage">{{ vm.position.leverage }}x</span></div>
+        <div class="row"><span class="label">强平价</span><span class="value" id="position-liquidation">{{ '%.2f'|format(vm.position.liquidation_price) }}</span></div>
+      </section>
+
+      <section class="card">
+        <h2>资金状态</h2>
+        <div class="row"><span class="label">权益</span><span class="value" id="capital-equity">{{ '%.2f'|format(vm.capital.equity) }} {{ vm.capital.currency }}</span></div>
+        <div class="row"><span class="label">可用</span><span class="value" id="capital-available">{{ '%.2f'|format(vm.capital.available) }} {{ vm.capital.currency }}</span></div>
+        <div class="row"><span class="label">保证金</span><span class="value" id="capital-margin">{{ '%.2f'|format(vm.capital.margin) }} {{ vm.capital.currency }}</span></div>
+        <div class="row"><span class="label">已实现盈亏</span><span class="value"><span id="capital-realized" class="badge {{ 'pnl-positive' if vm.capital.realized_pnl > 0 else 'pnl-negative' if vm.capital.realized_pnl < 0 else 'state-neutral' }}">{{ '%.2f'|format(vm.capital.realized_pnl) }}</span></span></div>
+        <div class="row"><span class="label">未实现盈亏</span><span class="value"><span id="capital-unrealized" class="badge {{ 'pnl-positive' if vm.capital.unrealized_pnl > 0 else 'pnl-negative' if vm.capital.unrealized_pnl < 0 else 'state-neutral' }}">{{ '%.2f'|format(vm.capital.unrealized_pnl) }}</span></span></div>
+      </section>
+
+      <section class="card">
+        <h2>系统健康</h2>
+        <div class="row"><span class="label">自动交易</span><span class="value"><span class="badge {{ 'state-ok' if vm.control.enabled else 'state-error' }}" id="health-enabled">{{ '开启' if vm.control.enabled else '关闭' }}</span></span></div>
+        <div class="row"><span class="label">冻结状态</span><span class="value"><span class="badge {{ 'state-error' if vm.control.frozen else 'state-ok' }}" id="health-frozen">{{ '已冻结' if vm.control.frozen else '正常' }}</span></span></div>
+        <div class="row"><span class="label">阈值</span><span class="value" id="health-threshold">{{ vm.control.threshold }}</span></div>
+        <div class="row"><span class="label">通过率</span><span class="value" id="health-approval">{{ '%.1f'|format(vm.summary.approval_rate) }}%</span></div>
+        <div class="row"><span class="label">胜率</span><span class="value" id="health-winrate">{{ '%.1f'|format(vm.summary.win_rate) }}%</span></div>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <div class="row"><span class="label">OKX 余额</span><span class="value"><span class="badge state-ok" id="health-okx-capital">OK</span></span></div>
+          <div class="row"><span class="label">OKX 持仓</span><span class="value"><span class="badge state-ok" id="health-okx-position">OK</span></span></div>
+          <div class="row"><span class="label">市场行情</span><span class="value"><span class="badge state-ok" id="health-market">OK</span></span></div>
+          <div class="row"><span class="label">决策日志</span><span class="value"><span class="badge state-ok" id="health-decision">OK</span></span></div>
+        </div>
+      </section>
+      <!-- 决策解释面板（v43 新增） -->
+      <section class="card">
+        <h2>决策解释</h2>
+        <div class="row"><span class="label">最后动作</span><span class="value" id="decision-action">{{ vm.decision_explain.last_action or 'hold' }}</span></div>
+        <div class="row"><span class="label">置信度</span><span class="value" id="decision-confidence">{{ vm.decision_explain.confidence or 0 }}</span></div>
+        <div class="row"><span class="label">信号</span><span class="value" id="decision-signal">{{ vm.decision_explain.signal or 'none' }}</span></div>
+        <div class="row"><span class="label">结构判断</span><span class="value" id="decision-structure">{{ vm.decision_explain.structure_bias or '中性' }}</span></div>
+        <div class="row"><span class="label">风控检查</span><span class="value"><span class="badge {{ 'state-ok' if vm.decision_explain.risk_check == 'passed' else 'state-warn' if vm.decision_explain.risk_check == 'limited' else 'state-error' }}" id="decision-risk">{{ vm.decision_explain.risk_check or 'unknown' }}</span></span></div>
+        <div class="row"><span class="label">持仓状态</span><span class="value" id="decision-position">{{ vm.decision_explain.position_state or 'FLAT' }}</span></div>
+        <div style="margin-top: 12px;">
+          <h4>原因</h4>
+          {% if vm.decision_explain.reasons %}
+            {% for reason in vm.decision_explain.reasons %}
+              <span class="badge state-warn">{{ reason }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="badge state-ok">无特殊原因</span>
+          {% endif %}
+        </div>
+        <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+          <div style="color: var(--text-3); font-size: 12px; margin-bottom: 6px;">摘要</div>
+          <div style="color: var(--text-1); font-weight: 600;" id="decision-summary">{{ vm.decision_explain.summary or '当前无明确决策' }}</div>
+        </div>
+      </section>
+      <!-- 风险闸门面板（v42 新增） -->
+      <section class="card">
+        <h2>风险闸门 <span class="badge {{ 'state-ok' if vm.risk.gate_status == 'open' else 'state-warn' if vm.risk.gate_status == 'restricted' else 'state-error' }}" id="risk-gate-status">{{ vm.risk.gate_status | upper }}</span></h2>
+        <div class="row"><span class="label">模式</span><span class="value" id="risk-mode">{{ vm.risk.mode }}</span></div>
+        <div class="row"><span class="label">开仓</span><span class="value"><span class="badge {{ 'state-ok' if vm.risk.can_open else 'state-error' }}" id="risk-can-open">{{ '允许' if vm.risk.can_open else '禁止' }}</span></span></div>
+        <div class="row"><span class="label">平仓</span><span class="value"><span class="badge {{ 'state-ok' if vm.risk.can_close else 'state-error' }}" id="risk-can-close">{{ '允许' if vm.risk.can_close else '禁止' }}</span></span></div>
+        <div class="row"><span class="label">熔断</span><span class="value"><span class="badge {{ 'state-error' if vm.risk.circuit_breaker else 'state-ok' }}" id="risk-circuit">{{ '触发' if vm.risk.circuit_breaker else '正常' }}</span></span></div>
+        <div class="row"><span class="label">日亏损</span><span class="value" id="risk-daily-loss">{{ vm.risk.current_daily_loss }} / {{ vm.risk.max_daily_loss }} USDT</span></div>
+        <div class="row"><span class="label">日交易</span><span class="value" id="risk-daily-trades">{{ vm.risk.daily_trades }} / {{ vm.risk.max_daily_trades }}</span></div>
+        <div style="margin-top: 12px;">
+          <h4>限制原因</h4>
+          {% if vm.risk.gate_reasons %}
+            {% for reason in vm.risk.gate_reasons %}
+              <span class="badge state-warn">{{ reason }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="badge state-ok">无限制</span>
+          {% endif %}
+        </div>
+        <div class="controls" style="margin-top: 16px;">
+          <button class="btn btn-primary" onclick="sendControlAction('open_all')">允许开平仓</button>
+          <button class="btn btn-warning" onclick="sendControlAction('close_opening')">仅允许平仓</button>
+          <button class="btn btn-danger" onclick="sendControlAction('block_all')">全禁用</button>
+          <button class="btn btn-secondary" onclick="sendControlAction('reset_circuit_breaker')">重置熔断</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="market">市场与决策</button>
+        <button class="tab-btn" data-tab="evolution">演化引擎</button>
+        <button class="tab-btn" data-tab="control">系统控制</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-market">
+        <div class="grid mid">
+          <section>
+            <h3>Recent Trades</h3>
+            <div id="trades-wrap">
+              {% if vm.recent_trades %}
+              <table>
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>方向</th>
+                    <th>操作</th>
+                    <th class="num">入场</th>
+                    <th class="num">出场</th>
+                    <th class="num">仓位</th>
+                    <th class="num">盈亏</th>
+                    <th>原因</th>
+                  </tr>
+                </thead>
+                <tbody id="trades-body">
+                  {% for t in vm.recent_trades %}
+                  <tr>
+                    <td>{{ t.time or '--' }}</td>
+                    <td><span class="badge {{ 'side-long' if (t.side or '')|upper == 'LONG' else 'side-short' if (t.side or '')|upper == 'SHORT' else 'state-neutral' }}">{{ t.side or '--' }}</span></td>
+                    <td>{{ t.action or '--' }}</td>
+                    <td class="num">{{ '%.2f'|format((t.entry or 0)|float) if t.entry is not none else '--' }}</td>
+                    <td class="num">{{ '%.2f'|format((t.exit or 0)|float) if t.exit is not none else '--' }}</td>
+                    <td class="num">{{ '%.4f'|format((t.size or 0)|float) }}</td>
+                    <td class="num"><span class="badge {{ 'pnl-positive' if (t.pnl or 0)|float > 0 else 'pnl-negative' if (t.pnl or 0)|float < 0 else 'state-neutral' }}">{{ '%.2f'|format((t.pnl or 0)|float) }}</span></td>
+                    <td class="muted">{{ t.reason or '--' }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <div class="empty">暂无交易记录</div>
+              {% endif %}
+            </div>
+          </section>
+          <section>
+            <h3>权益曲线</h3>
+            <div style="height: 220px; position: relative;">
+              <canvas id="equityChart"></canvas>
+            </div>
+            <h3 style="margin-top: 16px;">回撤曲线</h3>
+            <div style="height: 220px; position: relative;">
+              <canvas id="drawdownChart"></canvas>
+            </div>
+            <h3 style="margin-top: 16px;">盈亏走势</h3>
+            <div style="height: 200px; position: relative;">
+              <canvas id="pnlChart"></canvas>
+            </div>
+          </section>
+          <section>
+            <h3>决策与结构</h3>
+            <div class="row"><span class="label">趋势</span><span class="value" id="structure-trend">{{ vm.structure.trend }}</span></div>
+            <div class="row"><span class="label">波动性</span><span class="value" id="structure-volatility">{{ vm.structure.volatility }}</span></div>
+            <div class="row"><span class="label">结构</span><span class="value" id="structure-structure">{{ vm.structure.structure }}</span></div>
+            <div class="row"><span class="label">结构评分</span><span class="value" id="structure-score">{{ vm.structure.score }}</span></div>
+            <div class="row"><span class="label">置信度</span><span class="value" id="structure-confidence">{{ '%.1f'|format(vm.structure.confidence_pct) }}%</span></div>
+            <div class="row"><span class="label">决策数</span><span class="value" id="decision-total">{{ vm.decision.total }}</span></div>
+            <div class="row"><span class="label">通过/拒绝</span><span class="value" id="decision-split">{{ vm.decision.approved }} / {{ vm.decision.rejected }}</span></div>
+            <div style="margin-top:14px;">
+              <h3 style="margin-bottom:10px;">最近决策</h3>
+              {% if vm.decision.recent_decisions %}
+                {% for d in vm.decision.recent_decisions %}
+                <div class="row">
+                  <div>
+                    <div class="value">{{ d.result or '--' }}</div>
+                    <div class="sub">{{ d.reason or '--' }}</div>
+                  </div>
+                  <div class="muted">{{ d.time or '--' }}</div>
+                </div>
+                {% endfor %}
+              {% else %}
+              <div class="empty">暂无决策记录</div>
+              {% endif %}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-evolution">
+        <div class="grid low">
+          <section class="card">
+            <h3>演化摘要</h3>
+            <div class="row"><span class="label">代数</span><span class="value" id="evo-generation">{{ vm.evolution.generation }}</span></div>
+            <div class="row"><span class="label">最佳适应度</span><span class="value" id="evo-fitness">{{ '%.3f'|format(vm.evolution.best_fitness) }}</span></div>
+            <div class="row"><span class="label">种群规模</span><span class="value" id="evo-population">{{ vm.evolution.population_size }}</span></div>
+            <div class="row"><span class="label">状态</span><span class="value" id="evo-status">{{ vm.evolution.status }}</span></div>
+            <div class="row"><span class="label">变异次数</span><span class="value" id="evo-mutations">{{ vm.evolution.total_mutations }}</span></div>
+            <div class="row"><span class="label">速度</span><span class="value" id="evo-speed">{{ '%.2f'|format(vm.evolution.evolution_speed) }}</span></div>
+          </section>
+          <section class="card">
+            <h3>最新参数</h3>
+            {% if vm.evolution.latest_params %}
+              {% for k, v in vm.evolution.latest_params.items() %}
+              <div class="row"><span class="label">{{ k }}</span><span class="value">{{ v }}</span></div>
+              {% endfor %}
+            {% else %}
+              <div class="empty">暂无参数</div>
+            {% endif %}
+          </section>
+          <section class="card">
+            <h3>绩效</h3>
+            {% if vm.evolution.performance %}
+              {% for k, v in vm.evolution.performance.items() %}
+              <div class="row"><span class="label">{{ k }}</span><span class="value">{{ v }}</span></div>
+              {% endfor %}
+            {% else %}
+              <div class="empty">暂无演化绩效</div>
+            {% endif %}
+          </section>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-control">
+        <div class="grid mid">
+          <section>
+            <h3>系统控制</h3>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="sendControl('enable')">启用</button>
+              <button class="btn btn-warning" onclick="sendControl('disable')">禁用</button>
+              <button class="btn btn-warning" onclick="sendControl('freeze')">冻结</button>
+              <button class="btn btn-danger" onclick="sendControl('emergency')">紧急停止</button>
+            </div>
+          </section>
+          <section>
+            <h3>控制说明</h3>
+            <div class="row"><span class="label">端口</span><span class="value">8780</span></div>
+            <div class="row"><span class="label">数据源</span><span class="value">ccxt / 现有后端</span></div>
+            <div class="row"><span class="label">兼容性</span><span class="value">structure_state / decision_state / evolution_state</span></div>
+            <div class="row"><span class="label">策略</span><span class="value">无真实字段时显示空值，不伪造实时趋势</span></div>
+          </section>
+        </div>
+        <div class="card" style="margin-top: 16px;">
+          <h3>最近告警 
+            {% if vm.alert_summary %}
+              <span class="badge state-error" style="margin-left: 8px;">CRITICAL {{ vm.alert_summary.critical or 0 }}</span>
+              <span class="badge state-warn" style="margin-left: 4px;">WARN {{ vm.alert_summary.warn or 0 }}</span>
+              <span class="badge state-info" style="margin-left: 4px;">INFO {{ vm.alert_summary.info or 0 }}</span>
+            {% endif %}
+          </h3>
+          {% if vm.alerts %}
+            <div style="max-height: 300px; overflow-y: auto;">
+              {% for alert in vm.alerts %}
+              <div class="row" style="border-left: 3px solid {{ '#ef4444' if alert.level == 'CRITICAL' else '#f59e0b' if alert.level == 'WARN' else '#3b82f6' }}; padding-left: 10px; margin-bottom: 8px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 13px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                    {{ alert.title or alert.type }}
+                    {% if alert.dedup_count and alert.dedup_count > 1 %}
+                      <span class="badge state-warn" style="font-size: 11px; padding: 2px 6px;">连续 {{ alert.dedup_count }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="value" style="font-size: 12px;">{{ alert.message[:100] }}{% if alert.message|length > 100 %}...{% endif %}</div>
+                  <div class="sub" style="margin-top: 4px;">{{ alert.ts[:19].replace('T', ' ') if alert.ts else '--' }}</div>
+                </div>
+                <span class="badge {{ 'state-error' if alert.level == 'CRITICAL' else 'state-warn' if alert.level == 'WARN' else 'state-info' }}">{{ alert.level }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty">暂无告警记录</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => setTab(btn.dataset.tab));
+    });
+
+    async function sendControl(action) {
+      try {
+        const res = await fetch('/api/control/' + action, { method: 'POST' });
+        const data = await res.json();
+        alert(data.success ? ('已发送: ' + action) : ('失败: ' + (data.message || 'unknown')));
+        refreshStats();
+      } catch (err) {
+        alert('控制请求失败: ' + err.message);
+      }
+    }
+
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    function setBadge(id, text, cls) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'badge ' + cls;
+    }
+
+    function badgeForPnl(value) {
+      if (value > 0) return 'pnl-positive';
+      if (value < 0) return 'pnl-negative';
+      return 'state-neutral';
+    }
+
+    // =============================================================================
+    // A1 稳定性增强：防重入 + 错误处理 + Last Updated
+    // =============================================================================
+    
+    let isRefreshing = false;           // 防重入标志
+    let refreshErrorCount = 0;          // 连续错误计数
+    let lastSuccessfulUpdate = null;    // 最后成功更新时间
+    const MAX_ERROR_COUNT = 5;          // 最大错误计数（超过后显示错误状态）
+    const REFRESH_INTERVAL = 5000;      // 刷新间隔（ms）
+    
+    // 显示/隐藏错误提示
+    function showErrorBanner(message) {
+      let banner = document.getElementById('refresh-error-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'refresh-error-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:12px;text-align:center;z-index:9999;font-size:14px;';
+        document.body.insertBefore(banner, document.body.firstChild);
+      }
+      banner.textContent = '🔴 ' + message;
+      banner.style.display = 'block';
+    }
+    
+    function hideErrorBanner() {
+      const banner = document.getElementById('refresh-error-banner');
+      if (banner) banner.style.display = 'none';
+    }
+    
+    // 更新 Last Updated 显示
+    function updateLastUpdated() {
+      const now = new Date();
+      lastSuccessfulUpdate = now;
+      const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+      setText('last-updated', timeStr);
+      
+      // 同时更新所有页面的 last-updated 元素
+      document.querySelectorAll('.last-updated').forEach(el => {
+        el.textContent = '最后更新：' + timeStr;
+      });
+    }
+    
+    // 获取刷新状态文本
+    function getRefreshStatusText() {
+      if (!lastSuccessfulUpdate) return '从未更新';
+      const now = new Date();
+      const diff = Math.floor((now - lastSuccessfulUpdate) / 1000);
+      if (diff < 60) return diff + '秒前';
+      if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+      return Math.floor(diff / 3600) + '小时前';
+    }
+    
+    async function refreshStats() {
+      // 防重入：如果上次请求未完成，跳过本次
+      if (isRefreshing) {
+        console.log('[刷新跳过] 上次请求未完成');
+        return;
+      }
+      
+      isRefreshing = true;
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 秒超时
+        
+        const res = await fetch('/api/stats', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const vm = data.vm || data;
+        if (!vm) throw new Error('No data');
+
+        setText('as-of', vm.as_of || '--');
+        setText('hero-symbol', vm.symbol || '--');
+        setText('hero-price', vm.market?.price || '--');
+        setBadge('hero-change', `${(vm.market?.change || 0).toFixed(2)}%`, (vm.market?.change || 0) > 0 ? 'pnl-positive' : (vm.market?.change || 0) < 0 ? 'pnl-negative' : 'state-neutral');
+
+        setText('summary-bias', vm.summary?.bias || '--');
+        setText('summary-regime', vm.summary?.regime || '--');
+        setText('summary-confidence', `${(vm.summary?.confidence_pct || 0).toFixed(1)}%`);
+        setBadge('summary-risk', (vm.summary?.risk_state || 'neutral').toUpperCase(), vm.summary?.risk_state === 'ok' ? 'state-ok' : vm.summary?.risk_state === 'warn' ? 'state-warn' : 'state-error');
+
+        setBadge('position-side', vm.position?.side || '空仓', vm.position?.side === 'LONG' ? 'side-long' : vm.position?.side === 'SHORT' ? 'side-short' : 'state-neutral');
+        setText('position-size', (vm.position?.size || 0).toFixed(4));
+        setText('position-entry', (vm.position?.entry_price || 0).toFixed(2));
+        setText('position-mark', (vm.position?.mark_price || 0).toFixed(2));
+        setBadge('position-pnl', (vm.position?.unrealized_pnl || 0).toFixed(2), badgeForPnl(vm.position?.unrealized_pnl || 0));
+        setText('position-leverage', `${vm.position?.leverage || 0}x`);
+        setText('position-liquidation', (vm.position?.liquidation_price || 0).toFixed(2));
+
+        setText('capital-equity', `${(vm.capital?.equity || 0).toFixed(2)} ${vm.capital?.currency || 'USDT'}`);
+        setText('capital-available', `${(vm.capital?.available || 0).toFixed(2)} ${vm.capital?.currency || 'USDT'}`);
+        setText('capital-margin', `${(vm.capital?.margin || 0).toFixed(2)} ${vm.capital?.currency || 'USDT'}`);
+        setBadge('capital-realized', (vm.capital?.realized_pnl || 0).toFixed(2), badgeForPnl(vm.capital?.realized_pnl || 0));
+        setBadge('capital-unrealized', (vm.capital?.unrealized_pnl || 0).toFixed(2), badgeForPnl(vm.capital?.unrealized_pnl || 0));
+
+        setBadge('system-enabled', vm.control?.enabled ? '系统启用' : '系统关闭', vm.control?.enabled ? 'state-ok' : 'state-error');
+        setBadge('system-frozen', vm.control?.frozen ? '已冻结' : '运行中', vm.control?.frozen ? 'state-error' : 'state-ok');
+        setBadge('health-enabled', vm.control?.enabled ? '开启' : '关闭', vm.control?.enabled ? 'state-ok' : 'state-error');
+        setBadge('health-frozen', vm.control?.frozen ? '已冻结' : '正常', vm.control?.frozen ? 'state-error' : 'state-ok');
+        setText('health-threshold', String(vm.control?.threshold ?? '--'));
+        setText('health-approval', `${(vm.summary?.approval_rate || 0).toFixed(1)}%`);
+        setText('health-winrate', `${(vm.summary?.win_rate || 0).toFixed(1)}%`);
+
+        setText('structure-trend', vm.structure?.trend || '--');
+        setText('structure-volatility', vm.structure?.volatility || '--');
+        setText('structure-structure', vm.structure?.structure || '--');
+        setText('structure-score', String(vm.structure?.score ?? '--'));
+        setText('structure-confidence', `${(vm.structure?.confidence_pct || 0).toFixed(1)}%`);
+        setText('decision-total', String(vm.decision?.total ?? '--'));
+        setText('decision-split', `${vm.decision?.approved ?? '--'} / ${vm.decision?.rejected ?? '--'}`);
+
+        setText('evo-generation', String(vm.evolution?.generation ?? '--'));
+        setText('evo-fitness', (vm.evolution?.best_fitness || 0).toFixed(3));
+        setText('evo-population', String(vm.evolution?.population_size ?? '--'));
+        setText('evo-status', vm.evolution?.status || '--');
+        setText('evo-mutations', String(vm.evolution?.total_mutations ?? '--'));
+        setText('evo-speed', (vm.evolution?.evolution_speed || 0).toFixed(2));
+        
+        // 渲染图表
+        renderCharts(vm);
+        
+        // 更新健康状态（v41 新增）
+        updateHealthStatus(vm);
+        
+        // 更新风险状态（v42 新增）
+        updateRiskStatus(vm);
+        
+        // 更新决策解释（v43 新增）
+        updateDecisionExplain(vm);
+        
+        // ✅ 成功：重置错误计数，更新最后成功时间
+        refreshErrorCount = 0;
+        updateLastUpdated();
+        hideErrorBanner();
+        
+      } catch (err) {
+        // ❌ 失败：增加错误计数
+        refreshErrorCount++;
+        console.error(`[面板刷新失败 #${refreshErrorCount}]`, err.message);
+        
+        // 错误达到阈值，显示错误提示
+        if (refreshErrorCount >= MAX_ERROR_COUNT) {
+          showErrorBanner(`数据刷新失败（连续${refreshErrorCount}次）- 最后更新：${getRefreshStatusText()}`);
+        } else if (refreshErrorCount === 1) {
+          // 第一次失败，静默处理
+          console.log('[刷新失败] 等待下次重试...');
+        }
+        
+        // 超时错误，特殊提示
+        if (err.name === 'AbortError') {
+          console.error('[面板刷新超时] 请求超过 10 秒');
+        }
+      } finally {
+        isRefreshing = false;
+      }
+    }
+    
+    // 健康状态更新（v41 新增）
+    function updateHealthStatus(vm) {
+      const health = vm.health || {};
+      const sources = health.sources || {};
+      
+      // 总体状态
+      const overallEl = document.getElementById('health-overall');
+      if (overallEl) {
+        const status = health.overall || 'unknown';
+        overallEl.textContent = status.toUpperCase();
+        overallEl.className = 'badge ' + (status === 'ok' ? 'state-ok' : status === 'warn' ? 'state-warn' : 'state-error');
+      }
+      
+      // 快照延迟
+      const ageEl = document.getElementById('health-snapshot-age');
+      if (ageEl) {
+        ageEl.textContent = (health.snapshot_age_sec || 0) + 's';
+      }
+      
+      // 各数据源状态
+      updateSourceHealth('health-okx-capital', sources.okx_capital);
+      updateSourceHealth('health-okx-position', sources.okx_position);
+      updateSourceHealth('health-market', sources.market);
+      updateSourceHealth('health-decision', sources.decision_log);
+    }
+    
+    function updateSourceHealth(elementId, source) {
+      const el = document.getElementById(elementId);
+      if (el && source) {
+        const status = source.status || 'unknown';
+        const age = source.age_sec || 0;
+        el.textContent = status.toUpperCase() + (age > 0 ? ` (${age}s)` : '');
+        el.className = 'badge ' + (status === 'ok' ? 'state-ok' : status === 'warn' ? 'state-warn' : 'state-error');
+      }
+    }
+    
+    // 风险状态更新（v42 新增）
+    function updateRiskStatus(vm) {
+      const risk = vm.risk || {};
+      
+      // 闸门状态
+      const gateEl = document.getElementById('risk-gate-status');
+      if (gateEl) {
+        const status = risk.gate_status || 'open';
+        gateEl.textContent = status.toUpperCase();
+        gateEl.className = 'badge ' + (status === 'open' ? 'state-ok' : status === 'restricted' ? 'state-warn' : 'state-error');
+      }
+      
+      // 模式
+      setText('risk-mode', risk.mode || 'observe_only');
+      
+      // 开平仓状态
+      setBadge('risk-can-open', risk.can_open ? '允许' : '禁止', risk.can_open ? 'state-ok' : 'state-error');
+      setBadge('risk-can-close', risk.can_close ? '允许' : '禁止', risk.can_close ? 'state-ok' : 'state-error');
+      
+      // 熔断
+      setBadge('risk-circuit', risk.circuit_breaker ? '触发' : '正常', risk.circuit_breaker ? 'state-error' : 'state-ok');
+      
+      // 日亏损
+      setText('risk-daily-loss', `${risk.current_daily_loss || 0} / ${risk.max_daily_loss || 0} USDT`);
+      
+      // 日交易
+      setText('risk-daily-trades', `${risk.daily_trades || 0} / ${risk.max_daily_trades || 0}`);
+      
+      // 限制原因
+      const reasonsEl = document.querySelector('#risk-gate-panel .badge.state-warn');
+      if (reasonsEl) {
+        reasonsEl.textContent = (risk.gate_reasons || []).join(', ') || '无限制';
+      }
+    }
+    
+    // 决策解释更新（v43 新增）
+    function updateDecisionExplain(vm) {
+      const de = vm.decision_explain || {};
+      
+      setText('decision-action', de.last_action || 'hold');
+      setText('decision-confidence', de.confidence || 0);
+      setText('decision-signal', de.signal || 'none');
+      setText('decision-structure', de.structure_bias || '中性');
+      setText('decision-position', de.position_state || 'FLAT');
+      
+      // 风控检查状态
+      const riskEl = document.getElementById('decision-risk');
+      if (riskEl) {
+        const riskCheck = de.risk_check || 'unknown';
+        riskEl.textContent = riskCheck.toUpperCase();
+        riskEl.className = 'badge ' + (riskCheck === 'passed' ? 'state-ok' : riskCheck === 'limited' ? 'state-warn' : 'state-error');
+      }
+      
+      // 摘要
+      setText('decision-summary', de.summary || '当前无明确决策');
+    }
+    
+    // 控制动作（v42 新增）
+    async function sendControlAction(action) {
+      try {
+        const res = await fetch(`/api/control/action/${action}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          console.log('控制动作成功:', action);
+          refreshStats();  // 立即刷新
+        } else {
+          alert('操作失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('网络错误: ' + err.message);
+      }
+    }
+
+    // ========================================================================
+    // P1-3 图表增量更新
+    // ========================================================================
+    
+    // 图表实例缓存（避免重复创建）
+    const charts = {
+      equity: null,
+      drawdown: null,
+      pnl: null,
+      decision: null,
+      evolution: null
+    };
+    
+    // 通用配置生成器 - 线图
+    function createLineChartConfig(title, label, borderColor, backgroundColor) {
+      return {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: label,
+            data: [],
+            borderColor: borderColor,
+            backgroundColor: backgroundColor,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 300,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: title,
+              color: '#b6c1d1',
+              font: { size: 13, weight: 'bold' }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(18, 26, 39, 0.95)',
+              titleColor: '#f5f7fb',
+              bodyColor: '#b6c1d1',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false,
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#7f8a9e', maxTicksLimit: 8 },
+              grid: { color: 'rgba(255,255,255,0.05)', display: false }
+            },
+            y: {
+              ticks: { color: '#7f8a9e' },
+              grid: { color: 'rgba(255,255,255,0.05)' }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      };
+    }
+    
+    // 通用配置生成器 - 环形图
+    function createDoughnutChartConfig(title) {
+      return {
+        type: 'doughnut',
+        data: {
+          labels: ['通过', '拒绝'],
+          datasets: [{
+            data: [0, 0],
+            backgroundColor: ['#22c55e', '#ef4444'],
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 400,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#b6c1d1',
+                padding: 15,
+                font: { size: 12 }
+              }
+            },
+            title: {
+              display: true,
+              text: title,
+              color: '#b6c1d1',
+              font: { size: 13, weight: 'bold' }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(18, 26, 39, 0.95)',
+              titleColor: '#f5f7fb',
+              bodyColor: '#b6c1d1',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? (context.raw / total * 100).toFixed(1) : 0;
+                  return context.label + ': ' + context.raw + ' (' + pct + '%)';
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+    
+    // 数据比较函数 - 避免无意义更新
+    function sameSeries(a, b) {
+      if (!Array.isArray(a) || !Array.isArray(b)) return false;
+      if (a.length !== b.length) return false;
+      if (a.length === 0) return true;
+      const lastA = a[a.length - 1];
+      const lastB = b[b.length - 1];
+      return lastA.ts === lastB.ts && lastA.value === lastB.value;
+    }
+    
+    // 线图增量更新函数（A1 稳定性增强：图表生命周期管理）
+    function updateLineChart(chartRef, canvasId, configBuilder, series, valueExtractor) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return null;
+      
+      // 空数据时保留实例，清空数据
+      if (!series || series.length === 0) {
+        if (chartRef && chartRef.data) {
+          chartRef.data.labels = [];
+          chartRef.data.datasets[0].data = [];
+          chartRef.update('none');
+        }
+        return chartRef;
+      }
+      
+      const labels = series.map(d => d.index !== undefined ? d.index : d.ts?.slice(11, 19) || '');
+      const values = series.map(d => valueExtractor(d));
+      
+      if (!chartRef) {
+        // 首次创建
+        const config = configBuilder();
+        config.data.labels = labels;
+        config.data.datasets[0].data = values;
+        return new Chart(ctx.getContext('2d'), config);
+      } else {
+        // 增量更新：先检查是否需要完全重建（数据维度变化）
+        const needsRecreate = chartRef.data.labels.length !== labels.length ||
+                              chartRef.data.datasets[0].data.length !== values.length;
+        
+        if (needsRecreate) {
+          // 安全销毁旧实例
+          try {
+            chartRef.destroy();
+          } catch (e) {
+            console.warn('[图表销毁失败]', e);
+          }
+          // 创建新实例
+          const config = configBuilder();
+          config.data.labels = labels;
+          config.data.datasets[0].data = values;
+          return new Chart(ctx.getContext('2d'), config);
+        } else {
+          // 增量更新
+          chartRef.data.labels = labels;
+          chartRef.data.datasets[0].data = values;
+          chartRef.update('none');
+          return chartRef;
+        }
+      }
+    }
+    
+    // 环形图增量更新函数（A1 稳定性增强：图表生命周期管理）
+    function updateDoughnutChart(chartRef, canvasId, configBuilder, labels, data) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return null;
+      
+      if (!chartRef) {
+        // 首次创建
+        const config = configBuilder();
+        config.data.labels = labels;
+        config.data.datasets[0].data = data;
+        return new Chart(ctx.getContext('2d'), config);
+      } else {
+        // 增量更新：检查是否需要重建
+        const needsRecreate = chartRef.data.labels.length !== labels.length ||
+                              chartRef.data.datasets[0].data.length !== data.length;
+        
+        if (needsRecreate) {
+          // 安全销毁旧实例
+          try {
+            chartRef.destroy();
+          } catch (e) {
+            console.warn('[图表销毁失败]', e);
+          }
+          // 创建新实例
+          const config = configBuilder();
+          config.data.labels = labels;
+          config.data.datasets[0].data = data;
+          return new Chart(ctx.getContext('2d'), config);
+        } else {
+          // 增量更新
+          chartRef.data.labels = labels;
+          chartRef.data.datasets[0].data = data;
+          chartRef.update('none');
+          return chartRef;
+        }
+      }
+    }
+    
+    // 具体图表更新函数
+    function updateEquityChart(series) {
+      charts.equity = updateLineChart(
+        charts.equity,
+        'equityChart',
+        () => createLineChartConfig('权益曲线', '权益 (USDT)', '#3b82f6', 'rgba(59, 130, 246, 0.1)'),
+        series,
+        d => d.equity
+      );
+    }
+    
+    function updateDrawdownChart(series) {
+      charts.drawdown = updateLineChart(
+        charts.drawdown,
+        'drawdownChart',
+        () => createLineChartConfig('回撤曲线', '回撤 (%)', '#ef4444', 'rgba(239, 68, 68, 0.1)'),
+        series,
+        d => d.drawdown
+      );
+    }
+    
+    function updatePnlChart(series) {
+      charts.pnl = updateLineChart(
+        charts.pnl,
+        'pnlChart',
+        () => createLineChartConfig('最近交易累计盈亏', '累计盈亏', '#22c55e', 'rgba(34, 197, 94, 0.1)'),
+        series,
+        d => d.cumulative
+      );
+    }
+    
+    function updateDecisionChart(dist) {
+      if (!dist) return;
+      charts.decision = updateDoughnutChart(
+        charts.decision,
+        'decisionChart',
+        () => createDoughnutChartConfig('决策分布'),
+        ['通过', '拒绝'],
+        [dist.accept || 0, dist.reject || 0]
+      );
+    }
+    
+    function updateEvolutionChart(series) {
+      charts.evolution = updateLineChart(
+        charts.evolution,
+        'evolutionChart',
+        () => createLineChartConfig('演化适应度趋势', '适应度', '#3b82f6', 'rgba(59, 130, 246, 0.1)'),
+        series,
+        d => d.fitness
+      );
+    }
+    
+    // 统一渲染入口
+    function renderCharts(vm) {
+      if (!vm || !vm.charts) return;
+      
+      // 第一批：高频刷新图表（优先优化）
+      updateEquityChart(vm.charts.equity_history || []);
+      updateDrawdownChart(vm.charts.drawdown_history || []);
+      updatePnlChart(vm.charts.pnl_history || []);
+      
+      // 第二批：低频刷新图表
+      updateDecisionChart(vm.charts.decision_distribution || {});
+      updateEvolutionChart(vm.charts.evolution_history || []);
+    }
+
+    refreshStats();
+    setInterval(refreshStats, 5000);
+  </script>
+  
+  <!-- UI-3.9: Service Worker 注册 -->
+  <script>
+    // 注册 Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js')
+          .then((registration) => {
+            console.log('[PWA] SW registered:', registration.scope);
+            
+            // 检查更新
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              console.log('[PWA] Update found');
+              
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // 有新版本可用
+                  console.log('[PWA] New content available');
+                  // 可以显示更新提示
+                }
+              });
+            });
+          })
+          .catch((error) => {
+            console.error('[PWA] SW registration failed:', error);
+          });
+      });
+    }
+    
+    // 离线检测
+    window.addEventListener('online', () => {
+      console.log('[PWA] Online');
+      document.body.classList.remove('offline');
+    });
+    
+    window.addEventListener('offline', () => {
+      console.log('[PWA] Offline');
+      document.body.classList.add('offline');
+      // 显示离线提示
+      showOfflineNotice();
+    });
+    
+    function showOfflineNotice() {
+      const notice = document.createElement('div');
+      notice.id = 'offline-notice';
+      notice.innerHTML = '⚠️ 当前离线，显示缓存数据';
+      notice.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#f59e0b;color:#000;padding:10px;text-align:center;z-index:9999;';
+      document.body.appendChild(notice);
+      
+      setTimeout(() => {
+        if (navigator.onLine && notice.parentNode) {
+          notice.remove();
+        }
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

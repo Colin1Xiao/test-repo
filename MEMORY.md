@@ -464,6 +464,216 @@ _精选的重要信息，跨会话持久化_
 
 ---
 
+## 🎨 UI-3.x 控制面板演进
+
+### 2026-03-27: UI-3.6 完成
+
+**阶段**: 交互与状态增强 ✅
+
+**核心成果**:
+- 历史页 range 交互闭环 (7D/30D/90D)
+- URL 参数持久化 + active 态同步
+- 后端 days 查询语义统一
+- 标准状态反馈体系 (loading/empty/error)
+- Empty 场景化提示 + hint
+- 真实数据联调验证通过
+
+**关键修复** (`c423b17`):
+- else 块未闭合 → JS 解析失败
+- currentRangeDays 顺序 → 变量未定义
+- fetchHistory API_BASE → 404 错误
+- data.data?.summary → 数据路径错误
+
+**验证数据**:
+- 告警总数：11,554
+- CRITICAL: 422
+- WARN: 11,093
+- 控制变更：8
+- 决策事件：13,224
+- 决策分布：hold 11,146 / buy 2,078
+
+**提交**: `c423b17` - fix(ui-3.6): 修复历史页 JS 执行、API 路径与数据映射问题
+
+### 2026-03-27: UI-3.7 完成
+
+**阶段**: 模板化与状态统一 ✅
+
+**核心成果**:
+- Flask 模板化：从 `render_template_string` 迁移到 `render_template`
+- 三页 stale/delayed 状态统一（主面板/历史页/报表页）
+- 模板文件结构化：`templates/index.html`, `history.html`, `reports.html`
+- 统一 freshness 数据传递：所有页面接收 `freshness` 对象
+- `render_freshness_badge` 函数全局可用
+
+**技术变更**:
+- `panel_v40.py`: `render_template_string` → `render_template`
+- 新增 `templates/` 目录，包含 4 个模板文件
+- 三页路由统一传递 `freshness` 数据
+- 备份: `panel_v40.py.backup.*`
+
+**文件结构**:
+```
+trading_system_v5_3/
+├── templates/
+│   ├── base.html          # 基础模板（备用）
+│   ├── index.html         # 主面板（从 INDEX_TEMPLATE 提取）
+│   ├── history.html       # 历史页（从 history_analysis.html 迁移）
+│   └── reports.html       # 报表页（从 reports_page.html 迁移）
+└── panel_v40.py           # 更新为使用文件模板
+```
+
+**验证**:
+- ✅ 语法检查通过
+- ✅ 模板渲染测试通过
+- ✅ 所有路由正常注册 (`/`, `/history`, `/reports`)
+- ✅ 三页 HTML 正常加载
+- ✅ 所有 API 端点正常响应
+- ✅ Freshness Badge 统一显示
+- ✅ Chart.js 图表库加载
+- ✅ Auto Refresh 自动刷新
+- ✅ Range 切换（历史页/报表页）
+
+**修复**:
+- 报表页数据解包：`alerts.data.summary` → `alertsData.summary`
+- 历史页 Chart.js 缺失：添加 `<script src="chart.js">`
+- 日志数据源状态追踪：`load_evolution/load_structure/load_decisions` 添加 `source_health` 更新 + `update_freshness` 调用
+
+**验证结果**:
+```
+数据源健康状态:
+- decision_log   [ok]   freshness: fresh (0s)
+- evolution_log  [ok]   freshness: fresh (0s)
+- structure_log  [ok]   freshness: fresh (0s)
+- market         [ok]   freshness: fresh (0s)
+- okx_capital    [ok]   freshness: fresh (0s)
+- okx_position   [ok]   freshness: fresh (0s)
+```
+
+**下一阶段**: UI-3.8 (性能优化 + 缓存策略)
+
+---
+
+### 2026-03-27: UI-3.8 代码优化完成
+
+**阶段**: 代码质量与可维护性提升 ✅
+
+**核心成果**:
+- 提取通用工具函数到 `utils.py` (安全转换/格式化/重试装饰器等)
+- 统一异常处理和日志记录 (`logger.error()` 代替 `print()`)
+- 完整类型注解 (64 函数中 44 个有返回类型，69%)
+- 优化可选模块导入 (优雅降级，ImportError 代替 Exception)
+- 提取公共函数 (`read_jsonl_last_lines`, `update_source_health`, `safe_json_load`)
+- 代码结构优化 (添加章节注释，统一代码风格)
+
+**代码统计**:
+- 总改动：843 行 (479 新增 / 364 删除)
+- 函数数量：64 个
+- 类型注解覆盖率：69%
+- 语法检查：✅ 通过
+- 运行时测试：✅ 通过
+
+**新增文件**:
+- `utils.py` - 通用工具函数库 (安全转换/格式化/装饰器/常量)
+
+**优化内容**:
+1. 工具函数提取：`safe_float/safe_int/fmt_pct/fmt_money/fmt_num/fmt_side`
+2. Badge 函数：`badge_for_side/badge_for_pnl/badge_for_state`
+3. 装饰器：`retry_on_exception/timed_execution`
+4. 工具函数：`merge_dicts/get_nested/truncate_string/format_timestamp`
+5. 日志优化：统一使用 `logger.error()` 代替 `print()`
+6. 导入优化：使用 `ImportError` 代替 `Exception`
+7. 类型注解：添加 `Optional/Union/Any` 等类型提示
+
+**验证结果**:
+```
+✅ 语法检查通过
+✅ 函数数量：64
+✅ 类型注解：44/64 (69%)
+✅ 服务器启动正常
+✅ API 响应正常
+✅ Worker 循环正常
+```
+
+**下一阶段**: UI-3.9 (PWA + Service Worker 离线缓存)
+
+---
+
+### 2026-03-27: UI-3.9 PWA 完成
+
+**阶段**: 离线缓存 + PWA 支持 ✅
+
+**核心成果**:
+- Web App Manifest (`manifest.json`)
+- Service Worker (`static/sw.js`)
+- 三页 PWA 支持 (index/history/reports)
+- 三种缓存策略 (Cache First / Network First / Stale While Revalidate)
+- 离线检测 + 用户提示
+- 后台数据同步
+
+**缓存策略**:
+1. **静态资源** (HTML/CSS/JS/图片) - Cache First
+2. **API 数据** - Network First + Cache Fallback
+3. **图表数据** - Stale While Revalidate
+
+**新增文件**:
+- `manifest.json` - PWA Manifest (应用名称/图标/主题色)
+- `static/sw.js` - Service Worker (5.7KB)
+- `static/icons/` - 应用图标目录
+
+**功能特性**:
+- ✅ 离线访问 (显示缓存数据)
+- ✅ 后台数据同步
+- ✅ 自动更新检测
+- ✅ 离线状态提示
+- ✅ 添加到主屏幕支持
+- ✅ 主题色适配
+
+**验证结果**:
+```
+✅ /manifest.json - 正常返回
+✅ /static/sw.js - 正常返回
+✅ PWA meta 标签 - 三页已添加
+✅ Service Worker 注册 - 已集成
+✅ 离线检测 - 已实现
+```
+
+**下一阶段**: UI-3.10 (性能监控 + 错误追踪)
+
+---
+
+### 2026-03-27: UI-3.9 Freshness Badge 统一
+
+**问题**: 三个页面的 Freshness Badge 实现不一致
+- 主面板：服务端渲染 (`render_freshness_badge()`)
+- 历史页：混合实现（服务端 + JS 内联函数）
+- 报表页：纯 JS 内联函数 + 硬编码颜色
+
+**修复方案**:
+1. 创建统一 JS 文件 `/static/freshness-badge.js`
+2. 三页都引用统一 JS 文件
+3. 删除各页内联 `updateFreshnessBadge()` 函数
+4. 统一使用 CSS 变量 (`var(--freshness-fresh)` 等)
+5. 统一 badge 类名 (`badge-fresh`/`badge-delayed`/`badge-stale`)
+
+**统一后的 HTML 结构**:
+```html
+<span class="badge badge-fresh" style="background:var(--freshness-fresh);color:#000">
+  ● 数据新鲜 (0s)
+</span>
+```
+
+**验证结果**:
+```
+✅ 主面板 - 使用统一 badge
+✅ 历史页 - 使用统一 badge
+✅ 报表页 - 使用统一 badge
+✅ /static/freshness-badge.js - 正常加载
+```
+
+**下一阶段**: UI-3.10 (性能监控 + 错误追踪)
+
+---
+
 ## 🔄 2026-03-20 更新
 
 ### 🎉 里程碑：完整统一面板 V5.3 完成

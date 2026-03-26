@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      /* 色彩系统 - 保持原有 */
+      /* 色彩系统 */
       --bg-0: #0a0f19;
       --bg-1: #121a27;
       --bg-2: #182233;
@@ -28,11 +28,11 @@
       --border-2: rgba(255,255,255,0.1);
       
       /* 间距系统 */
-      --space-xs: 8px;
-      --space-sm: 12px;
-      --space-md: 18px;
-      --space-lg: 24px;
-      --space-xl: 32px;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 18px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
       
       /* 字体系统 */
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -41,45 +41,6 @@
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
       --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
       --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
-      
-      /* ===== UI-3 Lite Tokens ===== */
-      /* Badge */
-      --badge-height: 24px;
-      --badge-radius: 6px;
-      --badge-padding-x: 10px;
-      --badge-padding-y: 4px;
-      --badge-font-size: 12px;
-      --badge-font-weight: 600;
-      --badge-line-height: 1.5;
-      
-      /* Loading / Empty / Error */
-      --spinner-size: 40px;
-      --spinner-border-width: 3px;
-      --empty-min-height: 120px;
-      --empty-font-size: 13px;
-      --empty-color: var(--text-3);
-      --empty-padding: 20px;
-      --error-padding: 12px 16px;
-      --error-radius: 8px;
-      --error-border-left: 4px;
-      --error-gap: 10px;
-      
-      /* Chart Header */
-      --chart-title-size: 14px;
-      --chart-title-weight: 600;
-      --chart-header-padding: 18px;
-      --chart-title-gap: 10px;
-      --chart-icon-size: 16px;
-      --chart-min-height: 220px;
-      
-      /* Hover / Transition */
-      --hover-transition: 0.2s ease;
-      --hover-transform: translateY(-2px);
-      
-      /* Top Nav */
-      --top-nav-height: 60px;
-      --top-nav-bg: var(--bg-1);
-      --top-nav-border: var(--border-1);
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -89,7 +50,7 @@
       color: var(--text-1);
       font: 14px/1.5 var(--font-sans);
       min-height: 100vh;
-      padding: var(--space-lg);
+      padding: var(--spacing-lg);
     }
     
     .container {
@@ -97,86 +58,21 @@
       margin: 0 auto;
     }
     
-    /* ===== 顶部导航栏 (UI-3 Lite) ===== */
-    .top-nav {
-      background: var(--top-nav-bg);
-      border-bottom: 1px solid var(--top-nav-border);
-      padding: 0 var(--space-lg);
-      height: var(--top-nav-height);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .top-nav-brand {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .top-nav-brand h1 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--info);
-    }
-
-    .top-nav-brand span {
-      font-size: 12px;
-      color: var(--text-3);
-    }
-
-    .top-nav-links {
-      display: flex;
-      gap: var(--space-xs);
-    }
-
-    .top-nav-link {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      padding: 8px 16px;
-      color: var(--text-2);
-      text-decoration: none;
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 600;
-      transition: all var(--hover-transition);
-      border: 1px solid transparent;
-    }
-
-    .top-nav-link:hover {
-      background: var(--bg-2);
-      color: var(--text-1);
-    }
-
-    .top-nav-link.active {
-      background: rgba(59, 130, 246, 0.15);
-      color: var(--info);
-      border-color: var(--info);
-    }
-
-    .top-nav-link span:first-child {
-      font-size: 14px;
-    }
-    
     /* ==================== 头部区域 ==================== */
     .header {
       display: grid;
       grid-template-columns: 1fr auto;
       align-items: center;
-      gap: var(--space-lg);
-      margin-bottom: var(--space-xl);
-      padding-bottom: var(--space-md);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+      padding-bottom: var(--spacing-md);
       border-bottom: 1px solid var(--border-2);
     }
     
     .header-main {
       display: flex;
       flex-direction: column;
-      gap: var(--space-xs);
+      gap: var(--spacing-xs);
     }
     
     .header-title {
@@ -185,7 +81,7 @@
       letter-spacing: -0.02em;
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: var(--spacing-sm);
     }
     
     .header-title .icon {
@@ -197,32 +93,30 @@
       font-size: 13px;
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: var(--spacing-sm);
     }
     
     .freshness-badge {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-xs);
-      height: var(--badge-height);
-      padding: var(--badge-padding-y) var(--badge-padding-x);
+      gap: var(--spacing-xs);
+      padding: 4px 12px;
       background: var(--bg-2);
       border: 1px solid var(--border-1);
-      border-radius: var(--badge-radius);
-      font-size: var(--badge-font-size);
-      font-weight: var(--badge-font-weight);
-      line-height: var(--badge-line-height);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
     }
     
-    .freshness-badge.fresh { border-color: var(--success); color: var(--success); background: var(--success-light); }
-    .freshness-badge.delayed { border-color: var(--warning); color: var(--warning); background: var(--warning-light); }
-    .freshness-badge.stale { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
-    .freshness-badge.unknown { border-color: var(--text-3); color: var(--text-3); }
+    .freshness-badge.fresh { border-color: var(--success); color: var(--success); }
+    .freshness-badge.delayed { border-color: var(--warning); color: var(--warning); }
+    .freshness-badge.stale { border-color: var(--danger); color: var(--danger); }
+    .freshness-badge unknown { border-color: var(--text-3); color: var(--text-3); }
     
     .header-controls {
       display: flex;
       align-items: center;
-      gap: var(--space-xs);
+      gap: var(--spacing-xs);
     }
     
     .range-btn {
@@ -262,7 +156,7 @@
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: var(--space-xs);
+      gap: var(--spacing-xs);
     }
     
     .refresh-btn:hover {
@@ -291,12 +185,12 @@
       border: 1px solid var(--danger);
       border-left: 4px solid var(--danger);
       border-radius: 8px;
-      padding: var(--space-md);
-      margin-bottom: var(--space-lg);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
       color: var(--danger);
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: var(--spacing-sm);
       animation: fadeIn 0.3s ease;
     }
     
@@ -308,7 +202,7 @@
     /* ==================== 加载状态 ==================== */
     .loading-state {
       text-align: center;
-      padding: 80px var(--space-lg);
+      padding: 80px var(--spacing-lg);
       color: var(--text-3);
     }
     
@@ -318,7 +212,7 @@
       border: 3px solid var(--border-1);
       border-top-color: var(--info);
       border-radius: 50%;
-      margin: 0 auto var(--space-md);
+      margin: 0 auto var(--spacing-md);
       animation: spin 1s linear infinite;
     }
     
@@ -330,15 +224,15 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: var(--space-lg);
-      margin-bottom: var(--space-xl);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
     }
     
     .stat-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid var(--border-2);
       border-radius: 16px;
-      padding: var(--space-lg);
+      padding: var(--spacing-lg);
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
@@ -355,10 +249,9 @@
     }
     
     .stat-card:hover {
-      transform: var(--hover-transform);
+      transform: translateY(-2px);
       box-shadow: var(--shadow-md);
       border-color: var(--border-2);
-      transition: all var(--hover-transition);
     }
     
     .stat-card.alerts { border-top-color: var(--warning); }
@@ -373,10 +266,10 @@
     .stat-card h3 {
       font-size: 15px;
       color: var(--text-2);
-      margin-bottom: var(--space-md);
+      margin-bottom: var(--spacing-md);
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: var(--spacing-sm);
       font-weight: 600;
     }
     
@@ -387,12 +280,12 @@
     .stat-metrics {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-xs);
+      gap: var(--spacing-xs);
     }
     
     .metric {
       background: rgba(255,255,255,0.03);
-      padding: var(--space-sm);
+      padding: var(--spacing-sm);
       border-radius: 12px;
       border: 1px solid var(--border-1);
       transition: all 0.2s ease;
@@ -406,7 +299,7 @@
     .metric-label {
       color: var(--text-3);
       font-size: 11px;
-      margin-bottom: var(--space-xs);
+      margin-bottom: var(--spacing-xs);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-weight: 600;
@@ -428,24 +321,19 @@
     .charts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: var(--space-lg);
-      margin-bottom: var(--space-xl);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
     }
     
     .chart-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid var(--border-2);
       border-radius: 16px;
-      padding: var(--space-md);
+      padding: var(--spacing-md);
       transition: all 0.3s ease;
     }
     
-    .chart-card {
-      transition: all var(--hover-transition);
-    }
-    
     .chart-card:hover {
-      transform: var(--hover-transform);
       box-shadow: var(--shadow-md);
       border-color: var(--border-2);
     }
@@ -453,10 +341,10 @@
     .chart-card h3 {
       font-size: 14px;
       color: var(--text-2);
-      margin-bottom: var(--space-md);
+      margin-bottom: var(--spacing-md);
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: var(--spacing-sm);
       font-weight: 600;
     }
     
@@ -468,7 +356,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: var(--space-sm);
+      margin-bottom: var(--spacing-sm);
     }
     
     .chart-container {
@@ -487,7 +375,7 @@
       height: 100%;
       background: var(--bg-0);
       z-index: 9999;
-      padding: var(--space-xl);
+      padding: var(--spacing-xl);
       animation: fadeIn 0.3s ease;
     }
     
@@ -495,24 +383,19 @@
     .top-section {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: var(--space-lg);
-      margin-bottom: var(--space-xl);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
     }
     
     .top-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid var(--border-2);
       border-radius: 16px;
-      padding: var(--space-md);
+      padding: var(--spacing-md);
       transition: all 0.3s ease;
     }
     
-    .top-card {
-      transition: all var(--hover-transition);
-    }
-    
     .top-card:hover {
-      transform: var(--hover-transform);
       box-shadow: var(--shadow-md);
       border-color: var(--border-2);
     }
@@ -520,10 +403,10 @@
     .top-card h3 {
       font-size: 14px;
       color: var(--text-2);
-      margin-bottom: var(--space-md);
+      margin-bottom: var(--spacing-md);
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: var(--spacing-sm);
       font-weight: 600;
     }
     
@@ -561,7 +444,7 @@
     }
     
     th, td {
-      padding: var(--space-xs) var(--space-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
       text-align: left;
       border-bottom: 1px solid var(--border-1);
     }
@@ -569,8 +452,8 @@
     th {
       color: var(--text-3);
       font-weight: 600;
-      padding-top: var(--space-md);
-      padding-bottom: var(--space-xs);
+      padding-top: var(--spacing-md);
+      padding-bottom: var(--spacing-xs);
     }
     
     td {
@@ -592,7 +475,7 @@
       background: var(--bg-2);
       font-weight: 800;
       font-size: 12px;
-      margin-right: var(--space-sm);
+      margin-right: var(--spacing-sm);
     }
     
     .rank-1 .rank-badge { color: var(--warning); border: 2px solid var(--warning); }
@@ -616,28 +499,6 @@
   </style>
 </head>
 <body>
-  <!-- 顶部导航栏 -->
-  <nav class="top-nav">
-    <div class="top-nav-brand">
-      <h1>小龙交易系统 V5.4</h1>
-      <span>专业金融监控终端</span>
-    </div>
-    <div class="top-nav-links">
-      <a href="/" class="top-nav-link">
-        <span>📊</span>
-        <span>驾驶舱</span>
-      </a>
-      <a href="/history" class="top-nav-link">
-        <span>📜</span>
-        <span>历史分析</span>
-      </a>
-      <a href="/reports" class="top-nav-link active">
-        <span>📈</span>
-        <span>报表中心</span>
-      </a>
-    </div>
-  </nav>
-
   <div class="container">
     <!-- 顶部控制栏 -->
     <div class="header">
@@ -662,9 +523,7 @@
           <span class="icon">🔄</span>
           <span>刷新</span>
         </button>
-        <span class="freshness-badge" id="freshness-badge">
-          <span class="badge badge-neutral">● 加载中</span>
-        </span>
+        <span class="last-updated" id="last-updated">--:--:--</span>
       </div>
     </div>
 
@@ -874,20 +733,26 @@
         `更新于 ${now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
     }
 
-    // UI-3.7: 更新 Freshness Badge（统一格式）
-    function updateFreshnessBadge(ageSec) {
+    // 更新 Freshness 状态
+    function updateFreshnessBadge(freshness) {
       const badge = document.getElementById('freshness-badge');
-      if (!badge) return;
+      const text = document.getElementById('freshness-text');
       
-      if (ageSec === null || ageSec === undefined) {
-        badge.innerHTML = '<span class="badge badge-neutral">● 未知</span>';
-      } else if (ageSec <= 30) {
-        badge.innerHTML = `<span class="badge" style="background:#22c55e;color:#000">● 数据新鲜 (${ageSec}s)</span>`;
-      } else if (ageSec <= 60) {
-        badge.innerHTML = `<span class="badge" style="background:#f59e0b;color:#000">⚠️ 数据延迟 (${ageSec}s)</span>`;
-      } else {
-        badge.innerHTML = `<span class="badge" style="background:#ef4444;color:#fff">🔴 数据陈旧 (${ageSec}s)</span>`;
+      if (!freshness) {
+        text.textContent = '数据不足';
+        badge.className = 'freshness-badge';
+        return;
       }
+      
+      const overall = freshness.overall || 'unknown';
+      text.textContent = {
+        fresh: '数据新鲜',
+        delayed: '数据延迟',
+        stale: '数据陈旧',
+        unknown: '未知状态'
+      }[overall] || '未知状态';
+      
+      badge.className = `freshness-badge ${overall}`;
     }
 
     // 加载报表数据
@@ -1148,9 +1013,10 @@
         renderCards(data);
         renderCharts(data);
         renderTopLists(data);
+        updateLastUpdated();
         
-        // UI-3.7: 更新 Freshness Badge（API 返回在 data.freshness）
-        updateFreshnessBadge(data.data?.freshness?.age_sec);
+        // 更新 Freshness 状态
+        updateFreshnessBadge(data.alerts.freshness || {});
       }
     }
 

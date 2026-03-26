@@ -1,3 +1,23 @@
+
+## 启动记录
+
+**启动时间**: 2026-03-26 23:42:00  
+**运行脚本**: run_gray_phase2.py  
+**进程 ID**: 66379  
+**配置**: symbol=ETH/USDT:USDT, gray_traffic=0.5
+
+---
+
+
+## 启动记录
+
+**启动时间**: 2026-03-26 23:41:23  
+**运行脚本**: run_gray_phase2.py  
+**进程 ID**: 66240  
+**配置**: symbol=ETH/USDT:USDT, gray_traffic=0.5
+
+---
+
 # V5.4.0-verified 灰度上线观察表
 
 **版本**: v5.4.0-verified  

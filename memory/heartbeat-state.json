@@ -1,26 +1,55 @@
 {
   "lastChecks": {
-    "health": "2026-03-24T11:11:30.413344Z",
-    "alerts": "2026-03-24T11:11:30.413799Z"
+    "health": "2026-03-27T04:30:00Z",
+    "alerts": "2026-03-27T04:30:00Z",
+    "git": "2026-03-27T04:30:00Z",
+    "project": "2026-03-27T04:30:00Z"
   },
   "lastNotifiedCritical": null,
   "pendingReview": [],
   "lastSystemStatus": "healthy",
-  "lastSystemCheck": "2026-03-24T11:11:30.413805Z",
+  "lastSystemCheck": "2026-03-27T04:30:00Z",
   "systemHealth": {
     "status": "healthy",
     "consecutiveDaysWithoutAlerts": 9,
     "trend": "stable"
   },
   "xiaolongSystem": {
-    "version": "V5.4",
-    "status": "READY",
-    "phase": "MICRO_MODE_ENABLED",
-    "totalTrades": 89,
-    "capitalState": "MICRO",
-    "equityUsdt": 1.35,
-    "riskPct": 0.037,
-    "lastActivity": "2026-03-24T11:11:30.413808Z",
-    "capitalMode": "MICRO_MODE (\u91c7\u6837\u6a21\u5f0f)"
+    "version": "V5.4.1",
+    "status": "PHASE1C_ACTIVE",
+    "phase": "MAINNET_PHASE1",
+    "totalTrades": 0,
+    "capitalState": "INIT",
+    "equityUsdt": 0.0,
+    "riskPct": 0.0,
+    "lastActivity": "2026-03-27T01:36:00+08:00",
+    "capitalMode": "MAINNET_PHASE1 (干净初始化)",
+    "executionMode": "shadow_mode=False, can_open=True",
+    "dailyLimit": "max_daily_trades=1",
+    "stateSource": "state_store_mainnet_v541_phase1.json",
+    "note": "当前为 Phase 1C 主网真实执行状态，数据源已绑定",
+    "metadata_failsafe": {
+      "state_store_path": "/Users/colin/.openclaw/workspace/trading_system_v5_3/logs/state_store_mainnet_v541_phase1.json",
+      "session_id": "mainnet_phase1c_v541",
+      "network": "mainnet",
+      "phase": "phase1_first_trade",
+      "shadow_mode": false,
+      "execute_mode": true,
+      "data_source_last_sync": "2026-03-27T04:47:00+08:00",
+      "priority_chain": ["实时交易日志", "当前会话 StateStore", "heartbeat/聚合面板"],
+      "warning": "面板永远不能高于实时日志"
+    }
+  },
+  "ui36Status": "Complete",
+  "ui36LastUpdated": "2026-03-27T04:29:00Z",
+  "ui36HistoryPage": {
+    "framework": "Working",
+    "apiIntegration": "Fixed",
+    "emptyState": "Working",
+    "rangeButtons": "Working (7D/30D/90D)"
+  },
+  "git": {
+    "uncommittedFiles": 9,
+    "commitsToPush": 0
   }
 }

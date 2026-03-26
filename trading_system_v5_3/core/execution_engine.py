@@ -23,7 +23,12 @@ from dataclasses import dataclass
 
 # V5.4 Safe Execution 集成
 # 添加 V5.4 安全链：Lock → Gate → Entry → Stop Loss → Record
-from core.safe_execution_assembly import (
+# V5.4.1 路径修复
+import sys
+sys.path.insert(0, '/Users/colin/.openclaw/workspace/trading_system_v5_4/core')
+
+# 直接导入 V5.4 模块 (不使用 core.前缀)
+from safe_execution_assembly import (
     get_safe_execution_v54_cached,
     signal_to_execution_context,
 )

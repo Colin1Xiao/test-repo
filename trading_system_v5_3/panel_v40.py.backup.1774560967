@@ -2,32 +2,23 @@
 """
 🐉 小龙交易系统 V4.0 Cockpit 版
 兼容目标：保留 panel_v40.py 全部后端逻辑，替换前端为驾驶舱布局
-
-优化：
-- 提取公共工具函数减少重复代码
-- 统一异常处理和日志记录
-- 完整类型注解和文档字符串
-- 模板使用 Flask Jinja2 继承减少重复 HTML
-- JavaScript 模块化
 """
 
 import json
 import logging
+import random
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-from flask import Flask, jsonify, render_template, request, send_from_directory
-from markupsafe import Markup
+from typing import Any, Dict, List, Optional, Tuple
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
-from threading import Thread
+from threading import Thread, Lock
 import ccxt
 import copy
 import os
 
-# =============================================================================
-# 日志配置（A2 稳定性增强 - 结构化）
-# =============================================================================
+# 日志配置（A2 稳定性增强）
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
@@ -37,70 +28,41 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger('panel_v41')
-logger_error = logger.error  # UI-3.8 修复：使用 logger.error 方法
+logger_error = logging.getLogger('panel_v41.errors')
 
-# =============================================================================
-# UI-3.10A: 性能监控初始化
-# =============================================================================
-from performance_monitor import get_monitor_db, setup_performance_monitor, API_SLOW_THRESHOLD_MS
-
-# =============================================================================
-# 配置和常量
-# =============================================================================
 # SQLite 双写开关（默认开启）
 SQLITE_DUAL_WRITE_ENABLED = os.environ.get("SQLITE_DUAL_WRITE", "true").lower() == "true"
-# 告警冷却时间（秒）
-ALERT_COOLDOWN_SEC = 60
-# 告警级别优先级
-LEVEL_PRIORITY = {
-    "CRITICAL": 0,
-    "WARN": 1,
-    "INFO": 2,
-}
 
-# =============================================================================
-# 可选模块导入（带优雅降级）
-# =============================================================================
-# SQLite 存储模块
-get_storage = None
-SQLiteStorage = None
-StorageError = None
-make_error_response = None
-make_success_response = None
+# 导入 SQLite 存储模块（A2 稳定性增强）
 try:
     from storage_sqlite import get_storage, SQLiteStorage
     from storage_exceptions import StorageError, make_error_response, make_success_response
-except ImportError as e:
-    logger.warning(f"SQLite 存储模块导入失败：{e}")
+except Exception as e:
+    print(f"[警告] SQLite 存储模块导入失败：{e}")
+    get_storage = None
+    SQLiteStorage = None
+    StorageError = None
+    make_error_response = None
+    make_success_response = None
 
-# 新鲜度追踪模块（B1+B2 观测性增强）
-FreshnessTracker = None
-FreshnessStatus = None
-update_freshness = None
-get_overall_freshness_status = None
-get_all_freshness_statuses = None
+# 导入新鲜度追踪模块（B1+B2 观测性增强）
 try:
     from freshness import (
         FreshnessTracker,
         FreshnessStatus,
+        get_tracker,
         update_freshness,
         get_freshness_status,
         get_freshness_age,
         get_all_freshness_statuses,
         get_overall_freshness_status,
     )
-except ImportError as e:
-    logger.warning(f"Freshness 模块导入失败：{e}")
-    get_freshness_status = None
-    get_freshness_age = None
+except Exception as e:
+    print(f"[警告] Freshness 模块导入失败：{e}")
+    FreshnessTracker = None
+    FreshnessStatus = None
 
-# API 性能追踪模块（B3 观测性增强）
-ApiMetricsTracker = None
-get_api_metrics_tracker = None
-track_request = None
-track_success = None
-track_error = None
-get_all_metrics = None
+# 导入 API 性能追踪模块（B3 观测性增强）
 try:
     from api_metrics import (
         ApiMetricsTracker,
@@ -110,30 +72,29 @@ try:
         track_error,
         get_all_metrics,
     )
-except ImportError as e:
-    logger.warning(f"API Metrics 模块导入失败：{e}")
+except Exception as e:
+    print(f"[警告] API Metrics 模块导入失败：{e}")
+    ApiMetricsTracker = None
+    get_api_metrics_tracker = None
+    track_request = None
+    track_success = None
+    track_error = None
+    get_all_metrics = None
 
-# =============================================================================
-# 全局状态初始化
-# =============================================================================
 # storage 延迟初始化
-storage: Optional[Any] = None
+storage = None
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__)
 CORS(app)
 
 DATA_DIR = Path(__file__).parent / 'data'
 
-# UI-3.10A: 初始化性能监控
-monitor_db = get_monitor_db(DATA_DIR)
-setup_performance_monitor(app, monitor_db)
-
 # 延迟初始化 SQLite storage
-if SQLITE_DUAL_WRITE_ENABLED and get_storage is not None:
+if SQLITE_DUAL_WRITE_ENABLED:
     try:
         storage = get_storage(DATA_DIR / "panel_v41.db")
     except Exception as e:
-        logger.warning(f"SQLite storage 初始化失败：{e}")
+        print(f"[警告] SQLite storage 初始化失败：{e}")
         storage = None
 
 V36_STATS = DATA_DIR / 'v36_stats.json'
@@ -168,96 +129,8 @@ try:
     else:
         API_CONFIGURED = False
 except Exception as e:
-    logger.warning(f"OKX API 配置加载失败：{e}")
+    print(f"[警告] OKX API 配置加载失败：{e}")
     API_CONFIGURED = False
-
-# =============================================================================
-# 通用工具函数
-# =============================================================================
-def read_jsonl_last_lines(file_path: Path, max_lines: int) -> List[Dict[str, Any]]:
-    """
-    读取 JSONL 文件的最后 N 行，跳过解析错误的行。
-
-    Args:
-        file_path: JSONL 文件路径
-        max_lines: 需要读取的最大行数
-
-    Returns:
-        解析后的对象列表
-    """
-    result: List[Dict[str, Any]] = []
-    if not file_path.exists():
-        return result
-
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()[-max_lines:]
-
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                obj = json.loads(line)
-                result.append(obj)
-            except json.JSONDecodeError:
-                continue
-    except Exception as e:
-        logger.error(f"读取 JSONL 文件失败 {file_path}: {e}")
-
-    return result
-
-
-def update_source_health(source_name: str, success: bool, error: Exception = None) -> None:
-    """
-    统一更新数据源健康状态。
-
-    Args:
-        source_name: 数据源名称
-        success: 是否成功
-        error: 异常对象（如果失败）
-    """
-    now = datetime.now()
-    now_ts = now.isoformat()
-
-    if success:
-        source_health[source_name].update({
-            "last_success_ts": now_ts,
-            "last_attempt_ts": now_ts,
-            "fail_count": 0,
-            "last_error": None,
-            "status": "ok"
-        })
-    else:
-        current_fail = source_health[source_name].get("fail_count", 0) + 1
-        source_health[source_name].update({
-            "last_attempt_ts": now_ts,
-            "fail_count": current_fail,
-            "last_error": str(error) if error else None,
-            "status": "error" if current_fail >= 3 else "warn"
-        })
-
-
-def safe_json_load(file_path: Path, default: Any = None) -> Any:
-    """
-    安全加载 JSON 文件，出错返回默认值。
-
-    Args:
-        file_path: JSON 文件路径
-        default: 出错时返回的默认值
-
-    Returns:
-        解析后的数据或默认值
-    """
-    if not file_path.exists():
-        return default
-
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        logger.warning(f"加载 JSON 文件失败 {file_path}: {e}")
-        return default
 
 control = {
     "mode": "observe_only",
@@ -415,31 +288,31 @@ alert_cooldowns: Dict[str, Dict] = {}
 # 活跃告警状态：追踪哪些告警当前处于激活状态
 active_alerts: Dict[str, Dict] = {}
 
+# 冷却时间（秒）
+ALERT_COOLDOWN_SEC = 60
+
+# 告警级别优先级（用于排序）
+LEVEL_PRIORITY = {
+    "CRITICAL": 0,
+    "WARN": 1,
+    "INFO": 2,
+}
 
 # -----------------------------------------------------------------------------
 # 数据加载函数（保留自 panel_v40.py）
 # -----------------------------------------------------------------------------
 
-def load_control() -> None:
-    """加载控制配置从文件"""
+def load_control():
     global control
-    data = safe_json_load(CONTROL_FILE, {})
-    if data:
-        control.update(data)
+    try:
+        if CONTROL_FILE.exists():
+            control.update(json.load(open(CONTROL_FILE)))
+    except: pass
 
-
-def audit_control_change(before: Dict, after: Dict, reason: str = "", operator: str = "local_user") -> None:
-    """
-    记录控制变更审计日志（v42 新增，v41 双写）
-
-    Args:
-        before: 变更前状态
-        after: 变更后状态
-        reason: 变更原因
-        operator: 操作者
-    """
+def audit_control_change(before: Dict, after: Dict, reason: str = "", operator: str = "local_user"):
+    """记录控制变更审计日志（v42 新增，v41 双写）"""
     ts = datetime.now().isoformat()
-
+    
     # 1. JSONL（主记录）
     audit_entry = {
         "ts": ts,
@@ -451,11 +324,11 @@ def audit_control_change(before: Dict, after: Dict, reason: str = "", operator: 
     }
     audit_file = DATA_DIR / "control_audit.jsonl"
     try:
-        with open(audit_file, 'a', encoding='utf-8') as f:
+        with open(audit_file, 'a') as f:
             f.write(json.dumps(audit_entry) + '\n')
     except Exception as e:
-        logger.warning(f"审计日志失败: {e}")
-
+        print(f"[审计日志失败] {e}")
+    
     # 2. SQLite 双写（附加写入，失败不影响主流程）
     if SQLITE_DUAL_WRITE_ENABLED and storage:
         try:
@@ -473,7 +346,7 @@ def audit_control_change(before: Dict, after: Dict, reason: str = "", operator: 
                 action = "disable"
             elif after.get("enabled") and not before.get("enabled"):
                 action = "enable"
-
+            
             storage.insert_control_audit(
                 ts=ts,
                 action=action,
@@ -483,182 +356,230 @@ def audit_control_change(before: Dict, after: Dict, reason: str = "", operator: 
                 after_obj=after,
             )
         except Exception as e:
-            logger.warning(f"SQLite 双写失败 insert_control_audit: {e}")
+            print(f"[SQLite 双写失败] insert_control_audit: {e}")
 
-
-def save_control() -> None:
-    """保存控制配置到文件"""
+def save_control():
     try:
-        with open(CONTROL_FILE, 'w', encoding='utf-8') as f:
-            json.dump(control, f)
-    except Exception as e:
-        logger.warning(f"保存控制配置失败: {e}")
+        json.dump(control, open(CONTROL_FILE, 'w'))
+    except: pass
 
+def load_stats():
+    try:
+        if V38_STATS.exists(): return json.load(open(V38_STATS))
+    except: pass
+    try:
+        if V36_STATS.exists(): return json.load(open(V36_STATS))
+    except: pass
+    return {"total_trades":0,"wins":0,"losses":0,"total_pnl":0,"signals_checked":0,"signals_passed":0,"trades":[]}
 
-def load_stats() -> Dict[str, Any]:
-    """加载统计数据，先尝试 V38 再尝试 V36"""
-    data = safe_json_load(V38_STATS)
-    if data:
-        return data
-    data = safe_json_load(V36_STATS)
-    if data:
-        return data
-    return {"total_trades": 0, "wins": 0, "losses": 0, "total_pnl": 0,
-            "signals_checked": 0, "signals_passed": 0, "trades": []}
-
-def load_evolution() -> None:
+def load_evolution():
     """从 evolution_logs.jsonl 加载演化引擎数据（UI-3.7 修复：更新 source_health）"""
     global evolution_state
     now = datetime.now()
     try:
-        mutations = []
-        generations = set()
-        best_fitness = 0.0
-
-        lines = read_jsonl_last_lines(EVOLUTION_LOG, 100)
-        for obj in lines:
-            gen = obj.get('generation', 0)
-            generations.add(gen)
-            fitness = obj.get('best_fitness', obj.get('performance', {}).get('score', 0))
-            if fitness > best_fitness:
-                best_fitness = fitness
-            mutations.append({
-                'timestamp': obj.get('timestamp', ''),
-                'generation': gen,
-                'action': obj.get('action', 'mutation'),
-                'old_params': obj.get('old_params', {}),
-                'new_params': obj.get('new_params', {}),
-                'fitness_change': obj.get('performance', {}).get('pnl_pct', 0),
-                'decision': obj.get('decision', 'TESTING')
+        if EVOLUTION_LOG.exists():
+            lines = open(EVOLUTION_LOG).readlines()[-100:]
+            mutations = []
+            generations = set()
+            best_fitness = 0.0
+            
+            for line in lines:
+                try:
+                    obj = json.loads(line.strip())
+                    gen = obj.get('generation', 0)
+                    generations.add(gen)
+                    fitness = obj.get('best_fitness', obj.get('performance', {}).get('score', 0))
+                    if fitness > best_fitness:
+                        best_fitness = fitness
+                    mutations.append({
+                        'timestamp': obj.get('timestamp', ''),
+                        'generation': gen,
+                        'action': obj.get('action', 'mutation'),
+                        'old_params': obj.get('old_params', {}),
+                        'new_params': obj.get('new_params', {}),
+                        'fitness_change': obj.get('performance', {}).get('pnl_pct', 0),
+                        'decision': obj.get('decision', 'TESTING')
+                    })
+                except: pass
+            
+            # 更新演化状态
+            latest_params = mutations[-1]['new_params'] if mutations else {}
+            latest_perf = mutations[-1].get('performance', {}) if mutations else {}
+            
+            evolution_state.update({
+                "generation": max(generations) if generations else 1,
+                "best_fitness": best_fitness,
+                "population_size": evolution_state.get('population_size', 10),
+                "status": "运行中" if mutations else "等待中",
+                "latest_params": latest_params,
+                "performance": {
+                    "pnl_pct": latest_perf.get('pnl_pct', 0),
+                    "execution_quality": latest_perf.get('execution_quality', 0),
+                    "signal_quality": latest_perf.get('signal_quality', 0),
+                    "score": best_fitness
+                },
+                "total_mutations": len(mutations),
+                "evolution_speed": 1.0
             })
-
-        # 更新演化状态
-        latest_params = mutations[-1]['new_params'] if mutations else {}
-        latest_perf = mutations[-1].get('performance', {}) if mutations else {}
-
-        evolution_state.update({
-            "generation": max(generations) if generations else 1,
-            "best_fitness": best_fitness,
-            "population_size": evolution_state.get('population_size', 10),
-            "status": "运行中" if mutations else "等待中",
-            "latest_params": latest_params,
-            "performance": {
-                "pnl_pct": latest_perf.get('pnl_pct', 0),
-                "execution_quality": latest_perf.get('execution_quality', 0),
-                "signal_quality": latest_perf.get('signal_quality', 0),
-                "score": best_fitness
-            },
-            "total_mutations": len(mutations),
-            "evolution_speed": 1.0
+            
+            # UI-3.7 修复：更新 source_health
+            source_health["evolution_log"].update({
+                "last_success_ts": now.isoformat(),
+                "last_attempt_ts": now.isoformat(),
+                "fail_count": 0,
+                "last_error": None,
+                "status": "ok"
+            })
+            
+            # B1+B2: 更新 freshness
+            if FreshnessTracker:
+                update_freshness("evolution_log", now)
+    except Exception as e:
+        # UI-3.7 修复：记录失败
+        source_health["evolution_log"].update({
+            "last_attempt_ts": now.isoformat(),
+            "fail_count": source_health["evolution_log"].get("fail_count", 0) + 1,
+            "last_error": str(e),
+            "status": "error" if source_health["evolution_log"].get("fail_count", 0) >= 3 else "warn"
         })
 
-        # 更新 source_health 和 freshness
-        update_source_health("evolution_log", success=True)
-        if FreshnessTracker and update_freshness:
-            update_freshness("evolution_log", now)
-    except Exception as e:
-        # 记录失败
-        update_source_health("evolution_log", success=False, error=e)
-
-def load_structure() -> None:
+def load_structure():
     """从 system_state.jsonl 加载市场结构数据（UI-3.7 修复：更新 source_health）"""
     global structure_state
     now = datetime.now()
     try:
-        states = read_jsonl_last_lines(SYSTEM_STATE_LOG, 50)
-
-        if states:
-            latest = states[-1]
-            # 计算平均分数和趋势
-            scores = [s.get('score', 50) for s in states[-10:]]
-            avg_score = sum(scores) / len(scores) if scores else 50
-
-            # 判断趋势（比较最近 5 条和之前 5 条）
-            if len(states) >= 10:
-                recent_avg = sum(s.get('score', 50) for s in states[-5:]) / 5
-                old_avg = sum(s.get('score', 50) for s in states[-10:-5]) / 5
-                if recent_avg > old_avg + 5:
-                    trend = "上涨"
-                elif recent_avg < old_avg - 5:
-                    trend = "下跌"
+        if SYSTEM_STATE_LOG.exists():
+            lines = open(SYSTEM_STATE_LOG).readlines()[-50:]
+            states = []
+            
+            for line in lines:
+                try:
+                    obj = json.loads(line.strip())
+                    states.append(obj)
+                except: pass
+            
+            if states:
+                latest = states[-1]
+                # 计算平均分数和趋势
+                scores = [s.get('score', 50) for s in states[-10:]]
+                avg_score = sum(scores) / len(scores) if scores else 50
+                
+                # 判断趋势（比较最近 5 条和之前 5 条）
+                if len(states) >= 10:
+                    recent_avg = sum(s.get('score', 50) for s in states[-5:]) / 5
+                    old_avg = sum(s.get('score', 50) for s in states[-10:-5]) / 5
+                    if recent_avg > old_avg + 5:
+                        trend = "上涨"
+                    elif recent_avg < old_avg - 5:
+                        trend = "下跌"
+                    else:
+                        trend = "中性"
                 else:
                     trend = "中性"
-            else:
-                trend = "中性"
-
-            # 判断波动性
-            volatility_val = latest.get('volume_ratio', 0.5)
-            if volatility_val > 2.0:
-                volatility = "高"
-            elif volatility_val > 1.0:
-                volatility = "中等"
-            else:
-                volatility = "低"
-
-            structure_state.update({
-                "trend": trend,
-                "volatility": volatility,
-                "structure": latest.get('regime', '盘整').upper(),
-                "signals": [],
-                "score": int(avg_score),
-                "confidence": latest.get('signal_quality', 0.5),
-                "last_updated": datetime.now().isoformat()
-            })
-
-            # 更新 source_health 和 freshness
-            update_source_health("structure_log", success=True)
-            if FreshnessTracker and update_freshness:
-                update_freshness("structure_log", now)
+                
+                # 判断波动性
+                volatility_val = latest.get('volume_ratio', 0.5)
+                if volatility_val > 2.0:
+                    volatility = "高"
+                elif volatility_val > 1.0:
+                    volatility = "中等"
+                else:
+                    volatility = "低"
+                
+                structure_state.update({
+                    "trend": trend,
+                    "volatility": volatility,
+                    "structure": latest.get('regime', '盘整').upper(),
+                    "signals": [],
+                    "score": int(avg_score),
+                    "confidence": latest.get('signal_quality', 0.5),
+                    "last_updated": datetime.now().isoformat()
+                })
+                
+                # UI-3.7 修复：更新 source_health
+                source_health["structure_log"].update({
+                    "last_success_ts": now.isoformat(),
+                    "last_attempt_ts": now.isoformat(),
+                    "fail_count": 0,
+                    "last_error": None,
+                    "status": "ok"
+                })
+                
+                # B1+B2: 更新 freshness
+                if FreshnessTracker:
+                    update_freshness("structure_log", now)
     except Exception as e:
-        # 记录失败
-        update_source_health("structure_log", success=False, error=e)
+        # UI-3.7 修复：记录失败
+        source_health["structure_log"].update({
+            "last_attempt_ts": now.isoformat(),
+            "fail_count": source_health["structure_log"].get("fail_count", 0) + 1,
+            "last_error": str(e),
+            "status": "error" if source_health["structure_log"].get("fail_count", 0) >= 3 else "warn"
+        })
 
-def load_decisions() -> None:
+def load_decisions():
     """从 decision_log.jsonl 加载决策追踪数据（UI-3.7 修复：更新 source_health）"""
     global decision_state
     now = datetime.now()
     try:
         DECISION_LOG = Path(__file__).parent / 'logs' / 'decision_log.jsonl'
-        lines = read_jsonl_last_lines(DECISION_LOG, 200)
-        decisions = []
-
-        for obj in lines:
-            decisions.append({
-                'timestamp': obj.get('timestamp', ''),
-                'result': obj.get('decision', obj.get('decision_type', 'UNKNOWN')),
-                'reason': str(obj.get('reasons', obj.get('checks', {}))),
-                'score': obj.get('score', 0),
-                'regime': obj.get('regime', 'unknown'),
-                'time': obj.get('timestamp', '').replace('T', ' ').split('.')[0]
+        if DECISION_LOG.exists():
+            lines = open(DECISION_LOG).readlines()[-200:]
+            decisions = []
+            
+            for line in lines:
+                try:
+                    obj = json.loads(line.strip())
+                    decisions.append({
+                        'timestamp': obj.get('timestamp', ''),
+                        'result': obj.get('decision', obj.get('decision_type', 'UNKNOWN')),
+                        'reason': str(obj.get('reasons', obj.get('checks', {}))),
+                        'score': obj.get('score', 0),
+                        'regime': obj.get('regime', 'unknown'),
+                        'time': obj.get('timestamp', '').replace('T', ' ').split('.')[0]
+                    })
+                except: pass
+            
+            total = len(decisions)
+            # 统计 ACCEPT/EXECUTE 为通过，其他为拒绝
+            approved = sum(1 for d in decisions if d['result'] in ['ACCEPT', '✅ EXECUTE', 'EXECUTE'])
+            rejected = total - approved
+            
+            decision_state.update({
+                "total": total,
+                "approved": approved,
+                "rejected": rejected,
+                "approval_rate": round(approved / total * 100, 1) if total > 0 else 0,
+                "decisions": decisions[-10:],
+                "last_updated": datetime.now().isoformat()
             })
-
-        total = len(decisions)
-        # 统计 ACCEPT/EXECUTE 为通过，其他为拒绝
-        approved = sum(1 for d in decisions if d['result'] in ['ACCEPT', '✅ EXECUTE', 'EXECUTE'])
-        rejected = total - approved
-
-        decision_state.update({
-            "total": total,
-            "approved": approved,
-            "rejected": rejected,
-            "approval_rate": round(approved / total * 100, 1) if total > 0 else 0,
-            "decisions": decisions[-10:],
-            "last_updated": datetime.now().isoformat()
+            
+            # UI-3.7 修复：更新 source_health
+            source_health["decision_log"].update({
+                "last_success_ts": now.isoformat(),
+                "last_attempt_ts": now.isoformat(),
+                "fail_count": 0,
+                "last_error": None,
+                "status": "ok"
+            })
+            
+            # B1+B2: 更新 freshness
+            if FreshnessTracker:
+                update_freshness("decision_log", now)
+    except Exception as e:
+        # UI-3.7 修复：记录失败
+        source_health["decision_log"].update({
+            "last_attempt_ts": now.isoformat(),
+            "fail_count": source_health["decision_log"].get("fail_count", 0) + 1,
+            "last_error": str(e),
+            "status": "error" if source_health["decision_log"].get("fail_count", 0) >= 3 else "warn"
         })
 
-        # 更新 source_health 和 freshness
-        update_source_health("decision_log", success=True)
-        if FreshnessTracker and update_freshness:
-            update_freshness("decision_log", now)
-    except Exception as e:
-        # 记录失败
-        update_source_health("decision_log", success=False, error=e)
-
-def fetch_capital() -> None:
+def fetch_capital():
     """从 OKX API 获取真实账户余额（v41 增强：记录健康状态）"""
     global capital_state
-    now = datetime.now()
-    now_ts = now.isoformat()
+    now_ts = datetime.now().isoformat()
+    
     try:
         if API_CONFIGURED:
             balance = exchange.fetch_balance()
@@ -745,23 +666,23 @@ def fetch_capital() -> None:
             "status": "error" if source_health["okx_capital"].get("fail_count", 0) >= 3 else "warn"
         })
 
-def fetch_position() -> None:
+def fetch_position():
     """从 OKX API 获取真实持仓状态（v41 增强：记录健康状态）"""
     global position_state
-    now = datetime.now()
-    now_ts = now.isoformat()
+    now_ts = datetime.now().isoformat()
+    
     try:
         if API_CONFIGURED:
             positions = exchange.fetch_positions(['ETH/USDT:USDT'])
             has_position = False
-
+            
             for pos in positions:
                 if pos.get('symbol') == 'ETH/USDT:USDT':
                     contracts = pos.get('contracts', 0)
                     if contracts and float(contracts) != 0:
                         has_position = True
                         side = 'LONG' if pos.get('side') == 'long' else 'SHORT' if pos.get('side') == 'short' else None
-
+                        
                         position_state.update({
                             "symbol": pos.get('symbol', 'ETH/USDT:USDT'),
                             "side": side,
@@ -771,36 +692,53 @@ def fetch_position() -> None:
                             "unrealized_pnl": float(pos.get('unrealizedPnl', 0)) if pos.get('unrealizedPnl') else 0.0,
                             "leverage": int(pos.get('leverage', 100)) if pos.get('leverage') else 100,
                             "liquidation_price": float(pos.get('liquidationPrice', 0)) if pos.get('liquidationPrice') else 0.0,
-                            "last_updated": datetime.now().isoformat()
+                            "last_updated": now_ts
                         })
                         break
-
+            
             if not has_position:
                 position_state.update({
                     "side": None, "size": 0.0, "entry_price": 0.0,
                     "mark_price": 0.0, "unrealized_pnl": 0.0,
                     "leverage": 100, "liquidation_price": 0.0,
-                    "last_updated": datetime.now().isoformat()
+                    "last_updated": now_ts
                 })
         else:
             position_state.update({
                 "side": None, "size": 0.0, "entry_price": 0.0,
                 "mark_price": 0.0, "unrealized_pnl": 0.0,
-                "last_updated": datetime.now().isoformat()
+                "last_updated": now_ts
             })
-
-        update_source_health("okx_position", success=True)
+        
+        source_health["okx_position"].update({
+            "last_success_ts": now_ts,
+            "last_attempt_ts": now_ts,
+            "fail_count": 0,
+            "last_error": None,
+            "status": "ok"
+        })
     except Exception as e:
-        update_source_health("okx_position", success=False, error=e)
+        source_health["okx_position"].update({
+            "last_attempt_ts": now_ts,
+            "fail_count": source_health["okx_position"].get("fail_count", 0) + 1,
+            "last_error": str(e),
+            "status": "error" if source_health["okx_position"].get("fail_count", 0) >= 3 else "warn"
+        })
 
-def get_market() -> Dict[str, Any]:
+def get_market():
     """获取市场行情（v41 增强：记录健康状态）"""
+    now_ts = datetime.now().isoformat()
     try:
         t = exchange.fetch_ticker('ETH/USDT:USDT')
         vol = t.get('quoteVolume', 0) or 0
-
-        update_source_health("market", success=True)
-
+        
+        source_health["market"].update({
+            "last_success_ts": now_ts,
+            "last_attempt_ts": now_ts,
+            "fail_count": 0,
+            "status": "ok"
+        })
+        
         return {
             'price': f"${t['last']:,.2f}",
             'change': round(t.get('percentage',0) or 0, 2),
@@ -808,7 +746,12 @@ def get_market() -> Dict[str, Any]:
             'regime': 'trend' if abs(t.get('percentage',0) or 0) > 1 else 'range'
         }
     except Exception as e:
-        update_source_health("market", success=False, error=e)
+        source_health["market"].update({
+            "last_attempt_ts": now_ts,
+            "fail_count": source_health["market"].get("fail_count", 0) + 1,
+            "last_error": str(e),
+            "status": "warn"
+        })
         return {'price': 'N/A', 'change': 0, 'volume': 'N/A', 'regime': 'error'}
 
 # 后台数据更新线程
@@ -1315,16 +1258,16 @@ def build_decision_explain(decision_state: Dict, structure_state: Dict, risk_sta
     
     return decision_explain
 
-def render_freshness_badge(age_sec: int) -> Markup:
-    """UI-3.9: 渲染统一的 Freshness Badge（使用 CSS 类，返回 Markup 避免 Jinja2 转义）"""
+def render_freshness_badge(age_sec: int) -> str:
+    """UI-3.7: 渲染统一的 Freshness Badge"""
     if age_sec is None:
-        return Markup('<span class="badge freshness-neutral">● 未知</span>')
+        return '<span class="badge badge-neutral">● 未知</span>'
     elif age_sec <= 30:
-        return Markup(f'<span class="badge freshness-fresh">● 数据新鲜 ({age_sec}s)</span>')
+        return f'<span class="badge badge-fresh" style="background:var(--freshness-fresh);color:#000">● 数据新鲜 ({age_sec}s)</span>'
     elif age_sec <= 60:
-        return Markup(f'<span class="badge freshness-delayed">⚠️ 数据延迟 ({age_sec}s)</span>')
+        return f'<span class="badge badge-delayed" style="background:var(--freshness-delayed);color:#000">⚠️ 数据延迟 ({age_sec}s)</span>'
     else:
-        return Markup(f'<span class="badge freshness-stale">🔴 数据陈旧 ({age_sec}s)</span>')
+        return f'<span class="badge badge-stale" style="background:var(--freshness-stale);color:#fff">🔴 数据陈旧 ({age_sec}s)</span>'
 
 
 def build_health_status() -> Dict[str, Any]:
@@ -1630,121 +1573,132 @@ def build_cockpit_payload() -> Dict[str, Any]:
     
     return payload
 
-def get_evolution_history() -> List[Dict[str, Any]]:
+def get_evolution_history() -> list:
     """获取演化历史用于图表"""
-    history = []
-    lines = read_jsonl_last_lines(EVOLUTION_LOG, 50)
-    for obj in lines:
-        history.append({
-            'generation': obj.get('generation', 0),
-            'fitness': obj.get('best_fitness', obj.get('performance', {}).get('score', 0)),
-            'timestamp': obj.get('timestamp', '')[:16]
-        })
-    return history
+    try:
+        if EVOLUTION_LOG.exists():
+            lines = open(EVOLUTION_LOG).readlines()[-50:]
+            history = []
+            for line in lines:
+                try:
+                    obj = json.loads(line.strip())
+                    history.append({
+                        'generation': obj.get('generation', 0),
+                        'fitness': obj.get('best_fitness', obj.get('performance', {}).get('score', 0)),
+                        'timestamp': obj.get('timestamp', '')[:16]
+                    })
+                except: pass
+            return history
+    except: pass
+    return []
 
-
-def get_decision_distribution() -> Dict[str, int]:
+def get_decision_distribution() -> dict:
     """获取决策分布用于图表"""
-    accept = 0
-    reject = 0
-    DECISION_LOG = Path(__file__).parent / 'logs' / 'decision_log.jsonl'
-    lines = read_jsonl_last_lines(DECISION_LOG, 200)
-    for obj in lines:
-        result = obj.get('decision', obj.get('decision_type', ''))
-        if result in ['ACCEPT', '✅ EXECUTE', 'EXECUTE']:
-            accept += 1
-        else:
-            reject += 1
-    return {'accept': accept, 'reject': reject}
+    try:
+        DECISION_LOG = Path(__file__).parent / 'logs' / 'decision_log.jsonl'
+        if DECISION_LOG.exists():
+            lines = open(DECISION_LOG).readlines()[-200:]
+            accept = 0
+            reject = 0
+            for line in lines:
+                try:
+                    obj = json.loads(line.strip())
+                    result = obj.get('decision', obj.get('decision_type', ''))
+                    if result in ['ACCEPT', '✅ EXECUTE', 'EXECUTE']:
+                        accept += 1
+                    else:
+                        reject += 1
+                except: pass
+            return {'accept': accept, 'reject': reject}
+    except: pass
+    return {'accept': 0, 'reject': 0}
 
-
-def get_pnl_history() -> List[Dict[str, Any]]:
+def get_pnl_history() -> list:
     """获取盈亏历史用于图表"""
-    data = safe_json_load(V38_STATS, {})
-    if not data:
-        return []
+    try:
+        if V38_STATS.exists():
+            data = json.load(open(V38_STATS))
+            trades = data.get('trades', [])[-20:]
+            history = []
+            cumulative = 0
+            for i, trade in enumerate(trades):
+                pnl = trade.get('pnl', 0)
+                cumulative += pnl
+                history.append({
+                    'index': i + 1,
+                    'pnl': pnl,
+                    'cumulative': cumulative,
+                    'exit_reason': trade.get('exit_reason', 'UNKNOWN')
+                })
+            return history
+    except: pass
+    return []
 
-    trades = data.get('trades', [])[-20:]
-    history = []
-    cumulative = 0.0
-    for i, trade in enumerate(trades):
-        pnl = float(trade.get('pnl', 0))
-        cumulative += pnl
-        history.append({
-            'index': i + 1,
-            'pnl': pnl,
-            'cumulative': cumulative,
-            'exit_reason': trade.get('exit_reason', 'UNKNOWN')
-        })
-    return history
-
-
-def get_equity_history() -> List[Dict[str, Any]]:
+def get_equity_history() -> list:
     """获取权益历史用于图表（v43 新增）"""
-    data = safe_json_load(V38_STATS, {})
-    if not data:
-        return []
+    try:
+        if V38_STATS.exists():
+            data = json.load(open(V38_STATS))
+            trades = data.get('trades', [])[-20:]
+            history = []
+            # 假设初始权益 1000 USDT（或从 live_state 读取）
+            live_state_file = Path(__file__).parent / 'logs' / 'live_state.json'
+            initial_equity = 1000.0
+            if live_state_file.exists():
+                live_data = json.load(open(live_state_file))
+                initial_equity = float(live_data.get('balance', {}).get('usdt_total', 1000.0))
+            
+            cumulative = 0
+            for i, trade in enumerate(trades):
+                pnl = trade.get('pnl', 0)
+                cumulative += pnl
+                equity = initial_equity + cumulative
+                history.append({
+                    'index': i + 1,
+                    'equity': round(equity, 2),
+                    'pnl': round(cumulative, 4)
+                })
+            return history
+    except: pass
+    return []
 
-    trades = data.get('trades', [])[-20:]
-    history = []
-    # 假设初始权益 1000 USDT（或从 live_state 读取）
-    live_state_file = Path(__file__).parent / 'logs' / 'live_state.json'
-    initial_equity = 1000.0
-
-    live_data = safe_json_load(live_state_file, {})
-    if live_data:
-        initial_equity = float(live_data.get('balance', {}).get('usdt_total', 1000.0))
-
-    cumulative = 0.0
-    for i, trade in enumerate(trades):
-        pnl = float(trade.get('pnl', 0))
-        cumulative += pnl
-        equity = initial_equity + cumulative
-        history.append({
-            'index': i + 1,
-            'equity': round(equity, 2),
-            'pnl': round(cumulative, 4)
-        })
-    return history
-
-
-def get_drawdown_history() -> List[Dict[str, Any]]:
+def get_drawdown_history() -> list:
     """获取回撤历史用于图表（v43 新增）"""
-    data = safe_json_load(V38_STATS, {})
-    if not data:
-        return []
-
-    trades = data.get('trades', [])[-20:]
-    history = []
-
-    # 假设初始权益 1000 USDT
-    live_state_file = Path(__file__).parent / 'logs' / 'live_state.json'
-    initial_equity = 1000.0
-
-    live_data = safe_json_load(live_state_file, {})
-    if live_data:
-        initial_equity = float(live_data.get('balance', {}).get('usdt_total', 1000.0))
-
-    cumulative = 0.0
-    peak = initial_equity
-    for i, trade in enumerate(trades):
-        pnl = float(trade.get('pnl', 0))
-        cumulative += pnl
-        equity = initial_equity + cumulative
-
-        # 更新峰值
-        if equity > peak:
-            peak = equity
-
-        # 计算回撤（负值表示亏损）
-        drawdown = ((equity - peak) / peak * 100) if peak > 0 else 0
-
-        history.append({
-            'index': i + 1,
-            'drawdown': round(drawdown, 2),
-            'equity': round(equity, 2)
-        })
-    return history
+    try:
+        if V38_STATS.exists():
+            data = json.load(open(V38_STATS))
+            trades = data.get('trades', [])[-20:]
+            history = []
+            
+            # 假设初始权益 1000 USDT
+            live_state_file = Path(__file__).parent / 'logs' / 'live_state.json'
+            initial_equity = 1000.0
+            if live_state_file.exists():
+                live_data = json.load(open(live_state_file))
+                initial_equity = float(live_data.get('balance', {}).get('usdt_total', 1000.0))
+            
+            cumulative = 0
+            peak = initial_equity
+            for i, trade in enumerate(trades):
+                pnl = trade.get('pnl', 0)
+                cumulative += pnl
+                equity = initial_equity + cumulative
+                
+                # 更新峰值
+                if equity > peak:
+                    peak = equity
+                
+                # 计算回撤（负值表示亏损）
+                drawdown = ((equity - peak) / peak * 100) if peak > 0 else 0
+                
+                history.append({
+                    'index': i + 1,
+                    'drawdown': round(drawdown, 2),
+                    'equity': round(equity, 2)
+                })
+            return history
+    except: pass
+    return []
 
 def build_alerts(raw: Dict) -> tuple:
     """
@@ -3269,157 +3223,6 @@ INDEX_TEMPLATE = r"""
 """
 
 
-# =============================================================================
-# UI-3.9 PWA 路由
-# =============================================================================
-
-@app.route("/manifest.json")
-def manifest() -> Any:
-    """PWA Manifest 文件"""
-    return send_from_directory(Path(__file__).parent, 'manifest.json', mimetype='application/json')
-
-@app.route("/static/<path:filename>")
-def static_files(filename: str) -> Any:
-    """静态文件服务（Service Worker / 图标等）"""
-    return send_from_directory(Path(__file__).parent / 'static', filename)
-
-@app.route("/static/icons/<path:filename>")
-def static_icons(filename: str) -> Any:
-    """图标文件服务"""
-    return send_from_directory(Path(__file__).parent / 'static' / 'icons', filename)
-
-# =============================================================================
-# UI-3.10A: 性能监控 API
-# =============================================================================
-
-@app.route("/api/monitor/frontend-error", methods=['POST'])
-def api_frontend_error() -> Any:
-    """
-    前端错误上报接口
-    
-    请求体:
-    {
-        "errors": [
-            {
-                "page": "/history",
-                "message": "TypeError: Cannot read property...",
-                "source": "/static/app.js",
-                "lineno": 123,
-                "colno": 45,
-                "stack": "...",
-                "user_agent": "Mozilla/5.0..."
-            }
-        ]
-    }
-    """
-    try:
-        data = request.get_json()
-        errors = data.get('errors', []) if data else []
-        
-        logged_count = 0
-        for error in errors:
-            monitor_db.log_frontend_error(
-                page=error.get('page', request.headers.get('Referer', '')),
-                message=error.get('message', 'Unknown error'),
-                source=error.get('source'),
-                lineno=error.get('lineno'),
-                colno=error.get('colno'),
-                stack=error.get('stack'),
-                user_agent=error.get('user_agent')
-            )
-            logged_count += 1
-        
-        logger.info(f"收到 {logged_count} 个前端错误")
-        return jsonify({"ok": True, "logged": logged_count})
-    
-    except Exception as e:
-        logger_error(f"前端错误上报失败：{e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-
-@app.route("/api/monitor/performance")
-def api_monitor_performance() -> Any:
-    """
-    获取性能统计数据
-    
-    参数:
-    - hours: 统计时长（默认 24 小时）
-    - slow_only: 是否只返回慢请求（默认 false）
-    - limit: 返回数量（默认 100）
-    """
-    try:
-        hours = int(request.args.get('hours', 24))
-        slow_only = request.args.get('slow_only', 'false').lower() == 'true'
-        limit = int(request.args.get('limit', 100))
-        
-        # 性能统计
-        perf_stats = monitor_db.get_performance_stats(hours)
-        
-        # 错误统计
-        error_stats = monitor_db.get_error_stats(hours)
-        
-        # 最近慢请求
-        slow_requests = monitor_db.get_recent_performance(limit=limit, slow_only=True)
-        
-        # 最近错误
-        recent_errors = monitor_db.get_recent_errors(limit=limit)
-        
-        return jsonify({
-            "ok": True,
-            "data": {
-                "performance": {
-                    "stats": perf_stats,
-                    "slow_requests": slow_requests,
-                    "threshold_ms": API_SLOW_THRESHOLD_MS,
-                },
-                "errors": {
-                    "stats": error_stats,
-                    "recent": recent_errors,
-                },
-                "period_hours": hours,
-            }
-        })
-    
-    except Exception as e:
-        logger_error(f"性能监控数据查询失败：{e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-
-@app.route("/api/monitor/errors")
-def api_monitor_errors() -> Any:
-    """
-    获取前端错误列表
-    
-    参数:
-    - hours: 查询时长（默认 24 小时）
-    - unprocessed_only: 是否只返回未处理（默认 false）
-    - limit: 返回数量（默认 100）
-    """
-    try:
-        hours = int(request.args.get('hours', 24))
-        unprocessed_only = request.args.get('unprocessed_only', 'false').lower() == 'true'
-        limit = int(request.args.get('limit', 100))
-        
-        errors = monitor_db.get_recent_errors(limit=limit, unprocessed_only=unprocessed_only)
-        stats = monitor_db.get_error_stats(hours)
-        
-        return jsonify({
-            "ok": True,
-            "data": {
-                "errors": errors,
-                "stats": stats,
-                "period_hours": hours,
-            }
-        })
-    
-    except Exception as e:
-        logger_error(f"错误列表查询失败：{e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-# =============================================================================
-# 主页面路由
-# =============================================================================
-
 @app.route("/")
 def index() -> str:
     """渲染首页（UI-3.7: 使用文件模板，统一 stale/delayed 状态）"""
@@ -3494,12 +3297,12 @@ def api_health():
                     sqlite_status["status"] = "ok" if row_count > 0 else "warn"
                     sqlite_status["last_error"] = None
             except StorageError as e:
-                logger_error.error(f"[健康检查] SQLite StorageError: {e.error_code} - {e.message}")
+                logger_error(f"[健康检查] SQLite StorageError: {e.error_code} - {e.message}")
                 sqlite_status["status"] = "error"
                 sqlite_status["last_error"] = e.message
                 sqlite_status["error_code"] = e.error_code
             except Exception as e:
-                logger_error.error(f"[健康检查] SQLite 异常：{type(e).__name__} - {e}")
+                logger_error(f"[健康检查] SQLite 异常：{type(e).__name__} - {e}")
                 sqlite_status["status"] = "error"
                 sqlite_status["last_error"] = str(e)
                 sqlite_status["error_code"] = "unknown_error"
@@ -3611,11 +3414,11 @@ def api_history_control():
         }))
     
     except StorageError as e:
-        logger_error.error(f"[API 错误] /api/history/control: {e.error_code} - {e.message}")
+        logger_error(f"[API 错误] /api/history/control: {e.error_code} - {e.message}")
         return jsonify(e.to_dict()), 500
     
     except Exception as e:
-        logger_error.error(f"[API 未知错误] /api/history/control: {type(e).__name__} - {e}")
+        logger_error(f"[API 未知错误] /api/history/control: {type(e).__name__} - {e}")
         return jsonify(make_error_response("unknown_error", str(e), 500)), 500
     
     finally:
@@ -3676,11 +3479,11 @@ def api_history_decisions():
         }))
     
     except StorageError as e:
-        logger_error.error(f"[API 错误] /api/history/decisions: {e.error_code} - {e.message}")
+        logger_error(f"[API 错误] /api/history/decisions: {e.error_code} - {e.message}")
         return jsonify(e.to_dict()), 500
     
     except Exception as e:
-        logger_error.error(f"[API 未知错误] /api/history/decisions: {type(e).__name__} - {e}")
+        logger_error(f"[API 未知错误] /api/history/decisions: {type(e).__name__} - {e}")
         return jsonify(make_error_response("unknown_error", str(e), 500)), 500
     
     finally:
@@ -3730,11 +3533,11 @@ def api_reports_alerts():
         }))
     
     except StorageError as e:
-        logger_error.error(f"[API 错误] /api/reports/alerts: {e.error_code} - {e.message}")
+        logger_error(f"[API 错误] /api/reports/alerts: {e.error_code} - {e.message}")
         return jsonify(e.to_dict()), 500
     
     except Exception as e:
-        logger_error.error(f"[API 未知错误] /api/reports/alerts: {type(e).__name__} - {e}")
+        logger_error(f"[API 未知错误] /api/reports/alerts: {type(e).__name__} - {e}")
         return jsonify(make_error_response("unknown_error", str(e), 500)), 500
 
 
@@ -3780,11 +3583,11 @@ def api_reports_decisions():
         }))
     
     except StorageError as e:
-        logger_error.error(f"[API 错误] /api/reports/decisions: {e.error_code} - {e.message}")
+        logger_error(f"[API 错误] /api/reports/decisions: {e.error_code} - {e.message}")
         return jsonify(e.to_dict()), 500
     
     except Exception as e:
-        logger_error.error(f"[API 未知错误] /api/reports/decisions: {type(e).__name__} - {e}")
+        logger_error(f"[API 未知错误] /api/reports/decisions: {type(e).__name__} - {e}")
         return jsonify(make_error_response("unknown_error", str(e), 500)), 500
     
     finally:
@@ -3830,11 +3633,11 @@ def api_reports_control():
         }))
     
     except StorageError as e:
-        logger_error.error(f"[API 错误] /api/reports/control: {e.error_code} - {e.message}")
+        logger_error(f"[API 错误] /api/reports/control: {e.error_code} - {e.message}")
         return jsonify(e.to_dict()), 500
     
     except Exception as e:
-        logger_error.error(f"[API 未知错误] /api/reports/control: {type(e).__name__} - {e}")
+        logger_error(f"[API 未知错误] /api/reports/control: {type(e).__name__} - {e}")
         return jsonify(make_error_response("unknown_error", str(e), 500)), 500
     
     finally:

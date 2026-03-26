@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🐉 小龙报表中心</title>
+  
+  <!-- UI-3.9 PWA 支持 -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#121a27">
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/freshness-badge.js"></script>
+  <script src="/static/error-tracker.js"></script>
   <style>
     :root {
       /* 色彩系统 - 保持原有 */
@@ -648,10 +655,7 @@
         </div>
         <div class="header-subtitle">
           <span>基于 SQLite 的数据分析与趋势统计</span>
-          <span class="freshness-badge" id="freshness-badge">
-            <span class="icon">●</span>
-            <span id="freshness-text">正在加载...</span>
-          </span>
+          {{ render_freshness_badge(freshness.get('worker_heartbeat_age_sec', 0) if freshness else 0) }}
         </div>
       </div>
       <div class="header-controls">
@@ -662,9 +666,7 @@
           <span class="icon">🔄</span>
           <span>刷新</span>
         </button>
-        <span class="freshness-badge" id="freshness-badge">
-          <span class="badge badge-neutral">● 加载中</span>
-        </span>
+        {{ render_freshness_badge(freshness.get('worker_heartbeat_age_sec', 0) if freshness else 0) }}
       </div>
     </div>
 
@@ -874,21 +876,7 @@
         `更新于 ${now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
     }
 
-    // UI-3.7: 更新 Freshness Badge（统一格式）
-    function updateFreshnessBadge(ageSec) {
-      const badge = document.getElementById('freshness-badge');
-      if (!badge) return;
-      
-      if (ageSec === null || ageSec === undefined) {
-        badge.innerHTML = '<span class="badge badge-neutral">● 未知</span>';
-      } else if (ageSec <= 30) {
-        badge.innerHTML = `<span class="badge" style="background:#22c55e;color:#000">● 数据新鲜 (${ageSec}s)</span>`;
-      } else if (ageSec <= 60) {
-        badge.innerHTML = `<span class="badge" style="background:#f59e0b;color:#000">⚠️ 数据延迟 (${ageSec}s)</span>`;
-      } else {
-        badge.innerHTML = `<span class="badge" style="background:#ef4444;color:#fff">🔴 数据陈旧 (${ageSec}s)</span>`;
-      }
-    }
+        // Freshness Badge 由 /static/freshness-badge.js 提供
 
     // 加载报表数据
     async function fetchReports(days) {
@@ -905,46 +893,54 @@
       }
     }
 
-    // 渲染统计卡片
+    // 渲染统计卡片（UI-3.7 修复：API 返回 {data: {...}}）
     function renderCards(data) {
       const { alerts, decisions, control } = data;
+      // 解包 data 字段
+      const alertsData = alerts.data || alerts;
+      const decisionsData = decisions.data || decisions;
+      const controlData = control.data || control;
 
       // 告警卡片
-      document.getElementById('alerts-total').textContent = alerts.summary?.total || 0;
-      document.getElementById('alerts-critical').textContent = alerts.summary?.CRITICAL || 0;
-      document.getElementById('alerts-warn').textContent = alerts.summary?.WARN || 0;
-      document.getElementById('alerts-info').textContent = alerts.summary?.INFO || 0;
+      document.getElementById('alerts-total').textContent = alertsData.summary?.total || 0;
+      document.getElementById('alerts-critical').textContent = alertsData.summary?.CRITICAL || 0;
+      document.getElementById('alerts-warn').textContent = alertsData.summary?.WARN || 0;
+      document.getElementById('alerts-info').textContent = alertsData.summary?.INFO || 0;
 
       // 决策卡片
-      document.getElementById('decisions-total').textContent = decisions.summary?.total || 0;
+      document.getElementById('decisions-total').textContent = decisionsData.summary?.total || 0;
       document.getElementById('decisions-reject-rate').textContent = 
-        `${((decisions.summary?.reject_rate || 0) * 100).toFixed(1)}%`;
+        `${((decisionsData.summary?.reject_rate || 0) * 100).toFixed(1)}%`;
       document.getElementById('decisions-confidence').textContent = 
-        decisions.summary?.avg_confidence?.toFixed(3) || '0.000';
+        decisionsData.summary?.avg_confidence?.toFixed(3) || '0.000';
       
-      const topAction = decisions.series?.action_distribution?.[0];
+      const topAction = decisionsData.series?.action_distribution?.[0];
       document.getElementById('decisions-top-action').textContent = topAction?.action || '-';
 
       // 控制卡片
-      document.getElementById('control-total').textContent = control.summary?.total || 0;
-      const controlTopAction = control.series?.action_distribution?.[0];
+      document.getElementById('control-total').textContent = controlData.summary?.total || 0;
+      const controlTopAction = controlData.series?.action_distribution?.[0];
       document.getElementById('control-top-action').textContent = controlTopAction?.action || '-';
       
-      const latestMode = control.latest_mode_change;
+      const latestMode = controlData.latest_mode_change;
       document.getElementById('control-latest-action').textContent = latestMode ? latestMode.action : '-';
       document.getElementById('control-operator').textContent = latestMode ? (latestMode.operator || '-') : '-';
     }
 
-    // 渲染图表
+    // 渲染图表（UI-3.7 修复：API 返回 {data: {...}}）
     function renderCharts(data) {
       const { alerts, decisions, control } = data;
+      // 解包 data 字段
+      const alertsData = alerts.data || alerts;
+      const decisionsData = decisions.data || decisions;
+      const controlData = control.data || control;
 
       // 告警趋势图
       renderLineChart('alert-trend-chart', chartInstances.alertTrend, {
-        labels: alerts.series?.daily_counts?.map(d => formatDate(d.day)) || [],
+        labels: alertsData.series?.daily_counts?.map(d => formatDate(d.day)) || [],
         datasets: [{
           label: '告警数',
-          data: alerts.series?.daily_counts?.map(d => d.value) || [],
+          data: alertsData.series?.daily_counts?.map(d => d.value) || [],
           borderColor: '#f59e0b',
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
           fill: true,
@@ -955,11 +951,11 @@
 
       // 告警级别堆叠图
       renderStackedBarChart('alert-level-chart', chartInstances.alertLevel, {
-        labels: alerts.series?.level_daily?.map(d => d.day.slice(5)) || [],
+        labels: alertsData.series?.level_daily?.map(d => d.day.slice(5)) || [],
         datasets: [
-          { label: 'CRITICAL', data: alerts.series?.level_daily?.map(d => d.CRITICAL) || [], backgroundColor: '#ef4444' },
-          { label: 'WARN', data: alerts.series?.level_daily?.map(d => d.WARN) || [], backgroundColor: '#f59e0b' },
-          { label: 'INFO', data: alerts.series?.level_daily?.map(d => d.INFO) || [], backgroundColor: '#3b82f6' }
+          { label: 'CRITICAL', data: alertsData.series?.level_daily?.map(d => d.CRITICAL) || [], backgroundColor: '#ef4444' },
+          { label: 'WARN', data: alertsData.series?.level_daily?.map(d => d.WARN) || [], backgroundColor: '#f59e0b' },
+          { label: 'INFO', data: alertsData.series?.level_daily?.map(d => d.INFO) || [], backgroundColor: '#3b82f6' }
         ],
         title: '告警级别分布'
       }, (chart) => { chartInstances.alertLevel = chart; });
@@ -1075,10 +1071,13 @@
     // 渲染 Top 列表（优化版）
     function renderTopLists(data) {
       const { alerts, control } = data;
+      // 解包 data 字段（UI-3.7 修复）
+      const alertsData = alerts.data || alerts;
+      const controlData = control.data || control;
 
       // 告警类型 Top
       const typesBody = document.getElementById('alert-types-body');
-      const topTypes = (alerts.top?.types || []).slice(0, 10);
+      const topTypes = (alertsData.top?.types || []).slice(0, 10);
       typesBody.innerHTML = topTypes.length > 0 ? topTypes.map((t, i) => {
         const rankClass = i < 3 ? `rank-${i + 1}` : '';
         const rankBadge = i < 3 ? `🥇` : `TOP ${i + 1}`;
@@ -1096,7 +1095,7 @@
 
       // 告警来源 Top
       const sourcesBody = document.getElementById('alert-sources-body');
-      const topSources = (alerts.top?.sources || []).slice(0, 10);
+      const topSources = (alertsData.top?.sources || []).slice(0, 10);
       sourcesBody.innerHTML = topSources.length > 0 ? topSources.map((s, i) => {
         const rankClass = i < 3 ? `rank-${i + 1}` : '';
         const rankBadge = i < 3 ? `🥇` : `TOP ${i + 1}`;
@@ -1114,7 +1113,7 @@
 
       // 最近控制动作
       const actionsBody = document.getElementById('control-actions-body');
-      const latestActions = control.latest_mode_change ? [control.latest_mode_change] : [];
+      const latestActions = controlData.latest_mode_change ? [controlData.latest_mode_change] : [];
       actionsBody.innerHTML = latestActions.length > 0 ? latestActions.map(a => `
         <tr>
           <td class="timestamp">${formatTime(a.ts)}</td>

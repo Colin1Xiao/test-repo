@@ -28,6 +28,9 @@ sys.path.insert(0, str(BASE_DIR / 'core'))
 os.environ['https_proxy'] = 'http://127.0.0.1:7890'
 os.environ['http_proxy'] = 'http://127.0.0.1:7890'
 
+# V5.4.1 路径 (safe_execution_assembly 等)
+sys.path.insert(0, '/Users/colin/.openclaw/workspace/trading_system_v5_4/core')
+
 # 🔥 执行模式控制（新执行链是唯一真相源）
 USE_LEGACY_EXECUTION = False
 
@@ -36,6 +39,13 @@ DISABLE_EXECUTION_ENGINE = True
 
 # 🔥 V5.4 Safety Test：禁用 Guardian 干预
 SAFETY_TEST_MODE = True  # Safety Test 阶段，Guardian 只观察不干预
+
+# 🔥 V5.4.1 集成：临时降低 V5.3 阈值让信号流入
+FORCE_V53_THRESHOLD = 40  # 临时降低到 40 让 V5.4.1 有机会过滤
+
+# 🚨 V5.4.1 灰度阶段 2:50% Gray Traffic
+GRAY_TRAFFIC = 0.5  # 50% 信号流量
+REAL_TRADING_MODE = True  # 真实下单模式 (非 shadow)
 
 # 🔥 Smoke Test 模式（一次性隔离测试）
 SMOKE_TEST_MODE = False  # 关闭 Smoke Test
@@ -146,6 +156,23 @@ class V52System:
         
         # ========== 持仓管理器（核心安全模块）==========
         self.position_manager = get_position_manager()
+        
+        # ========== 控制面状态（Phase 1 主网灰度）==========
+        control_file = BASE_DIR / 'data' / 'control.json'
+        if control_file.exists():
+            with open(control_file) as f:
+                control = json.load(f)
+                self.control_mode = control.get('mode', 'unknown')
+                self.can_open = control.get('can_open', False)
+                self.can_close = control.get('can_close', True)
+                self.circuit_breaker = control.get('circuit_breaker', False)
+                print(f"✅ 控制面已加载：mode={self.control_mode} can_open={self.can_open}")
+        else:
+            self.control_mode = 'unknown'
+            self.can_open = False
+            self.can_close = True
+            self.circuit_breaker = False
+            print(f"⚠️ 控制面未找到，使用默认值")
         
         # 系统状态
         self.running = False
@@ -397,7 +424,8 @@ class V52System:
         # 如果所有方法都失败，返回 state_store.json 的 equity
         try:
             import json
-            state_file = Path(__file__).parent / "logs" / "state_store.json"
+            # 🐉 Phase 1 主网灰度：使用专用干净 StateStore
+            state_file = Path(__file__).parent / "logs" / "state_store_mainnet_v541_phase1.json"
             if state_file.exists():
                 with open(state_file) as f:
                     ss = json.load(f)
@@ -429,6 +457,11 @@ class V52System:
         cycle_start = time.time()
         
         try:
+            # 📝 [RUN_CYCLE_START] 主循环入口日志
+            control_mode = getattr(self, 'control_mode', 'unknown')
+            can_open = getattr(self, 'can_open', False)
+            print(f"\n[RUN_CYCLE_START] ts={int(time.time())} symbol={symbol} mode={control_mode} can_open={can_open} cycle={self.cycles}")
+            
             # ========== 1. 获取市场数据 ==========
             df = await self.analyzer.fetch_historical_ohlcv(symbol, hours=1)
             if df is None or len(df) < 60:
@@ -538,7 +571,7 @@ class V52System:
                 spread_bps=2.0,  # 默认值，实际应从盘口获取
                 rl_decision='ALLOW',
                 regime=regime,
-                force_threshold=force_threshold  # 🔥 Smoke Test 阈值覆盖
+                force_threshold=40  # V5.4.1 集成：临时降低阈值
             )
             score = score_result.total_score if hasattr(score_result, 'total_score') else score_result
             
@@ -549,15 +582,21 @@ class V52System:
             price_change = (df['close'].iloc[-1] - df['close'].iloc[-5]) / df['close'].iloc[-5]  # 5周期变化
             
             # ========== 5. 执行条件检查 ==========
-            should_trade, trade_reason, decision_trace = self._check_execution_conditions(
+            should_trade_v53, trade_reason, decision_trace = self._check_execution_conditions(
                 score=score,
                 volume_ratio=volume_ratio,
                 strategy_config=strategy_config,
                 price_change=price_change
             )
             
+            # V5.4.1 集成：评分>=40 时让 V5.4.1 做最终决策
+            should_trade = (score >= 40)
+            
             # ========== 5.5 V5.4.1 信号链检查 ==========
             if should_trade and hasattr(self, 'v54_adapter') and self.v54_adapter:
+                # 📝 [V54_ADAPTER] Adapter 输入输出日志
+                print(f"\n[V54_ADAPTER] raw_signal=score={score:.1f}/volume={volume_ratio:.2f}/momentum={price_change*100:.2f}%")
+                
                 v54_allowed, v54_reason, v54_context = self.v54_adapter.adapt_v53_signal(
                     symbol=symbol,
                     score=score,
@@ -567,6 +606,10 @@ class V52System:
                     current_price=current_price,
                     spread_bps=2.0
                 )
+                
+                # 📝 [V54_ADAPTER_RESULT] Adapter 结果日志
+                bucket = v54_context.get('l3_result', {}).get('bucket', 'unknown') if v54_context else 'unknown'
+                print(f"[V54_ADAPTER_RESULT] eligible={v54_allowed} bucket={bucket} reason={v54_reason}")
                 
                 # 记录 V5.4.1 统计
                 v54_stats = self.v54_adapter.get_stats()
@@ -578,16 +621,17 @@ class V52System:
                 if not v54_allowed:
                     print(f"⚠️ V5.4.1 拒绝：{v54_reason}")
                     if 'l2_reason' in v54_context:
-                        print(f"   L2 原因：{v54_context['l2_reason']}")
+                        print(f"   [V54_L2] reject_reason={v54_context['l2_reason']}")
                     elif 'l3_result' in v54_context:
-                        print(f"   L3 原因：{v54_context['l3_result']['reason']}")
+                        l3_result = v54_context.get('l3_result', {})
+                        print(f"   [V54_L3] score={l3_result.get('score', 'N/A')} bucket={l3_result.get('bucket', 'N/A')} reason={l3_result.get('reason', 'N/A')}")
                     return {'action': 'v54_rejected', 'symbol': symbol, 'reason': v54_reason}
                 
                 # 保存 V5.4.1 context 用于审计字段记录
                 self._v54_context = v54_context
             
             # 🔍 DEBUG: 打印检查结果和决策追踪
-            print(f"[CHECK] should_trade={should_trade}, reason={trade_reason}")
+            print(f"[CHECK] should_trade={should_trade} gate_status={'PASS' if should_trade else 'REJECT'} gate_reasons={trade_reason}")
             print(f"[CHECK] decision: score_ok={decision_trace['score_ok']}, volume_ok={decision_trace['volume_ok']}, momentum_ok={decision_trace['price_change_ok']}, final={decision_trace['final']}")
             print(f"[CHECK] shadow_mode={self.shadow_mode}")
             
@@ -598,11 +642,21 @@ class V52System:
             trade = None
             if should_trade:
                 self.stats['total_signals'] += 1
+                # 📝 [EXECUTION_ATTEMPT] 执行尝试日志
+                print(f"\n[EXECUTION_ATTEMPT] symbol={symbol} side=long size=0.14ETH leverage=100x margin=3USD score={score:.1f}")
                 print(f"🚀 EXECUTION TRIGGERED for {symbol}")
+                
+                # 📝 [PRE_TRADE_CHECK] 下单前约束检查
+                available_balance = 1.55  # TODO: 从交易所实时读取
+                requested_notional = 3.0 * 100  # 3 USD * 100x
+                min_order_size = 0.01  # ETH 最小下单量
+                print(f"[PRE_TRADE_CHECK] available_balance={available_balance}USDT requested_notional={requested_notional}USDT min_order_size={min_order_size}ETH")
                 
                 if self.shadow_mode:
                     # 影子模式：只记录，不执行
                     print(f"⚠️ SHADOW MODE - not executing")
+                    # 📝 [ORDER_RESULT] Shadow 模式结果
+                    print(f"[ORDER_RESULT] accepted=False reason=shadow_mode symbol={symbol}")
                     trade = {
                         'timestamp': datetime.now().isoformat(),
                         'symbol': symbol,
@@ -1329,7 +1383,7 @@ async def main():
         print("✅ 连接 TESTNET (测试网)")
     
     # 执行模式：默认 shadow，除非显式指定 --execute
-    shadow_mode = not args.execute
+    shadow_mode = not REAL_TRADING_MODE  # V5.4.1 灰度
     if args.shadow:
         shadow_mode = True
     

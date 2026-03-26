@@ -1,6 +1,6 @@
 # B3：API 性能埋点总结
 
-_版本：V41.4 | 日期：2026-03-26 | 状态：部分完成_
+_版本：V41.4 | 日期：2026-03-26 | 状态：✅ 完成_
 
 ---
 
@@ -26,11 +26,13 @@ _版本：V41.4 | 日期：2026-03-26 | 状态：部分完成_
 |------|------|------|
 | `/api/health` | ✅ | 已集成 |
 | `/api/history/alerts` | ✅ | 已集成 |
+| `/api/history/control` | ✅ | 已集成 |
+| `/api/history/decisions` | ✅ | 已集成 |
 | `/api/reports/alerts` | ✅ | 已集成 |
-| `/api/history/control` | 🔲 | 待完成 |
-| `/api/history/decisions` | 🔲 | 待完成 |
-| `/api/reports/decisions` | 🔲 | 待完成 |
-| `/api/reports/control` | 🔲 | 待完成 |
+| `/api/reports/decisions` | ✅ | 已集成 |
+| `/api/reports/control` | ✅ | 已集成 |
+
+**覆盖率：7/7 (100%)**
 
 ---
 

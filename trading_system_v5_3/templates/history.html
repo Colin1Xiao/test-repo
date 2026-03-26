@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐉 小龙历史分析</title>
+  
+  <!-- UI-3.9 PWA 支持 -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#121a27">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/freshness-badge.js"></script>
+  <script src="/static/error-tracker.js"></script>
+  <style>
+    :root {
+      /* 色彩系统 - 深色克制风格 - 保持原有 */
+      --bg-0: #0a0f19;        /* 主背景 */
+      --bg-1: #121a27;        /* 卡片背景 */
+      --bg-2: #182233;        /* 次级容器 */
+      --text-1: #f5f7fb;      /* 主文本 */
+      --text-2: #b6c1d1;      /* 次级文本 */
+      --text-3: #7f8a9e;      /* 灰色文本 */
+      
+      /* 状态色 - 语义固定 */
+      --danger: #ef4444;      /* CRITICAL */
+      --warning: #f59e0b;     /* WARN */
+      --success: #22c55e;     /* SUCCESS */
+      --info: #3b82f6;        /* INFO */
+      
+      /* 边框系统 */
+      --border-1: rgba(255,255,255,0.05);  /* 弱边框 */
+      --border-2: rgba(255,255,255,0.1);   /* 中边框 */
+      
+      /* 阴影系统 */
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+      
+      /* 圆角系统 */
+      --radius-lg: 20px;      /* 大卡片 */
+      --radius-md: 12px;      /* 小卡片/按钮 */
+      --radius-sm: 8px;       /* badge */
+      --radius-pill: 999px;   /* pill */
+      
+      /* 间距系统 */
+      --space-xs: 8px;
+      --space-sm: 12px;
+      --space-md: 18px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      
+      /* ===== UI-3 Lite Tokens ===== */
+      /* Badge */
+      --badge-height: 24px;
+      --badge-radius: 6px;
+      --badge-padding-x: 10px;
+      --badge-padding-y: 4px;
+      --badge-font-size: 12px;
+      --badge-font-weight: 600;
+      --badge-line-height: 1.5;
+      
+      /* Loading / Empty / Error */
+      --spinner-size: 40px;
+      --spinner-border-width: 3px;
+      --empty-min-height: 120px;
+      --empty-font-size: 13px;
+      --empty-color: var(--text-3);
+      --empty-padding: 20px;
+      --error-padding: 12px 16px;
+      --error-radius: 8px;
+      --error-border-left: 4px;
+      --error-gap: 10px;
+      
+      /* Chart Header */
+      --chart-title-size: 14px;
+      --chart-title-weight: 600;
+      --chart-header-padding: 18px;
+      --chart-title-gap: 10px;
+      --chart-icon-size: 16px;
+      --chart-min-height: 220px;
+      
+      /* Hover / Transition */
+      --hover-transition: 0.2s ease;
+      --hover-transform: translateY(-2px);
+      
+      /* Top Nav */
+      --top-nav-height: 60px;
+      --top-nav-bg: var(--bg-1);
+      --top-nav-border: var(--border-1);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: radial-gradient(circle at top, #142033 0%, var(--bg-0) 45%);
+      color: var(--text-1);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      padding: var(--space-lg);
+      min-height: 100vh;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    /* ===== 顶部导航栏 (UI-3 Lite) ===== */
+    .top-nav {
+      background: var(--top-nav-bg);
+      border-bottom: 1px solid var(--top-nav-border);
+      padding: 0 var(--space-lg);
+      height: var(--top-nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top-nav-brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--info);
+    }
+
+    .top-nav-brand span {
+      font-size: 0.75rem;
+      color: var(--text-3);
+    }
+
+    .top-nav-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .top-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      color: var(--text-2);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all var(--hover-transition);
+      border: 1px solid transparent;
+    }
+
+    .top-nav-link:hover {
+      background: var(--bg-2);
+      color: var(--text-1);
+    }
+
+    .top-nav-link.active {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--info);
+      border-color: var(--info);
+    }
+
+    .top-nav-link i {
+      font-size: 14px;
+    }
+    
+    /* ===== Header 体系统一 (UI-3.5) ===== */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--border-2);
+    }
+    
+    .header-main {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .header-title .icon {
+      font-size: 32px;
+    }
+    
+    .header-subtitle {
+      color: var(--text-2);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    
+    /* UI-3.7: Freshness Badge */
+    .freshness-badge .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    
+    /* 刷新按钮 */
+    .refresh-btn {
+      background: linear-gradient(135deg, var(--info), #2563eb);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    
+    .refresh-btn {
+      transition: all var(--hover-transition);
+    }
+    
+    .refresh-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    }
+    
+    .refresh-btn:active {
+      transform: translateY(0);
+    }
+    
+    /* 时间范围选择器 (UI-3.6) */
+    .range-group {
+      display: flex;
+      gap: var(--space-xs);
+      background: rgba(255,255,255,0.05);
+      padding: var(--space-xs);
+      border-radius: var(--radius-md);
+    }
+    
+    .range-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border-1);
+      background: transparent;
+      color: var(--text-2);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--hover-transition);
+    }
+    
+    .range-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-1);
+    }
+    
+    .range-btn.active {
+      background: rgba(59,130,246,0.15);
+      color: var(--info);
+      border-color: var(--info);
+    }
+    
+    /* 统计卡片 - 20px 圆角，渐变边框 */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .stat-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--info), rgba(59,130,246,0.3));
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .stat-label {
+      color: var(--text-3);
+      font-size: 11px;
+      margin-bottom: var(--space-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-1);
+    }
+    
+    .stat-value.critical { color: var(--danger); }
+    .stat-value.warn { color: var(--warning); }
+    .stat-value.info { color: var(--info); }
+    .stat-value.success { color: var(--success); }
+    /* Section 区域 (UI-3 Lite) */
+    .section {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-xl);
+      transition: all var(--hover-transition);
+    }
+    
+    .section:hover {
+      transform: var(--hover-transform);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-2);
+    }
+    
+    .section h2 {
+      font-size: 16px;
+      color: var(--text-2);
+      margin-bottom: var(--space-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+    
+    /* Badge 样式 (UI-3 Lite) */
+    .badge {
+      height: var(--badge-height);
+      padding: var(--badge-padding-y) var(--badge-padding-x);
+      border-radius: var(--badge-radius);
+      font-size: var(--badge-font-size);
+      font-weight: var(--badge-font-weight);
+      line-height: var(--badge-line-height);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      border: 1px solid;
+    }
+    
+    .badge-critical { 
+      background: var(--danger-light); 
+      color: var(--danger); 
+      border-color: var(--danger);
+    }
+    .badge-warn { 
+      background: var(--warning-light); 
+      color: var(--warning);
+      border-color: var(--warning);
+    }
+    .badge-info { 
+      background: var(--info-light); 
+      color: var(--info);
+      border-color: var(--info);
+    }
+    
+    /* 表格样式 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    th, td {
+      padding: var(--space-xs) var(--space-sm);
+      text-align: left;
+      border-bottom: 1px solid var(--border-1);
+    }
+    
+    th {
+      color: var(--text-3);
+      font-weight: 600;
+      padding-top: var(--space-md);
+      padding-bottom: var(--space-xs);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    td {
+      color: var(--text-2);
+    }
+    
+    .level-critical { color: var(--danger); font-weight: 700; }
+    .level-warn { color: var(--warning); font-weight: 700; }
+    .level-info { color: var(--info); font-weight: 700; }
+    
+    .timestamp { color: var(--text-3); font-size: 12px; }
+    /* 图表容器 */
+    .chart-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .chart-container {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-lg);
+      padding: var(--chart-header-padding);
+      transition: all var(--hover-transition);
+    }
+    
+    .chart-container:hover {
+      transform: var(--hover-transform);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-2);
+    }
+    
+    .chart-container h2 {
+      font-size: 15px;
+      color: var(--text-2);
+      margin-bottom: var(--space-md);
+      font-weight: 600;
+    }
+    
+    /* 条形图样式 */
+    .chart-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: var(--space-sm);
+      gap: var(--space-sm);
+    }
+    
+    .chart-label {
+      min-width: 140px;
+      font-size: 13px;
+      color: var(--text-2);
+      font-weight: 600;
+    }
+    
+    .chart-bar-inner {
+      flex: 1;
+      height: 32px;
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .chart-fill {
+      height: 100%;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: var(--space-sm);
+      font-size: 13px;
+      font-weight: 800;
+      color: white;
+      transition: width 0.3s ease;
+      min-width: 40px;
+    }
+    
+    .fill-buy { background: linear-gradient(90deg, var(--success), #16a34a); }
+    .fill-sell { background: linear-gradient(90deg, var(--danger), #dc2626); }
+    .fill-hold { background: linear-gradient(90deg, var(--text-3), #64748b); }
+    .fill-reject { background: linear-gradient(90deg, var(--warning), #d97706); color: #1a1a1a; }
+    .fill-critical { background: linear-gradient(90deg, var(--danger), #dc2626); }
+    .fill-warn { background: linear-gradient(90deg, var(--warning), #d97706); }
+    .fill-info { background: linear-gradient(90deg, var(--info), #2563eb); }
+    
+    /* 加载和错误状态 (UI-3 Lite) */
+    .loading-spinner {
+      width: var(--spinner-size);
+      height: var(--spinner-size);
+      border: var(--spinner-border-width) solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--info);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading { 
+      color: var(--text-3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--empty-min-height);
+      padding: var(--space-lg);
+      text-align: center;
+    }
+    
+    .loading-text {
+      font-size: var(--empty-font-size);
+      color: var(--text-3);
+    }
+    
+    .empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--empty-min-height);
+      padding: var(--empty-padding);
+      color: var(--empty-color);
+      font-size: var(--empty-font-size);
+      text-align: center;
+    }
+    
+    .error { 
+      display: flex;
+      align-items: center;
+      gap: var(--error-gap);
+      color: var(--danger);
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+      border: 1px solid var(--danger);
+      border-left: var(--error-border-left) solid var(--danger);
+      border-radius: var(--error-radius);
+      padding: var(--error-padding);
+      margin: var(--space-md) 0;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .error .icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    /* UI-3.6: 状态辅助样式 */
+    .state-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+    
+    .state-hint {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* ===== 响应式统一 (UI-3.5) ===== */
+    @media (max-width: 1280px) {
+      .header {
+        gap: var(--space-md);
+      }
+      
+      .header-controls {
+        justify-content: flex-start;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .header {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+      }
+      
+      .header-title {
+        font-size: 22px;
+      }
+      
+      .header-title .icon {
+        font-size: 26px;
+      }
+      
+      .header-subtitle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-xs);
+      }
+      
+      .header-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航栏 -->
+  <nav class="top-nav">
+    <div class="top-nav-brand">
+      <h1>小龙交易系统 V5.4</h1>
+      <span>专业金融监控终端</span>
+    </div>
+    <div class="top-nav-links">
+      <a href="/" class="top-nav-link">
+        <span>📊</span>
+        <span>驾驶舱</span>
+      </a>
+      <a href="/history" class="top-nav-link active">
+        <span>📜</span>
+        <span>历史分析</span>
+      </a>
+      <a href="/reports" class="top-nav-link">
+        <span>📈</span>
+        <span>报表中心</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <div class="header-main">
+        <div class="header-title">
+          <span class="icon">📜</span>
+          <span>历史分析</span>
+        </div>
+        <div class="header-subtitle">基于 SQLite 的历史事件查询与分析</div>
+      </div>
+      <div class="header-controls">
+        <div class="range-group">
+          <button class="range-btn" data-days="7">7D</button>
+          <button class="range-btn active" data-days="30">30D</button>
+          <button class="range-btn" data-days="90">90D</button>
+        </div>
+        <button class="refresh-btn" onclick="loadAll()">
+          <span class="icon">🔄</span>
+          <span>刷新</span>
+        </button>
+        <span class="freshness-badge" id="freshness-badge">
+          {{ render_freshness_badge(freshness.get('worker_heartbeat_age_sec', 0) if freshness else 0) }}
+        </span>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-label">告警总数</div>
+        <div class="stat-value" id="stat-alerts">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CRITICAL</div>
+        <div class="stat-value critical" id="stat-critical">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">WARN</div>
+        <div class="stat-value warn" id="stat-warn">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">控制变更</div>
+        <div class="stat-value info" id="stat-control">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">决策事件</div>
+        <div class="stat-value success" id="stat-decisions">-</div>
+      </div>
+    </div>
+
+    <!-- 决策动作分布 -->
+    <div class="chart-row">
+      <div class="chart-container">
+        <h2>决策动作分布（最近 7 天）</h2>
+        <div id="decision-chart"></div>
+      </div>
+      <div class="chart-container">
+        <h2>告警级别分布</h2>
+        <div id="alert-chart"></div>
+      </div>
+    </div>
+
+    <!-- 最近告警 -->
+    <div class="section">
+      <h2>
+        最近告警
+        <span class="badge badge-critical" id="alert-critical-count">0</span>
+      </h2>
+      <div id="alerts-table">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+
+    <!-- 控制变更历史 -->
+    <div class="section">
+      <h2>
+        控制变更历史
+        <span class="timestamp" id="control-timestamp"></span>
+      </h2>
+      <div id="control-table">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/history';
+
+    // ===== UI-3.6: 历史页 range 状态管理 =====
+    const DEFAULT_RANGE_DAYS = 30;
+    let currentRangeDays = DEFAULT_RANGE_DAYS;
+
+    // 辅助：API 请求（自动附加 days 参数）
+    function fetchHistory(endpoint) {
+      const url = API_BASE + endpoint;
+      const u = new URL(url, window.location.origin);
+      u.searchParams.set('days', String(currentRangeDays));
+      return fetch(u.pathname + u.search);
+    }
+
+    // 从 URL 解析 days 参数
+    function getRangeDaysFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const raw = parseInt(params.get('days'), 10);
+      if ([7, 30, 90].includes(raw)) return raw;
+      return DEFAULT_RANGE_DAYS;
+    }
+
+    // 将 days 同步到 URL（不刷新页面）
+    function syncRangeDaysToUrl(days) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('days', String(days));
+      window.history.replaceState({}, '', url.toString());
+    }
+
+    // 更新 range-btn active 态
+    function updateRangeButtons(days) {
+      document.querySelectorAll('.range-btn').forEach((btn) => {
+        const btnDays = parseInt(btn.dataset.days, 10);
+        btn.classList.toggle('active', btnDays === days);
+      });
+    }
+
+    // 绑定 range-btn 事件
+    function bindRangeButtons() {
+      document.querySelectorAll('.range-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const days = parseInt(btn.dataset.days, 10);
+          if (![7, 30, 90].includes(days) || days === currentRangeDays) return;
+
+          currentRangeDays = days;
+          syncRangeDaysToUrl(days);
+          updateRangeButtons(days);
+          loadAll();
+        });
+      });
+    }
+
+    // 统一请求辅助函数（自动附加 days 参数）
+    function withDays(url) {
+      const u = new URL(url, window.location.origin);
+      u.searchParams.set('days', String(currentRangeDays));
+      return `${u.pathname}${u.search}`;
+    }
+
+    // 格式化时间
+    function formatTime(ts) {
+      if (!ts) return '-';
+      return ts.replace('T', ' ').slice(0, 19);
+    }
+
+    // ===== UI-3.6: 统一状态渲染函数 =====
+    function renderLoading(containerId, text = '正在加载数据...') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = `
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">${text}</div>
+        </div>
+      `;
+    }
+
+    function renderEmpty(containerId, text = '暂无数据', hint = '') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="state-stack">
+            <div>${text}</div>
+            ${hint ? `<div class="state-hint">${hint}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderError(containerId, text = '加载失败', hint = '请稍后重试') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = `
+        <div class="error">
+          <span class="icon">⚠️</span>
+          <div>
+            <div>${text}</div>
+            ${hint ? `<div class="state-hint">${hint}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // 渲染条形图（UI-3.6: 使用统一状态函数）
+    function renderBarChart(containerId, data, colorMap) {
+      const container = document.getElementById(containerId);
+      if (!data || data.length === 0) {
+        renderEmpty(containerId, '最近所选周期内暂无决策样本', '等待后续新数据写入');
+        return;
+      }
+
+      const maxVal = Math.max(...data.map(d => d.cnt));
+      const html = data.map(item => {
+        const pct = maxVal > 0 ? (item.cnt / maxVal * 100) : 0;
+        const color = colorMap[item.normalized_action] || colorMap[item.level] || '#3b82f6';
+        const label = item.normalized_action || item.level;
+        return `
+          <div class="chart-bar">
+            <div class="chart-label">${label}</div>
+            <div class="chart-bar-inner">
+              <div class="chart-fill ${colorMap[item.normalized_action] || colorMap[item.level] ? 'fill-' + (item.normalized_action || item.level).toLowerCase() : ''}" 
+                   style="width: ${pct}%; background: ${color}">
+                ${item.cnt}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      container.innerHTML = html;
+    }
+
+    // 加载告警
+    async function loadAlerts() {
+      try {
+        const res = await fetchHistory('/alerts?limit=20');
+        const data = await res.json();
+        
+        // 更新统计
+        document.getElementById('stat-alerts').textContent = data.data?.summary?.total || 0;
+        document.getElementById('stat-critical').textContent = data.data?.summary?.CRITICAL || 0;
+        document.getElementById('stat-warn').textContent = data.data?.summary?.WARN || 0;
+        document.getElementById('alert-critical-count').textContent = `${data.data?.summary?.CRITICAL || 0} CRITICAL`;
+
+        // 渲染图表
+        renderBarChart('alert-chart', [
+          { level: 'CRITICAL', cnt: data.data?.summary?.CRITICAL || 0 },
+          { level: 'WARN', cnt: data.data?.summary?.WARN || 0 },
+          { level: 'INFO', cnt: data.data?.summary?.INFO || 0 }
+        ], { CRITICAL: '#ef4444', WARN: '#f59e0b', INFO: '#3b82f6' });
+
+        // 渲染表格（UI-3.6: 使用统一状态函数）
+        const table = document.getElementById('alerts-table');
+        if (!data.items || data.items.length === 0) {
+          renderEmpty('alerts-table', '最近所选周期内暂无告警', '可切换到 30D / 90D 查看更长周期');
+        } else {
+          table.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>级别</th>
+                <th>类型</th>
+                <th>标题</th>
+                <th>消息</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.items.map(item => `
+                <tr>
+                  <td class="timestamp">${formatTime(item.ts)}</td>
+                  <td class="level-${item.level.toLowerCase()}">${item.level}</td>
+                  <td>${item.type}</td>
+                  <td>${item.title}</td>
+                  <td>${item.message?.slice(0, 50) || ''}${item.message?.length > 50 ? '...' : ''}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+        }
+      } catch (e) {
+        document.getElementById('alerts-table').innerHTML = `<div class="error">加载失败：${e.message}</div>`;
+      }
+    }
+
+    // 加载控制变更
+    async function loadControl() {
+      try {
+        const res = await fetchHistory('/control?limit=20');
+        const data = await res.json();
+        
+        document.getElementById('stat-control').textContent = data.data?.count || 0;
+        document.getElementById('control-timestamp').textContent = `共 ${data.data?.count || 0} 条`;
+
+        const table = document.getElementById('control-table');
+        if (!data.items || data.items.length === 0) {
+          renderEmpty('control-table', '最近所选周期内暂无控制变更', '当前系统未发生人工干预或模式切换');
+        } else {
+          table.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>动作</th>
+                <th>操作者</th>
+                <th>原因</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.items.map(item => `
+                <tr>
+                  <td class="timestamp">${formatTime(item.ts)}</td>
+                  <td><span class="badge badge-info">${item.action}</span></td>
+                  <td>${item.operator || '-'}</td>
+                  <td>${item.reason || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+        }
+      } catch (e) {
+        document.getElementById('control-table').innerHTML = `<div class="error">加载失败：${e.message}</div>`;
+      }
+    }
+
+    // 加载决策
+    async function loadDecisions() {
+      try {
+        const res = await fetchHistory('/decisions?limit=1');
+        const data = await res.json();
+        
+        document.getElementById('stat-decisions').textContent = data.data?.summary?.reduce((a,b) => a + b.cnt, 0) || 0;
+
+        // 渲染图表
+        const colorMap = {
+          buy: '#22c55e',
+          sell: '#ef4444',
+          hold: '#7f8a9e',
+          reject_long: '#f59e0b',
+          reject_short: '#f59e0b'
+        };
+        renderBarChart('decision-chart', data.data?.summary || [], colorMap);
+      } catch (e) {
+        console.error('决策加载失败:', e);
+      }
+    }
+
+    // 加载全部
+        // Freshness Badge 由 /static/freshness-badge.js 提供
+
+    async function loadAll() {
+      await Promise.all([
+        loadAlerts(),
+        loadControl(),
+        loadDecisions()
+      ]);
+      
+      // UI-3.7: 更新 freshness（从 alerts API 获取）
+      try {
+        const days = typeof currentRangeDays !== 'undefined' ? currentRangeDays : 30;
+        const res = await fetch('/api/history/alerts?days=' + days + '&limit=1');
+        const data = await res.json();
+        const ageSec = data.data?.freshness?.age_sec;
+        updateFreshnessBadge(ageSec);
+      } catch (e) {
+        console.error('Freshness 更新失败:', e);
+      }
+    }
+
+    // 初始化（UI-3.6: 增加 range 状态管理）
+    function initPage() {
+      currentRangeDays = getRangeDaysFromUrl();
+      bindRangeButtons();
+      updateRangeButtons(currentRangeDays);
+      loadAll();
+    }
+
+    document.addEventListener('DOMContentLoaded', initPage);
+    // 每 30 秒自动刷新
+    setInterval(loadAll, 30000);
+  </script>
+</body>
+</html>

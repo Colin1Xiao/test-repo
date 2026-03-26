@@ -1,13 +1,13 @@
 {
   "schema": "openclaw.health.v1",
-  "lastUpdated": "2026-03-26T13:43:54Z",
+  "lastUpdated": "2026-03-26T22:34:55Z",
   "changed": false,
   "previousStatus": "healthy",
   "components": {
-    "gateway": {"status": "running", "severity": 0, "port": 18789, "lastCheck": "2026-03-26T13:43:54Z", "errors": []},
-    "telegram": {"status": "configured", "severity": 0, "lastCheck": "2026-03-26T13:43:54Z", "errors": []},
-    "memorySearch": {"status": "ready", "severity": 0, "provider": "local", "modelPath": "/Users/colin/.openclaw/memory/models/embeddinggemma-300M-Q8_0.gguf", "lastCheck": "2026-03-26T13:43:54Z", "errors": []},
-    "cron": {"status": "not_initialized", "severity": 0, "lastCheck": "2026-03-26T13:43:54Z", "errors": []}
+    "gateway": {"status": "running", "severity": 0, "port": 18789, "lastCheck": "2026-03-26T22:34:55Z", "errors": []},
+    "telegram": {"status": "configured", "severity": 0, "lastCheck": "2026-03-26T22:34:55Z", "errors": []},
+    "memorySearch": {"status": "ready", "severity": 0, "provider": "local", "modelPath": "/Users/colin/.openclaw/memory/models/embeddinggemma-300M-Q8_0.gguf", "lastCheck": "2026-03-26T22:34:55Z", "errors": []},
+    "cron": {"status": "not_initialized", "severity": 0, "lastCheck": "2026-03-26T22:34:55Z", "errors": []}
   },
   "overall": {"status": "healthy", "emoji": "🟢", "severity": 0},
   "system": {
