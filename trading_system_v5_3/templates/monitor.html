@@ -460,6 +460,33 @@
         </div>
       </section>
     </div>
+
+    <!-- 第五行：告警规则与事件 -->
+    <div class="grid" style="margin-top: var(--space-lg);">
+      <section class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+          <h2 style="margin: 0;">🔔 告警规则</h2>
+          <button class="btn btn-sm" onclick="evaluateRules()" style="font-size: 12px; padding: 6px 12px;">
+            ⚡ 立即评估
+          </button>
+        </div>
+        <div id="alert-rules-list" style="margin-top: var(--space-md);">
+          <div class="empty-state">
+            <div class="icon">🔄</div>
+            <div class="message">加载中...</div>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <h2>🚨 最近告警事件</h2>
+        <div id="alert-events-list" style="margin-top: var(--space-md);">
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无告警事件</div>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 
   <script>
@@ -882,13 +909,141 @@
       }
     }
 
+    // UI-3.10D: 加载告警规则
+    async function loadAlertRules() {
+      try {
+        const res = await fetch('/api/monitor/alerts/rules');
+        const data = await res.json();
+        if (data.ok) {
+          renderAlertRules(data.data.rules || []);
+        }
+      } catch (e) {
+        console.error('加载规则失败:', e);
+      }
+    }
+
+    // UI-3.10D: 加载告警事件
+    async function loadAlertEvents() {
+      try {
+        const res = await fetch('/api/monitor/alerts/events?limit=20');
+        const data = await res.json();
+        if (data.ok) {
+          renderAlertEvents(data.data.events || []);
+        }
+      } catch (e) {
+        console.error('加载事件失败:', e);
+      }
+    }
+
+    // UI-3.10D: 渲染告警规则列表
+    function renderAlertRules(rules) {
+      const container = document.getElementById('alert-rules-list');
+      
+      if (rules.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📋</div>
+            <div class="message">暂无规则</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+        ${rules.map(rule => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm); background: var(--bg-2); border-radius: var(--radius-md);">
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 13px;">${rule.name}</div>
+              <div style="font-size: 11px; color: var(--text-3);">
+                ${rule.metric_type} ${rule.operator} ${rule.threshold} (${rule.window_minutes}分钟)
+              </div>
+            </div>
+            <span class="badge ${rule.severity === 'CRITICAL' ? 'badge-stale' : 'badge-delayed'}" style="font-size: 10px;">
+              ${rule.severity}
+            </span>
+            <label style="display: flex; align-items: center; gap: 6px; margin-left: var(--space-sm);">
+              <input type="checkbox" ${rule.is_enabled ? 'checked' : ''} 
+                     onchange="toggleRule(${rule.id}, this.checked)" 
+                     style="width: 14px; height: 14px;">
+              <span style="font-size: 11px; color: var(--text-2);">启用</span>
+            </label>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    // UI-3.10D: 渲染告警事件列表
+    function renderAlertEvents(events) {
+      const container = document.getElementById('alert-events-list');
+      
+      if (events.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="message">暂无告警事件</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+        ${events.map(event => `
+          <div style="padding: var(--space-sm); background: var(--bg-2); border-left: 3px solid ${event.severity === 'CRITICAL' ? 'var(--danger)' : 'var(--warning)'}; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-weight: 600; font-size: 13px;">${event.rule_name}</div>
+              <span style="font-size: 11px; color: var(--text-3);">${event.created_at?.split('T')[1]?.split('.')[0] || '--'}</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-2); margin-top: 4px;">${event.message}</div>
+            <div style="font-size: 11px; color: var(--text-3); margin-top: 2px;">
+              观测值：${event.observed_value} | 阈值：${event.threshold}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    // UI-3.10D: 切换规则启用状态
+    async function toggleRule(ruleId, enabled) {
+      try {
+        await fetch(`/api/monitor/alerts/rules/${ruleId}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({is_enabled: enabled ? 1 : 0})
+        });
+      } catch (e) {
+        console.error('更新规则失败:', e);
+      }
+    }
+
+    // UI-3.10D: 手动触发评估
+    async function evaluateRules() {
+      try {
+        const res = await fetch('/api/monitor/alerts/evaluate', {method: 'POST'});
+        const data = await res.json();
+        if (data.ok) {
+          const count = data.data.triggered_count;
+          if (count > 0) {
+            alert(`触发了 ${count} 个告警！`);
+            loadAlertEvents(); // 刷新事件列表
+          } else {
+            alert('未触发告警');
+          }
+        }
+      } catch (e) {
+        console.error('评估失败:', e);
+        alert('评估失败：' + e.message);
+      }
+    }
+
     // 初始化
     document.addEventListener('DOMContentLoaded', () => {
       updateFreshnessBadge(0);
       loadData();
+      loadAlertRules();
+      loadAlertEvents();
       
       // 30 秒自动刷新
       setInterval(loadData, 30000);
+      // 60 秒刷新告警
+      setInterval(loadAlertEvents, 60000);
     });
   </script>
 </body>
