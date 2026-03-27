@@ -103,25 +103,79 @@
     .header-title { font-size: 24px; font-weight: 700; }
     .header-controls { display: flex; gap: var(--space-sm); align-items: center; }
     
-    /* Stats Grid */
+    /* Card - 与其他页面统一 */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-1px);
+    }
+    .card h3 { 
+      font-size: 12px; 
+      color: var(--text-3); 
+      margin: 0 0 var(--space-xs) 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .card .value { 
+      font-size: 28px; 
+      font-weight: 800; 
+      color: var(--text-1);
+      letter-spacing: -0.02em;
+    }
+    .card .unit { 
+      font-size: 14px; 
+      color: var(--text-3); 
+      margin-left: var(--space-xs);
+      font-weight: 400;
+    }
+    .card .trend { 
+      font-size: 12px; 
+      margin-top: var(--space-xs);
+      color: var(--text-2);
+    }
+    
+    /* KPI Grid - 与其他页面统一 */
+    .kpis { 
+      display: grid; 
+      grid-template-columns: repeat(2, minmax(0,1fr)); 
+      gap: var(--space-xs); 
+    }
+    .kpi {
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: var(--space-sm) var(--space-md);
+    }
+    .kpi-label { 
+      color: var(--text-3); 
+      font-size: 11px; 
+      margin-bottom: var(--space-xs); 
+      text-transform: uppercase; 
+      letter-spacing: 0.05em; 
+      font-weight: 600; 
+    }
+    .kpi-value { 
+      font-size: 22px; 
+      font-weight: 800; 
+      letter-spacing: -0.02em;
+      color: var(--text-1);
+    }
+    
+    /* Stats Grid - 4列布局 */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: var(--space-lg);
       margin-bottom: var(--space-lg);
     }
-    
-    /* Stat Card */
-    .stat-card {
-      background: var(--bg-1);
-      border: 1px solid var(--border-1);
-      border-radius: var(--radius-lg);
-      padding: var(--space-lg);
-    }
-    .stat-card h3 { font-size: 14px; color: var(--text-2); margin: 0 0 var(--space-sm) 0; }
-    .stat-card .value { font-size: 32px; font-weight: 700; color: var(--text-1); }
-    .stat-card .unit { font-size: 14px; color: var(--text-3); margin-left: var(--space-xs); }
-    .stat-card .trend { font-size: 12px; margin-top: var(--space-xs); }
     
     /* Lists */
     .list-section {
@@ -294,7 +348,7 @@
       <!-- 第一行：趋势图 + 百分位 -->
       <div class="stats-grid" style="margin-bottom: 0;">
         <!-- 趋势图区域 -->
-        <div class="stat-card" style="grid-column: span 3; padding: var(--space-md); position: relative; min-height: 180px;">
+        <div class="card" style="grid-column: span 3; padding: var(--space-md); position: relative; min-height: 180px;">
           <h3 style="margin-bottom: var(--space-xs);">📈 24h 请求趋势</h3>
           <div style="position: relative; height: 140px;">
             <canvas id="trends-chart"></canvas>
@@ -305,7 +359,7 @@
           </div>
         </div>
         <!-- 百分位卡片 -->
-        <div class="stat-card" style="grid-column: span 1;">
+        <div class="card" style="grid-column: span 1;">
           <h3 style="margin-bottom: var(--space-sm);">⏱️ 响应时间分布</h3>
           <div class="value" style="font-size: 20px;" id="p50-value">-</div>
           <div class="trend" style="color:var(--text-2); font-size: 11px;">P50</div>
@@ -318,22 +372,22 @@
 
       <!-- 4 张卡片 -->
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="card">
           <h3>总请求数</h3>
           <div class="value" id="stat-total-requests">0</div>
           <div class="trend">过去 24 小时</div>
         </div>
-        <div class="stat-card">
+        <div class="card">
           <h3>平均响应时间</h3>
           <div class="value"><span id="stat-avg-duration">0</span><span class="unit">ms</span></div>
           <div class="trend" id="stat-avg-trend">稳定</div>
         </div>
-        <div class="stat-card">
+        <div class="card">
           <h3>慢请求数</h3>
           <div class="value" id="stat-slow-requests">0</div>
           <div class="trend" id="stat-slow-trend">/all 请求</div>
         </div>
-        <div class="stat-card">
+        <div class="card">
           <h3>前端错误数</h3>
           <div class="value" id="stat-errors">0</div>
           <div class="trend">需处理</div>
