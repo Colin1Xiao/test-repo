@@ -82,7 +82,7 @@
     .top-nav-link:hover { background: var(--bg-2); color: var(--text-1); }
     .top-nav-link.active { background: var(--info-light); color: var(--info); }
     
-    .main-content { padding-top: var(--top-nav-height); min-height: 100vh; }
+    
     
     /* Shell */
     .shell {
@@ -102,7 +102,28 @@
     }
     .header-title { font-size: 24px; font-weight: 700; }
     .header-controls { display: flex; gap: var(--space-sm); align-items: center; }
+    /* Header - 与其他页面统一 */
+    .header-main {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .header-subtitle {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      color: var(--text-2);
+      font-size: 14px;
+    }
+
     
+    
+    /* Grid 布局 - 与其他页面统一 */
+    .grid {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
     /* Card - 与其他页面统一 */
     .card {
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
@@ -117,7 +138,7 @@
       border-color: rgba(255,255,255,0.15);
       transform: translateY(-1px);
     }
-    .card h3 { 
+    .card h2 { 
       font-size: 12px; 
       color: var(--text-3); 
       margin: 0 0 var(--space-xs) 0;
@@ -125,62 +146,20 @@
       letter-spacing: 0.05em;
       font-weight: 600;
     }
-    .card .value { 
+    .card .hero-value { 
       font-size: 28px; 
       font-weight: 800; 
       color: var(--text-1);
       letter-spacing: -0.02em;
     }
-    .card .unit { 
-      font-size: 14px; 
-      color: var(--text-3); 
-      margin-left: var(--space-xs);
-      font-weight: 400;
-    }
-    .card .trend { 
-      font-size: 12px; 
-      margin-top: var(--space-xs);
-      color: var(--text-2);
-    }
     
-    /* KPI Grid - 与其他页面统一 */
-    .kpis { 
-      display: grid; 
-      grid-template-columns: repeat(2, minmax(0,1fr)); 
-      gap: var(--space-xs); 
-    }
-    .kpi {
-      background: var(--bg-2);
-      border-radius: var(--radius-md);
-      padding: var(--space-sm) var(--space-md);
-    }
-    .kpi-label { 
-      color: var(--text-3); 
-      font-size: 11px; 
-      margin-bottom: var(--space-xs); 
-      text-transform: uppercase; 
-      letter-spacing: 0.05em; 
-      font-weight: 600; 
-    }
-    .kpi-value { 
-      font-size: 22px; 
-      font-weight: 800; 
-      letter-spacing: -0.02em;
-      color: var(--text-1);
-    }
     
-    /* Stats Grid - 4列布局 */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: var(--space-lg);
-      margin-bottom: var(--space-lg);
-    }
     
-    /* Lists */
-    .list-section {
-      margin-bottom: var(--space-lg);
-    }
+    
+    
+    
+    
+    
     .list-section h2 {
       font-size: 16px;
       font-weight: 600;
@@ -301,9 +280,10 @@
   </style>
 </head>
 <body>
+  <!-- 顶部导航栏 -->
   <nav class="top-nav">
     <div class="top-nav-brand">
-      <h1>小龙监控报表</h1>
+      <h1>🐉 小龙监控报表</h1>
       <span>性能监控与错误追踪</span>
     </div>
     <div class="top-nav-links">
@@ -326,117 +306,126 @@
     </div>
   </nav>
 
-  <div class="main-content">
-    <div class="shell">
-      <div class="header">
+  <div class="shell">
+    <div class="header">
+      <div class="header-main">
         <div class="header-title">
-          <span class="icon">📊</span>
+          <span class="icon">👁️</span>
           <span>监控报表</span>
         </div>
-        <div class="header-controls">
-          <span class="chip">刷新：<span id="last-refresh">--:--:--</span></span>
-          <span class="chip" id="freshness-badge">
-            <span class="badge badge-neutral">● 加载中</span>
-          </span>
-          <button class="btn-refresh" onclick="loadData()">
-            <span class="icon">🔄</span>
-            <span>刷新</span>
-          </button>
+        <div class="header-subtitle">
+          <span>API 性能监控与前端错误追踪</span>
         </div>
       </div>
+      <div class="header-controls">
+        <span class="chip">刷新：<span id="last-refresh">--:--:--</span></span>
+        <span class="chip" id="freshness-badge">
+          <span class="badge state-ok">● 数据新鲜</span>
+        </span>
+        <button class="btn btn-refresh" onclick="loadData()">
+          <span>🔄</span>
+          <span>刷新</span>
+        </button>
+      </div>
+    </div>
 
-      <!-- 第一行：趋势图 + 百分位 -->
-      <div class="stats-grid" style="margin-bottom: 0;">
-        <!-- 趋势图区域 -->
-        <div class="card" style="grid-column: span 3; padding: var(--space-md); position: relative; min-height: 180px;">
-          <h3 style="margin-bottom: var(--space-xs);">📈 24h 请求趋势</h3>
-          <div style="position: relative; height: 140px;">
-            <canvas id="trends-chart"></canvas>
-          </div>
-          <div id="trends-empty" class="empty-state" style="display:none;">
+    <!-- 第一行：趋势图 + 百分位 -->
+    <div class="grid" style="grid-template-columns: 3fr 1fr; margin-bottom: var(--space-lg);">
+      <section class="card">
+        <h2>📈 24h 请求趋势</h2>
+        <div style="position: relative; height: 200px; margin-top: var(--space-md);">
+          <canvas id="trends-chart"></canvas>
+          <div id="trends-empty" class="empty-state" style="display:none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             <div class="icon">📊</div>
             <div class="message">暂无趋势数据</div>
           </div>
         </div>
-        <!-- 百分位卡片 -->
-        <div class="card" style="grid-column: span 1;">
-          <h3 style="margin-bottom: var(--space-sm);">⏱️ 响应时间分布</h3>
-          <div class="value" style="font-size: 20px;" id="p50-value">-</div>
-          <div class="trend" style="color:var(--text-2); font-size: 11px;">P50</div>
-          <div class="value" style="font-size: 20px; margin-top: 6px;" id="p90-value">-</div>
-          <div class="trend" style="color:var(--text-2); font-size: 11px;">P90</div>
-          <div class="value" style="font-size: 20px; margin-top: 6px;" id="p99-value">-</div>
-          <div class="trend" style="color:var(--text-2); font-size: 11px;">P99</div>
+      </section>
+      <section class="card">
+        <h2>⏱️ 响应时间分布</h2>
+        <div class="kpis" style="margin-top: var(--space-md);">
+          <div class="kpi">
+            <div class="kpi-label">P50</div>
+            <div class="kpi-value" id="p50-value">-</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">P90</div>
+            <div class="kpi-value" id="p90-value">-</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">P99</div>
+            <div class="kpi-value" id="p99-value">-</div>
+          </div>
         </div>
-      </div>
+      </section>
+    </div>
 
-      <!-- 4 张卡片 -->
-      <div class="stats-grid">
-        <div class="card">
-          <h3>总请求数</h3>
-          <div class="value" id="stat-total-requests">0</div>
-          <div class="trend">过去 24 小时</div>
-        </div>
-        <div class="card">
-          <h3>平均响应时间</h3>
-          <div class="value"><span id="stat-avg-duration">0</span><span class="unit">ms</span></div>
-          <div class="trend" id="stat-avg-trend">稳定</div>
-        </div>
-        <div class="card">
-          <h3>慢请求数</h3>
-          <div class="value" id="stat-slow-requests">0</div>
-          <div class="trend" id="stat-slow-trend">/all 请求</div>
-        </div>
-        <div class="card">
-          <h3>前端错误数</h3>
-          <div class="value" id="stat-errors">0</div>
-          <div class="trend">需处理</div>
-        </div>
-      </div>
+    <!-- 第二行：4 张统计卡片 -->
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: var(--space-lg);">
+      <section class="card">
+        <h2>总请求数</h2>
+        <div class="hero-value" id="stat-total-requests">0</div>
+        <div class="sub">过去 24 小时</div>
+      </section>
+      <section class="card">
+        <h2>平均响应时间</h2>
+        <div class="hero-value"><span id="stat-avg-duration">0</span> <span class="sub">ms</span></div>
+        <div class="sub" id="stat-avg-trend">稳定</div>
+      </section>
+      <section class="card">
+        <h2>慢请求数</h2>
+        <div class="hero-value" id="stat-slow-requests">0</div>
+        <div class="sub" id="stat-slow-trend">/all 请求</div>
+      </section>
+      <section class="card">
+        <h2>前端错误数</h2>
+        <div class="hero-value" id="stat-errors">0</div>
+        <div class="sub">需处理</div>
+      </section>
+    </div>
 
-      <!-- 最近慢请求 -->
-      <div class="list-section">
-        <h2>🚀 最近慢请求 (><span class="unit">1000</span>ms)</h2>
-        <div id="slow-requests-list">
+    <!-- 第三行：列表区域 -->
+    <div class="grid">
+      <section class="card">
+        <h2>🚀 最近慢请求 (>1000ms)</h2>
+        <div id="slow-requests-list" style="margin-top: var(--space-md);">
           <div class="empty-state">
             <div class="icon">📊</div>
             <div class="message">暂无慢请求数据</div>
           </div>
         </div>
-      </div>
-
-      <!-- 最近前端错误 -->
-      <div class="list-section">
+      </section>
+      <section class="card">
         <h2>🐛 最近前端错误</h2>
-        <div id="frontend-errors-list">
+        <div id="frontend-errors-list" style="margin-top: var(--space-md);">
           <div class="empty-state">
             <div class="icon">✅</div>
             <div class="message">暂无前端错误</div>
           </div>
         </div>
-      </div>
+      </section>
+    </div>
 
-      <!-- 最近慢查询 -->
-      <div class="list-section">
-        <h2>🐢 最近慢查询 (><span class="unit">500</span>ms)</h2>
-        <div id="db-queries-list">
+    <!-- 第四行：慢查询 + Top N -->
+    <div class="grid" style="margin-top: var(--space-lg);">
+      <section class="card">
+        <h2>🐢 最近慢查询 (>500ms)</h2>
+        <div id="db-queries-list" style="margin-top: var(--space-md);">
           <div class="empty-state">
             <div class="icon">✅</div>
             <div class="message">暂无慢查询数据</div>
           </div>
         </div>
-      </div>
-
-      <!-- Top N 慢端点 -->
-      <div class="list-section">
+      </section>
+      <section class="card">
         <h2>🐍 Top 10 最慢端点</h2>
-        <div id="top-endpoints-list">
+        <div id="top-endpoints-list" style="margin-top: var(--space-md);">
           <div class="empty-state">
             <div class="icon">✅</div>
             <div class="message">暂无端点数据</div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 
