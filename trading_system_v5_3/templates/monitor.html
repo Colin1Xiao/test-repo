@@ -791,7 +791,7 @@
     // 加载全部数据
     async function loadData() {
       // 显示加载状态
-      document.querySelector('.stats-grid').style.opacity = '0.5';
+      document.querySelector('.grid').style.opacity = '0.5';
       document.getElementById('slow-requests-list').innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
       document.getElementById('frontend-errors-list').style.opacity = '0.5';
       document.getElementById('db-queries-list').style.opacity = '0.5';
@@ -830,7 +830,7 @@
         }
         
         // 恢复显示
-        document.querySelector('.stats-grid').style.opacity = '1';
+        document.querySelector('.grid').style.opacity = '1';
         document.getElementById('slow-requests-list').style.opacity = '1';
         document.getElementById('frontend-errors-list').style.opacity = '1';
         document.getElementById('db-queries-list').style.opacity = '1';
@@ -839,7 +839,7 @@
         
       } catch (e) {
         console.error('加载数据失败:', e);
-        document.querySelector('.stats-grid').style.opacity = '1';
+        document.querySelector('.grid').style.opacity = '1';
         document.getElementById('slow-requests-list').style.opacity = '1';
         document.getElementById('frontend-errors-list').style.opacity = '1';
         document.getElementById('db-queries-list').style.opacity = '1';
