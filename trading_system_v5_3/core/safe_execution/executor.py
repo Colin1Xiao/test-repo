@@ -17,7 +17,9 @@ import ccxt.async_support as ccxt
 from .types import TradeResult
 from .position_gate import PositionGate
 from .stop_loss import StopLossManager
-from ..state_store import record_trade
+from ..state_store import record_trade as record_state_event
+from ..state_store_v54 import get_state_store as get_v54_store
+from ..constants import GLOBAL_STOP_LOSS_PCT
 
 
 class SafeExecutionV54:
@@ -26,7 +28,7 @@ class SafeExecutionV54:
     # 常量
     MAX_HOLD_SECONDS = 30
     MAX_POSITION = 0.13
-    STOP_LOSS_PCT = 0.005
+    STOP_LOSS_PCT = GLOBAL_STOP_LOSS_PCT
     
     def __init__(self, exchange, symbol: str = 'ETH/USDT:USDT'):
         self.exchange = exchange
@@ -139,10 +141,38 @@ class SafeExecutionV54:
             'entry_time': time.time(),
             'margin_usdt': decision.margin_usdt if decision else 0,
             'notional_usdt': decision.notional_usdt if decision else 0,
+            'equity_usdt': decision.equity_usdt if decision else 0,
             'capital_state': decision.capital_state if decision else 'LEGACY',
+            'capital_reason': getattr(decision, 'reason', '') if decision else '',
+            'leverage': getattr(decision, 'leverage', 100) if decision else 100,
+            'risk_pct': getattr(decision, 'risk_pct', 0.0) if decision else 0.0,
         }
         self.current_position = position
         await self.position_gate.set_position(position)
+
+        entry_event = {
+            'event': 'entry',
+            'symbol': self.symbol,
+            'entry_price': entry,
+            'position_size': size,
+            'margin_usdt': position['margin_usdt'],
+            'notional_usdt': position['notional_usdt'],
+            'equity_usdt': position['equity_usdt'],
+            'capital_state': position['capital_state'],
+            'capital_reason': position['capital_reason'],
+            'leverage': position['leverage'],
+            'risk_pct': position['risk_pct'],
+            'stop_ok': self.stop_order_id is not None,
+            'stop_verified': self.stop_order_id is not None,
+        }
+        try:
+            record_state_event(entry_event)
+        except Exception as e:
+            print(f"⚠️ StateStore(entry) 写入失败: {e}")
+        try:
+            get_v54_store().record_event('entry', entry_event)
+        except Exception as e:
+            print(f"⚠️ StateStoreV54(entry) 写入失败: {e}")
     
     async def execute_exit(self, exit_source: str = "TIME_EXIT") -> Optional[TradeResult]:
         """安全平仓"""
@@ -161,6 +191,36 @@ class SafeExecutionV54:
             # 计算盈亏
             pnl = (exit_price - position['entry_price']) / position['entry_price']
             
+            stop_ok = self.stop_order_id is not None
+            stop_verified = stop_ok
+
+            exit_event = {
+                'event': 'exit',
+                'symbol': self.symbol,
+                'entry_price': position['entry_price'],
+                'exit_price': exit_price,
+                'pnl': pnl,
+                'exit_source': exit_source,
+                'position_size': position['size'],
+                'margin_usdt': position.get('margin_usdt', 0.0),
+                'notional_usdt': position.get('notional_usdt', 0.0),
+                'equity_usdt': position.get('equity_usdt', 0.0),
+                'capital_state': position.get('capital_state', 'UNKNOWN'),
+                'capital_reason': position.get('capital_reason', ''),
+                'leverage': position.get('leverage', 100),
+                'risk_pct': position.get('risk_pct', 0.0),
+                'stop_ok': stop_ok,
+                'stop_verified': stop_verified,
+            }
+            try:
+                record_state_event(exit_event)
+            except Exception as e:
+                print(f"⚠️ StateStore(exit) 写入失败: {e}")
+            try:
+                get_v54_store().record_event('exit', exit_event)
+            except Exception as e:
+                print(f"⚠️ StateStoreV54(exit) 写入失败: {e}")
+
             # 清理
             await self._cleanup()
             
@@ -181,8 +241,8 @@ class SafeExecutionV54:
                 capital_reason=position.get('capital_reason', ''),
                 leverage=position.get('leverage', 100),
                 risk_pct=position.get('risk_pct', 0.0),
-                stop_ok=True,
-                stop_verified=True
+                stop_ok=stop_ok,
+                stop_verified=stop_verified
             )
             
         except Exception as e:

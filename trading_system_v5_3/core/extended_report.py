@@ -9,8 +9,9 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 
-# 数据目录
-DATA_DIR = Path('/Users/colin/.openclaw/workspace/xiaolong_trading_system_4.2/data')
+# 数据目录 - 相对于仓库根目录
+REPO_ROOT = Path(__file__).parent.parent
+DATA_DIR = REPO_ROOT / 'data'
 DATA_FILE = DATA_DIR / 'extended_analysis.jsonl'
 
 def generate_extended_report():

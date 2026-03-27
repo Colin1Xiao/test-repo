@@ -42,8 +42,9 @@ class TradeStateStore:
     线程安全 + 文件锁 + 缓存
     """
     
-    def __init__(self, data_dir: str = "~/.openclaw/workspace/trading_system_v5_3/data"):
-        self.data_dir = Path(data_dir).expanduser()
+    def __init__(self, data_dir: str = None):
+        default_data_dir = Path(__file__).resolve().parent.parent / "data"
+        self.data_dir = Path(data_dir).expanduser() if data_dir else default_data_dir
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         self.state_file = self.data_dir / "state_store.json"

@@ -10,9 +10,8 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-# 导入 V5.4 状态存储
-sys.path.insert(0, str(Path(__file__).parent))
-from state_store_v54 import TradeStateStore, get_state_store as get_v54_store
+# 导入 V5.4 状态存储 - 使用 core.前缀确保导入稳定
+from core.state_store_v54 import TradeStateStore, get_state_store as get_v54_store
 
 
 class TradeDataAdapter:

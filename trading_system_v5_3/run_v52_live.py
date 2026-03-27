@@ -24,12 +24,14 @@ from typing import Dict, Any, Optional, List
 BASE_DIR = Path(__file__).parent
 sys.path.insert(0, str(BASE_DIR / 'core'))
 
-# 代理设置
-os.environ['https_proxy'] = 'http://127.0.0.1:7890'
-os.environ['http_proxy'] = 'http://127.0.0.1:7890'
+# 代理设置 - 使用 setdefault 避免覆盖已有配置
+os.environ.setdefault('https_proxy', 'http://127.0.0.1:7890')
+os.environ.setdefault('http_proxy', 'http://127.0.0.1:7890')
 
-# V5.4.1 路径 (safe_execution_assembly 等)
-sys.path.insert(0, '/Users/colin/.openclaw/workspace/trading_system_v5_4/core')
+# V5.4.1 路径 (safe_execution_assembly 等) - 动态定位 OpenClaw 路径
+OPENCLAW_V54_CORE = Path.home() / '.openclaw' / 'workspace' / 'trading_system_v5_4' / 'core'
+if OPENCLAW_V54_CORE.exists():
+    sys.path.insert(0, str(OPENCLAW_V54_CORE))
 
 # 🔥 执行模式控制（新执行链是唯一真相源）
 USE_LEGACY_EXECUTION = False
@@ -60,7 +62,15 @@ from strategy.strategy_selector import StrategySelector
 from scoring_engine_v43 import ScoringEngineV43
 from enhanced_analyzer import EnhancedAnalyzer
 from live_executor import LiveExecutor
-from execution_engine import ExecutionEngine, Signal
+try:
+    from execution_engine import ExecutionEngine, Signal
+except Exception as e:
+    ExecutionEngine = None
+    class Signal:  # 仅用于兼容禁用旧执行链时的类型引用
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+    print(f"⚠️ 旧执行引擎不可用，已降级禁用：{e}")
 from profit_audit import get_profit_auditor, TradeRecord
 from constants import (
     GLOBAL_LEVERAGE as LEVERAGE,
@@ -96,12 +106,16 @@ from system_monitor import SystemMonitor
 from safety_controller import SafetyController, SafetyStatus
 
 # ========== V5.4.1 信号链 Adapter ==========
-import sys
-sys.path.insert(0, '/Users/colin/.openclaw/workspace/trading_system_v5_4/core')
-from v54_signal_adapter import get_v54_adapter
+try:
+    if OPENCLAW_V54_CORE.exists() and str(OPENCLAW_V54_CORE) not in sys.path:
+        sys.path.insert(0, str(OPENCLAW_V54_CORE))
+    from v54_signal_adapter import get_v54_adapter
+except Exception:
+    get_v54_adapter = None
 
 # ========== 持仓管理（核心安全模块）==========
 from position_manager import PositionManager, get_position_manager
+from decision_hub import get_decision_hub
 
 
 class V52System:
@@ -392,49 +406,68 @@ class V52System:
         print("   ✅ 配置版本管理器")
         print("   ✅ 系统监控器")
         print("   ✅ 安全控制器")
+
+        self.decision_hub = get_decision_hub()
+        print("   ✅ Decision Hub (审计授权源)")
     
-    def get_account_equity_usdt(self) -> float:
-        """获取账户权益（统一接口）"""
-        # 优先从 state_store 读取最新 equity
-        try:
-            if hasattr(self, 'state_store') and self.state_store:
-                last_trade = getattr(self.state_store, 'last_trade', None)
-                if last_trade:
-                    equity = last_trade.get('equity_usdt', 0.0)
-                    if equity > 0:
-                        return float(equity)
-        except Exception:
-            pass
+    async def get_account_equity_usdt(self) -> float:
+        """获取账户权益（统一接口）- 优先从交易所 API 读取真实余额"""
+        # 1. 从 executor.exchange.fetch_balance() 读取真实余额（最高优先级）
+        if hasattr(self, "executor") and self.executor:
+            try:
+                balance = await self.executor.exchange.fetch_balance()
+                usdt_free = balance.get('USDT', {}).get('free', 0.0)
+                usdt_total = balance.get('USDT', {}).get('total', 0.0)
+                
+                if usdt_free > 0 or usdt_total > 0:
+                    equity = max(usdt_free, usdt_total)
+                    # 更新 runtime capital snapshot
+                    self._update_capital_snapshot(equity)
+                    print(f"[CAPITAL_FETCH] source=exchange success=True equity_usdt={equity:.2f}")
+                    return float(equity)
+            except Exception as e:
+                print(f"[CAPITAL_FETCH] source=exchange success=False error={e}")
+                # 不静默回落，继续尝试其他方法
         
-        # 回退到简单的属性检查
+        # 2. 回退到简单的属性检查（runtime snapshot）
         if hasattr(self, "account_equity_usdt"):
-            return float(self.account_equity_usdt)
+            if self.account_equity_usdt > 0:
+                return float(self.account_equity_usdt)
         
         if hasattr(self, "balance_usdt"):
-            return float(self.balance_usdt)
+            if self.balance_usdt > 0:
+                return float(self.balance_usdt)
         
         if hasattr(self, "current_balance"):
-            return float(self.current_balance)
+            if self.current_balance > 0:
+                return float(self.current_balance)
         
-        # 尝试从 executor 获取
-        if hasattr(self, "executor") and self.executor:
-            if hasattr(self.executor, "balance"):
-                return float(self.executor.balance)
-        
-        # 如果所有方法都失败，返回 state_store.json 的 equity
+        # 3. 如果所有方法都失败，返回 state_store.json 的 equity（仅作审计））
         try:
             import json
-            # 🐉 Phase 1 主网灰度：使用专用干净 StateStore
+            # 🐉 Phase 1 主网灰度：StateStore 仅作审计快照，不用于真实交易判断
             state_file = Path(__file__).parent / "logs" / "state_store_mainnet_v541_phase1.json"
             if state_file.exists():
                 with open(state_file) as f:
                     ss = json.load(f)
                     capital = ss.get("capital", {})
-                    return float(capital.get("equity_usdt", 0.0))
+                    equity = float(capital.get("equity_usdt", 0.0))
+                    if equity > 0:
+                        print(f"[CAPITAL_FETCH] source=statestore equity_usdt={equity:.2f} caution=audit_only")
+                        return equity
         except Exception:
             pass
         
-        return 0.0
+        # 4. 所有方法都失败，明确报错，不返回 0.0
+        print("[CAPITAL_BLOCK] reason=BALANCE_FETCH_UNAVAILABLE equity=0.0")
+        raise RuntimeError("CAPITAL_SOURCE_UNAVAILABLE: 无法从交易所或 StateStore 获取真实余额")
+    
+    def _update_capital_snapshot(self, equity_usdt: float, margin_usdt: float = 0.0):
+        """更新 runtime capital snapshot (内存快照)"""
+        self.account_equity_usdt = equity_usdt
+        self.account_margin_usdt = margin_usdt
+        self.last_capital_fetch_time = time.time()
+        print(f"[CAPITAL_SNAPSHOT] equity_usdt={equity_usdt:.2f} margin_usdt={margin_usdt:.2f} source=exchange_runtime")
     
     async def run_cycle(self, symbol: str) -> Optional[Dict[str, Any]]:
         """
@@ -589,8 +622,9 @@ class V52System:
                 price_change=price_change
             )
             
-            # V5.4.1 集成：评分>=40 时让 V5.4.1 做最终决策
-            should_trade = (score >= 40)
+            # V5.4.1 集成：有 Adapter 时允许 score>=40 进入 Adapter；无 Adapter 时回退到 V5.3 原始门控
+            has_v54_adapter = hasattr(self, "v54_adapter") and self.v54_adapter is not None
+            should_trade = (score >= 40) if has_v54_adapter else should_trade_v53
             
             # ========== 5.5 V5.4.1 信号链检查 ==========
             if should_trade and hasattr(self, 'v54_adapter') and self.v54_adapter:
@@ -630,6 +664,24 @@ class V52System:
                 # 保存 V5.4.1 context 用于审计字段记录
                 self._v54_context = v54_context
             
+            hub_decision = None
+            if should_trade and hasattr(self, 'decision_hub') and self.decision_hub:
+                hub_decision = self.decision_hub.evaluate(
+                    signal={
+                        'latency_ms': 0.0,
+                        'spread_bps': 2.0,
+                        'volume_ratio': float(volume_ratio),
+                        'price_change': float(price_change),
+                    },
+                    symbol=symbol,
+                    price=float(current_price),
+                    score=int(score),
+                    regime=regime.value,
+                )
+                print(f"[DECISION_HUB] decision={hub_decision.decision_type.name} authorized={hub_decision.authorized} trace_id={hub_decision.trace_id}")
+                if not hub_decision.can_trade:
+                    return {'action': 'decision_hub_blocked', 'symbol': symbol, 'reason': ';'.join(hub_decision.reasons)}
+
             # 🔍 DEBUG: 打印检查结果和决策追踪
             print(f"[CHECK] should_trade={should_trade} gate_status={'PASS' if should_trade else 'REJECT'} gate_reasons={trade_reason}")
             print(f"[CHECK] decision: score_ok={decision_trace['score_ok']}, volume_ok={decision_trace['volume_ok']}, momentum_ok={decision_trace['price_change_ok']}, final={decision_trace['final']}")
@@ -646,11 +698,10 @@ class V52System:
                 print(f"\n[EXECUTION_ATTEMPT] symbol={symbol} side=long size=0.14ETH leverage=100x margin=3USD score={score:.1f}")
                 print(f"🚀 EXECUTION TRIGGERED for {symbol}")
                 
-                # 📝 [PRE_TRADE_CHECK] 下单前约束检查
-                available_balance = 1.55  # TODO: 从交易所实时读取
+                # 仅记录执行上下文；真实 PRE_TRADE_CHECK 由 _execute_trade 内的资金链输出
                 requested_notional = 3.0 * 100  # 3 USD * 100x
                 min_order_size = 0.01  # ETH 最小下单量
-                print(f"[PRE_TRADE_CHECK] available_balance={available_balance}USDT requested_notional={requested_notional}USDT min_order_size={min_order_size}ETH")
+                print(f"[EXECUTION_CONTEXT] requested_notional={requested_notional}USDT min_order_size={min_order_size}ETH")
                 
                 if self.shadow_mode:
                     # 影子模式：只记录，不执行
@@ -1025,7 +1076,14 @@ class V52System:
             return None
         
         # 🎯 动态保证金计算
-        equity_usdt = self.get_account_equity_usdt()
+        equity_usdt = await self.get_account_equity_usdt()
+        
+        # 获取最小订单大小
+        market_info = await self.exchange.load_markets()
+        min_order_size = market_info.get(symbol, {}).get('limits', {}).get('amount', {}).get('min', 0.01)
+        requested_notional = 300.0  # 默认名义价值
+        
+        print(f"[PRE_TRADE_CHECK] available_balance={equity_usdt:.2f}USDT balance_source=exchange_runtime requested_notional={requested_notional}USDT min_order_size={min_order_size}ETH")
         entry_price = float(current_price) if 'current_price' in dir() else 0.0
         
         # 尝试从 analyzer 获取当前价格

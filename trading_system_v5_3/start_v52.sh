@@ -7,7 +7,9 @@
 
 set -e
 
-BASE_DIR="/Users/colin/.openclaw/workspace/xiaolong_trading_system_4.2"
+# 动态计算 BASE_DIR - 基于脚本自身位置
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$SCRIPT_DIR"
 LOG_DIR="$BASE_DIR/logs"
 PID_FILE="$LOG_DIR/v52.pid"
 

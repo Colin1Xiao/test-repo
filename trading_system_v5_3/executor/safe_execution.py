@@ -17,10 +17,8 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import ccxt.async_support as ccxt
 
-# 🔥 导入唯一真相源
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
-from state_store_v54 import record_trade
+# 🔥 导入唯一真相源 - 使用 core.前缀确保导入稳定
+from core.state_store_v54 import record_trade
 
 
 class SafeExecutor:

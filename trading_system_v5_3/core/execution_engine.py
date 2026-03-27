@@ -23,15 +23,23 @@ from dataclasses import dataclass
 
 # V5.4 Safe Execution 集成
 # 添加 V5.4 安全链：Lock → Gate → Entry → Stop Loss → Record
-# V5.4.1 路径修复
+# V5.4.1 路径修复 - 动态定位 OpenClaw 路径
 import sys
-sys.path.insert(0, '/Users/colin/.openclaw/workspace/trading_system_v5_4/core')
+from pathlib import Path
+OPENCLAW_V54_CORE = Path.home() / '.openclaw' / 'workspace' / 'trading_system_v5_4' / 'core'
+if OPENCLAW_V54_CORE.exists():
+    sys.path.insert(0, str(OPENCLAW_V54_CORE))
 
-# 直接导入 V5.4 模块 (不使用 core.前缀)
-from safe_execution_assembly import (
-    get_safe_execution_v54_cached,
-    signal_to_execution_context,
-)
+# 惰性导入 V5.4 模块 - 不可用时降级
+try:
+    from safe_execution_assembly import (
+        get_safe_execution_v54_cached,
+        signal_to_execution_context,
+    )
+except Exception as e:
+    get_safe_execution_v54_cached = None
+    signal_to_execution_context = None
+    print(f"⚠️ V5.4 安全执行模块不可用，已降级：{e}")
 
 
 @dataclass

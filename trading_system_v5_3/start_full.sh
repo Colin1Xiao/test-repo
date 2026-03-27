@@ -6,7 +6,9 @@
 
 set -e
 
-BASE_DIR="/Users/colin/.openclaw/workspace/trading_system_v5_3"
+# 动态计算 BASE_DIR - 基于脚本自身位置
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$SCRIPT_DIR"
 LOGS_DIR="$BASE_DIR/logs"
 PID_DIR="$BASE_DIR/logs/pids"
 
