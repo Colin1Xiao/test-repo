@@ -45,6 +45,18 @@ logger_error = logger.error  # UI-3.8 修复：使用 logger.error 方法
 from performance_monitor import get_monitor_db, setup_performance_monitor, API_SLOW_THRESHOLD_MS
 
 # =============================================================================
+# UI-3.10D: 告警管理初始化
+# =============================================================================
+from alert_manager import (
+    get_all_rules,
+    create_rule,
+    update_rule,
+    delete_rule,
+    get_recent_events,
+    evaluate_rules
+)
+
+# =============================================================================
 # 配置和常量
 # =============================================================================
 # SQLite 双写开关（默认开启）
@@ -3646,6 +3658,103 @@ def api_monitor_top_endpoints() -> Any:
     
     except Exception as e:
         logger_error(f"Top endpoints 查询失败：{e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# =============================================================================
+# UI-3.10D: 告警管理 API
+# =============================================================================
+
+@app.route("/api/monitor/alerts/rules", methods=['GET', 'POST'])
+def api_alert_rules() -> Any:
+    """
+    告警规则管理
+    
+    GET: 获取所有规则
+    POST: 创建新规则
+    """
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            rule_id = create_rule(
+                name=data.get('name'),
+                metric_type=data.get('metric_type'),
+                window_minutes=data.get('window_minutes', 5),
+                threshold=data.get('threshold'),
+                operator=data.get('operator', '>='),
+                severity=data.get('severity', 'WARN')
+            )
+            return jsonify({"ok": True, "data": {"rule_id": rule_id}})
+        except Exception as e:
+            logger_error(f"创建规则失败：{e}")
+            return jsonify({"ok": False, "error": str(e)}), 400
+    else:
+        try:
+            rules = get_all_rules()
+            return jsonify({"ok": True, "data": {"rules": rules}})
+        except Exception as e:
+            logger_error(f"获取规则失败：{e}")
+            return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/monitor/alerts/rules/<int:rule_id>", methods=['PUT', 'DELETE'])
+def api_alert_rule(rule_id: int) -> Any:
+    """
+    单个规则管理
+    
+    PUT: 更新规则
+    DELETE: 删除规则
+    """
+    if request.method == 'PUT':
+        try:
+            data = request.get_json()
+            success = update_rule(rule_id, **data)
+            return jsonify({"ok": success})
+        except Exception as e:
+            logger_error(f"更新规则失败：{e}")
+            return jsonify({"ok": False, "error": str(e)}), 400
+    else:  # DELETE
+        try:
+            success = delete_rule(rule_id)
+            return jsonify({"ok": success})
+        except Exception as e:
+            logger_error(f"删除规则失败：{e}")
+            return jsonify({"ok": False, "error": str(e)}), 400
+
+
+@app.route("/api/monitor/alerts/events")
+def api_alert_events() -> Any:
+    """
+    获取最近告警事件
+    
+    参数:
+    - limit: 返回数量（默认 50）
+    """
+    try:
+        limit = int(request.args.get('limit', 50))
+        events = get_recent_events(limit)
+        return jsonify({"ok": True, "data": {"events": events}})
+    except Exception as e:
+        logger_error(f"获取告警事件失败：{e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/monitor/alerts/evaluate", methods=['POST'])
+def api_alert_evaluate() -> Any:
+    """
+    手动触发规则评估
+    """
+    try:
+        triggered = evaluate_rules()
+        return jsonify({
+            "ok": True,
+            "data": {
+                "triggered_count": len(triggered),
+                "alerts": triggered
+            }
+        })
+    except Exception as e:
+        logger_error(f"规则评估失败：{e}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
