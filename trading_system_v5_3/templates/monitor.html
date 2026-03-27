@@ -47,27 +47,51 @@
       min-height: 100vh;
     }
     
-    /* Top Navigation */
+    /* ===== 顶部导航栏 (UI-3 Lite) ===== */
     .top-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      background: var(--top-nav-bg);
+      border-bottom: 1px solid var(--top-nav-border);
+      padding: 0 var(--space-lg);
       height: var(--top-nav-height);
-      background: var(--bg-1);
-      border-bottom: 1px solid var(--border-1);
+      min-height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 var(--space-lg);
-      z-index: 1000;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      margin-bottom: var(--space-lg);
+      visibility: visible;
+      opacity: 1;
     }
-    .top-nav-brand h1 { font-size: 18px; font-weight: 700; margin: 0; }
-    .top-nav-brand span { font-size: 12px; color: var(--text-3); }
+    
+    /* 导航兜底强约束（防止被覆盖） */
+    .top-nav-brand, .top-nav-links {
+      visibility: visible;
+    }
+
+    .top-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .top-nav-brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--info);
+    }
+
+    .top-nav-brand span {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
     .top-nav-links {
       display: flex;
       gap: var(--space-xs);
     }
+
     .top-nav-link {
       display: flex;
       align-items: center;
@@ -78,9 +102,18 @@
       text-decoration: none;
       font-size: 14px;
       font-weight: 500;
+      transition: all 0.2s ease;
     }
-    .top-nav-link:hover { background: var(--bg-2); color: var(--text-1); }
-    .top-nav-link.active { background: var(--info-light); color: var(--info); }
+
+    .top-nav-link:hover {
+      background: var(--bg-2);
+      color: var(--text-1);
+    }
+
+    .top-nav-link.active {
+      background: var(--info-light);
+      color: var(--info);
+    }
     
     
     
