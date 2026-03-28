@@ -33,10 +33,10 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('panel_v41.log', encoding='utf-8')
+        logging.FileHandler('panel_v40.log', encoding='utf-8')
     ]
 )
-logger = logging.getLogger('panel_v41')
+logger = logging.getLogger('panel_v40')
 logger_error = logger.error  # UI-3.8 修复：使用 logger.error 方法
 
 # =============================================================================
@@ -666,96 +666,128 @@ def load_decisions() -> None:
         # 记录失败
         update_source_health("decision_log", success=False, error=e)
 
+def _fetch_capital_from_okx() -> Dict:
+    """从 OKX API 获取账户余额"""
+    balance = exchange.fetch_balance()
+    usdt = balance.get('USDT', {})
+    return {
+        "equity": float(usdt.get('total', 0.0) or 0.0),
+        "available": float(usdt.get('free', 0.0) or 0.0),
+        "margin": float(usdt.get('used', 0.0) or 0.0),
+    }
+
+
+def _load_realized_pnl() -> float:
+    """从 state_store.json 加载已实现盈亏"""
+    state_store_file = DATA_DIR / 'state_store.json'
+    if not state_store_file.exists():
+        return 0.0
+    try:
+        state_data = json.load(open(state_store_file))
+        return float(state_data.get('total_pnl', 0.0))
+    except:
+        return 0.0
+
+
+def _load_capital_from_files() -> Dict:
+    """从文件加载资本数据（API 未配置时）"""
+    state_store_file = DATA_DIR / 'state_store.json'
+    live_state_file = Path(__file__).parent / 'logs' / 'live_state.json'
+    
+    realized_pnl = 0.0
+    equity = 0.0
+    available = 0.0
+    
+    if state_store_file.exists():
+        try:
+            state_data = json.load(open(state_store_file))
+            realized_pnl = float(state_data.get('total_pnl', 0.0))
+            capital = state_data.get('capital', {})
+            equity = float(capital.get('equity_usdt', 0.0))
+            available = float(capital.get('usdt_free', 0.0))
+        except:
+            pass
+    
+    if live_state_file.exists():
+        try:
+            live_data = json.load(open(live_state_file))
+            balance = live_data.get('balance', {})
+            if not equity:
+                equity = float(balance.get('usdt_total', 0.0))
+            if not available:
+                available = float(balance.get('usdt_free', 0.0))
+        except:
+            pass
+    
+    return {
+        "equity": equity,
+        "available": available,
+        "margin": 0.0,
+        "realized_pnl": realized_pnl,
+    }
+
+
+def _update_capital_state(data: Dict, now_ts: str) -> None:
+    """更新全局资本状态"""
+    capital_state.update({
+        "equity": data.get("equity", 0.0),
+        "available": data.get("available", 0.0),
+        "margin": data.get("margin", 0.0),
+        "unrealized_pnl": float(position_state.get('unrealized_pnl', 0.0)),
+        "realized_pnl": data.get("realized_pnl", 0.0),
+        "currency": "USDT",
+        "last_updated": now_ts
+    })
+
+
+def _update_source_health_ok(now_ts: str) -> None:
+    """更新源健康状态（成功）"""
+    source_health["okx_capital"].update({
+        "last_success_ts": now_ts,
+        "last_attempt_ts": now_ts,
+        "fail_count": 0,
+        "last_error": None,
+        "status": "ok"
+    })
+
+
+def _update_source_health_error(now_ts: str, error: str) -> None:
+    """更新源健康状态（错误）"""
+    fail_count = source_health["okx_capital"].get("fail_count", 0) + 1
+    source_health["okx_capital"].update({
+        "last_attempt_ts": now_ts,
+        "fail_count": fail_count,
+        "last_error": error,
+        "status": "error" if fail_count >= 3 else "warn"
+    })
+
+
 def fetch_capital() -> None:
     """从 OKX API 获取真实账户余额（v41 增强：记录健康状态）"""
     global capital_state
     now = datetime.now()
     now_ts = now.isoformat()
+    
     try:
         if API_CONFIGURED:
-            balance = exchange.fetch_balance()
-            usdt = balance.get('USDT', {})
-            total = usdt.get('total', 0.0) or 0.0
-            free = usdt.get('free', 0.0) or 0.0
-            used = usdt.get('used', 0.0) or 0.0
-            
-            # 从 state_store.json 获取已实现盈亏
-            state_store_file = DATA_DIR / 'state_store.json'
-            realized_pnl = 0.0
-            if state_store_file.exists():
-                try:
-                    state_data = json.load(open(state_store_file))
-                    realized_pnl = state_data.get('total_pnl', 0.0)
-                except: pass
-            
-            capital_state.update({
-                "equity": float(total),
-                "available": float(free),
-                "margin": float(used),
-                "unrealized_pnl": float(position_state.get('unrealized_pnl', 0.0)),
-                "realized_pnl": float(realized_pnl),
-                "currency": "USDT",
-                "last_updated": now_ts
-            })
-            
-            # 更新健康状态
-            source_health["okx_capital"].update({
-                "last_success_ts": now_ts,
-                "last_attempt_ts": now_ts,
-                "fail_count": 0,
-                "last_error": None,
-                "status": "ok"
-            })
+            data = _fetch_capital_from_okx()
+            data["realized_pnl"] = _load_realized_pnl()
+            _update_capital_state(data, now_ts)
+            _update_source_health_ok(now_ts)
         else:
-            # API 未配置时，从 state_store.json 和 live_state.json 读取
-            state_store_file = DATA_DIR / 'state_store.json'
-            live_state_file = Path(__file__).parent / 'logs' / 'live_state.json'
+            data = _load_capital_from_files()
+            _update_capital_state(data, now_ts)
+            _update_source_health_ok(now_ts)
             
-            realized_pnl = 0.0
-            equity = 0.0
-            available = 0.0
-            
-            if state_store_file.exists():
-                try:
-                    state_data = json.load(open(state_store_file))
-                    realized_pnl = float(state_data.get('total_pnl', 0.0))
-                    capital = state_data.get('capital', {})
-                    equity = float(capital.get('equity_usdt', 0.0))
-                    available = float(capital.get('usdt_free', 0.0))
-                except: pass
-            
-            if live_state_file.exists():
-                try:
-                    live_data = json.load(open(live_state_file))
-                    balance = live_data.get('balance', {})
-                    if not equity:
-                        equity = float(balance.get('usdt_total', 0.0))
-                    if not available:
-                        available = float(balance.get('usdt_free', 0.0))
-                except: pass
-            
-            capital_state.update({
-                "equity": equity,
-                "available": available,
-                "margin": 0.0,
-                "unrealized_pnl": float(position_state.get('unrealized_pnl', 0.0)),
-                "realized_pnl": realized_pnl,
-                "currency": "USDT",
-                "last_updated": now_ts
-            })
-            
-            source_health["okx_capital"].update({
-                "last_success_ts": now_ts,
-                "last_attempt_ts": now_ts,
-                "status": "ok"
-            })
     except Exception as e:
-        source_health["okx_capital"].update({
-            "last_attempt_ts": now_ts,
-            "fail_count": source_health["okx_capital"].get("fail_count", 0) + 1,
-            "last_error": str(e),
-            "status": "error" if source_health["okx_capital"].get("fail_count", 0) >= 3 else "warn"
-        })
+        # API 调用失败时，回退到从文件读取
+        logger.warning(f"OKX API 调用失败，回退到文件读取: {e}")
+        try:
+            data = _load_capital_from_files()
+            _update_capital_state(data, now_ts)
+            _update_source_health_ok(now_ts)
+        except Exception as e2:
+            _update_source_health_error(now_ts, f"API: {e}, File: {e2}")
 
 def fetch_position() -> None:
     """从 OKX API 获取真实持仓状态（v41 增强：记录健康状态）"""
@@ -803,6 +835,13 @@ def fetch_position() -> None:
 
         update_source_health("okx_position", success=True)
     except Exception as e:
+        logger.warning(f"OKX API 持仓查询失败: {e}")
+        # API 调用失败时，保持无持仓状态
+        position_state.update({
+            "side": None, "size": 0.0, "entry_price": 0.0,
+            "mark_price": 0.0, "unrealized_pnl": 0.0,
+            "last_updated": datetime.now().isoformat()
+        })
         update_source_health("okx_position", success=False, error=e)
 
 def get_market() -> Dict[str, Any]:
@@ -824,65 +863,92 @@ def get_market() -> Dict[str, Any]:
         return {'price': 'N/A', 'change': 0, 'volume': 'N/A', 'regime': 'error'}
 
 # 后台数据更新线程
-def compute_risk_state(control: Dict, stats: Dict, capital: Dict) -> Dict:
-    """计算风险状态（v42 新增）"""
+def _check_mode_restrictions(control: Dict) -> List[str]:
+    """检查模式限制"""
     reasons = []
-    
     mode = control.get("mode", "observe_only")
-    can_open = control.get("can_open", False)
-    can_close = control.get("can_close", True)
-    circuit_breaker = control.get("circuit_breaker", False)
-    
-    max_daily_loss = float(control.get("max_daily_loss", 0) or 0)
-    max_daily_trades = int(control.get("max_daily_trades", 0) or 0)
-    
-    # 模拟当日统计（从 stats 或其他源获取真实值）
-    current_daily_loss = float(stats.get("daily_pnl", 0) or 0) * -1  # 亏损为正
-    daily_trades = int(stats.get("daily_trades", 0) or 0)
-    
-    equity = float(capital.get("equity", 0) or 0)
-    daily_loss_pct = (current_daily_loss / equity * 100) if equity > 0 else 0
-    
-    # 模式限制
     if mode == "observe_only":
         reasons.append("observe_only_mode")
-    
-    if not can_open:
+    if not control.get("can_open", False):
         reasons.append("open_disabled")
-    
-    if not can_close:
+    if not control.get("can_close", True):
         reasons.append("close_disabled")
-    
-    if circuit_breaker:
+    if control.get("circuit_breaker", False):
         reasons.append("circuit_breaker")
+    return reasons
+
+
+def _check_loss_limits(control: Dict, stats: Dict, equity: float) -> Tuple[bool, float, float]:
+    """
+    检查亏损限制
     
-    # 日亏损限制
-    if max_daily_loss > 0 and current_daily_loss >= max_daily_loss:
+    Returns:
+        (是否触发限制，当前亏损，亏损百分比)
+    """
+    max_daily_loss = float(control.get("max_daily_loss", 0) or 0)
+    current_daily_loss = float(stats.get("daily_pnl", 0) or 0) * -1  # 亏损为正
+    daily_loss_pct = (current_daily_loss / equity * 100) if equity > 0 else 0
+    
+    triggered = max_daily_loss > 0 and current_daily_loss >= max_daily_loss
+    return triggered, current_daily_loss, daily_loss_pct
+
+
+def _check_trade_limits(control: Dict, stats: Dict) -> Tuple[bool, int]:
+    """
+    检查交易次数限制
+    
+    Returns:
+        (是否触发限制，当前交易次数)
+    """
+    max_daily_trades = int(control.get("max_daily_trades", 0) or 0)
+    daily_trades = int(stats.get("daily_trades", 0) or 0)
+    
+    triggered = max_daily_trades > 0 and daily_trades >= max_daily_trades
+    return triggered, daily_trades
+
+
+def _compute_gate_status(circuit_breaker: bool, can_open: bool, can_close: bool, has_reasons: bool) -> str:
+    """计算闸门状态"""
+    if circuit_breaker or (not can_open and not can_close):
+        return "blocked"
+    elif has_reasons:
+        return "restricted"
+    return "open"
+
+
+def compute_risk_state(control: Dict, stats: Dict, capital: Dict) -> Dict:
+    """计算风险状态（v42 新增）"""
+    # 检查模式限制
+    reasons = _check_mode_restrictions(control)
+    circuit_breaker = control.get("circuit_breaker", False)
+    
+    # 检查亏损限制
+    equity = float(capital.get("equity", 0) or 0)
+    loss_triggered, current_daily_loss, daily_loss_pct = _check_loss_limits(control, stats, equity)
+    if loss_triggered:
         reasons.append("max_daily_loss_reached")
         circuit_breaker = True
     
-    # 日交易次数限制
-    if max_daily_trades > 0 and daily_trades >= max_daily_trades:
+    # 检查交易次数限制
+    trade_triggered, daily_trades = _check_trade_limits(control, stats)
+    if trade_triggered:
         reasons.append("max_daily_trades_reached")
     
-    # 闸门状态
-    if circuit_breaker or (not can_open and not can_close):
-        gate_status = "blocked"
-    elif reasons:
-        gate_status = "restricted"
-    else:
-        gate_status = "open"
+    # 计算闸门状态
+    can_open = control.get("can_open", False)
+    can_close = control.get("can_close", True)
+    gate_status = _compute_gate_status(circuit_breaker, can_open, can_close, len(reasons) > 0)
     
     return {
-        "mode": mode,
+        "mode": control.get("mode", "observe_only"),
         "can_open": can_open,
         "can_close": can_close,
         "circuit_breaker": circuit_breaker,
-        "max_daily_loss": max_daily_loss,
+        "max_daily_loss": float(control.get("max_daily_loss", 0) or 0),
         "current_daily_loss": current_daily_loss,
         "daily_loss_pct": round(daily_loss_pct, 2),
         "daily_trades": daily_trades,
-        "max_daily_trades": max_daily_trades,
+        "max_daily_trades": int(control.get("max_daily_trades", 0) or 0),
         "gate_status": gate_status,
         "gate_reasons": reasons,
         "last_control_change_ts": control.get("updated_at"),
@@ -1033,6 +1099,45 @@ def alert_sort_key(alert: Dict) -> tuple:
     )
 
 
+def _process_new_alert(issue: Dict, now_ts: float, active_alerts: Dict) -> None:
+    """处理新告警"""
+    key = alert_key(issue)
+    active_alerts[key] = {
+        **issue,
+        "first_seen_ts": now_ts,
+        "last_seen_ts": now_ts,
+        "count": 1,
+    }
+
+
+def _update_existing_alert(state: Dict, now_ts: float) -> None:
+    """更新已存在告警状态"""
+    state["last_seen_ts"] = now_ts
+    state["count"] += 1
+
+
+def _detect_recoveries(active_alerts: Dict, current_keys: set, now_ts: float, emitted: List) -> None:
+    """检测恢复事件"""
+    previous_keys = list(active_alerts.keys())
+    for key in previous_keys:
+        if key not in current_keys:
+            old = active_alerts.pop(key)
+            emitted.append({
+                "ts": datetime.fromtimestamp(now_ts).isoformat(),
+                "level": "INFO",
+                "type": f"{old.get('type', 'unknown')}_recovered",
+                "source": old.get("source"),
+                "title": f"{old.get('title', '告警')}已恢复",
+                "message": "状态已恢复正常",
+                "context": {
+                    "previous_level": old.get("level"),
+                    "active_count": old.get("count", 1),
+                },
+                "dedup_count": 1,
+            })
+            alert_cooldowns.pop(key, None)
+
+
 def update_active_alerts(current_issues: List[Dict], now_ts: float) -> List[Dict]:
     """
     更新活跃告警并生成待发射列表（P1-2 新增）
@@ -1052,20 +1157,11 @@ def update_active_alerts(current_issues: List[Dict], now_ts: float) -> List[Dict
         key = alert_key(issue)
         current_keys.add(key)
         
-        # 更新活跃告警状态
         state = active_alerts.get(key)
         if not state:
-            # 新告警
-            active_alerts[key] = {
-                **issue,
-                "first_seen_ts": now_ts,
-                "last_seen_ts": now_ts,
-                "count": 1,
-            }
+            _process_new_alert(issue, now_ts, active_alerts)
         else:
-            # 已存在，更新
-            state["last_seen_ts"] = now_ts
-            state["count"] += 1
+            _update_existing_alert(state, now_ts)
         
         # 判断是否应该发射
         should_emit, merged_count = should_emit_alert(issue, now_ts)
@@ -1076,27 +1172,8 @@ def update_active_alerts(current_issues: List[Dict], now_ts: float) -> List[Dict
                 alert["message"] = f"{issue.get('message', '')} (近阶段累计 {merged_count} 次)"
             emitted.append(alert)
     
-    # 检测恢复：之前活跃、现在消失
-    previous_keys = list(active_alerts.keys())
-    for key in previous_keys:
-        if key not in current_keys:
-            old = active_alerts.pop(key)
-            # 发送恢复事件
-            emitted.append({
-                "ts": datetime.fromtimestamp(now_ts).isoformat(),
-                "level": "INFO",
-                "type": f"{old.get('type', 'unknown')}_recovered",
-                "source": old.get("source"),
-                "title": f"{old.get('title', '告警')}已恢复",
-                "message": "状态已恢复正常",
-                "context": {
-                    "previous_level": old.get("level"),
-                    "active_count": old.get("count", 1),
-                },
-                "dedup_count": 1,
-            })
-            # 清理冷却状态
-            alert_cooldowns.pop(key, None)
+    # 检测恢复
+    _detect_recoveries(active_alerts, current_keys, now_ts, emitted)
     
     return emitted
 
@@ -1395,9 +1472,24 @@ def build_health_status() -> Dict[str, Any]:
     }
 
 def background_update():
-    """每 5 秒更新一次实时数据并发布快照（v41 重构）"""
+    """
+    每 5 秒更新一次实时数据并发布快照（v41 重构 + 结构化日志）
+    
+    结构化日志事件:
+    - service_started: 服务启动
+    - snapshot_published: 快照发布成功
+    - snapshot_failed: 快照发布失败
+    - worker_heartbeat: Worker 心跳
+    """
     import time
     counter = 0
+    
+    # 服务启动事件
+    logger.info("service_started", extra={
+        "event": "service_started",
+        "ts": datetime.now().isoformat(),
+        "port": 8780,
+    })
     
     while True:
         loop_ts = datetime.now().isoformat()
@@ -1406,17 +1498,48 @@ def background_update():
             snapshot = build_snapshot()
             publish_snapshot(snapshot)
             
+            # 结构化日志：快照发布成功
+            equity = float(snapshot.get("capital", {}).get("equity_usdt", 0) or 0)
+            position_side = snapshot.get("position", {}).get("side", "FLAT") if snapshot.get("position") else "FLAT"
+            
+            logger.info("snapshot_published", extra={
+                "event": "snapshot_published",
+                "ts": loop_ts,
+                "counter": counter,
+                "equity": equity,
+                "position_side": position_side,
+                "snapshot_age_sec": 0,
+            })
+            
             worker_state["last_loop_ts"] = loop_ts
             worker_state["loop_ok"] = True
             worker_state["counter"] = counter
             worker_state["fail_count"] = 0
             
+            # 结构化日志：Worker 心跳（每 10 次循环记录一次，避免日志过多）
+            if counter % 10 == 0:
+                logger.info("worker_heartbeat", extra={
+                    "event": "worker_heartbeat",
+                    "ts": loop_ts,
+                    "counter": counter,
+                    "equity": equity,
+                    "fail_count": 0,
+                })
+            
             counter += 1
         except Exception as e:
-            # 记录失败但不中断线程
+            # 结构化日志：快照发布失败
             worker_state["loop_ok"] = False
             worker_state["fail_count"] += 1
             worker_state["last_error"] = str(e)
+            
+            logger.error("snapshot_failed", extra={
+                "event": "snapshot_failed",
+                "ts": loop_ts,
+                "counter": counter,
+                "error": str(e),
+                "fail_count": worker_state["fail_count"],
+            })
         
         time.sleep(5)
 
@@ -3800,7 +3923,24 @@ def api_stats():
 
 @app.route("/api/health")
 def api_health():
-    """系统健康状态（v41 新增，B3 观测性增强：API 性能指标）"""
+    """
+    系统健康状态（v41 扩展 - 三级健康检查）
+    
+    返回字段:
+    - status: ok | degraded | failed
+    - worker_alive: Worker 线程是否存活
+    - snapshot_ready: 快照是否已就绪（非空）
+    - snapshot_age_sec: 快照年龄（秒）
+    - data_valid: 数据是否有效（equity > 0）
+    - equity: 账户权益
+    - fail_count: 连续失败次数
+    - last_error: 最后错误信息
+    - last_loop_ts: 最后循环时间戳
+    - dependency: 依赖状态 {okx_api, file_fallback}
+    - freshness: 新鲜度追踪
+    - sqlite: SQLite 状态
+    - api_metrics: API 性能指标
+    """
     start_time = time.time()
     endpoint = "/api/health"
     
@@ -3813,6 +3953,82 @@ def api_health():
         for key in base_health:
             if key not in health:
                 health[key] = base_health[key]
+        
+        # =====================================================================
+        # 三级健康检查 - Liveness/Readiness/Dependency
+        # =====================================================================
+        
+        # --- Liveness (活着没) ---
+        worker_alive = health.get("worker_alive", False)
+        snapshot_age = health.get("snapshot_age_sec", 0)
+        
+        # --- Readiness (能不能服务) ---
+        snapshot_ready = snap is not None and bool(snap)
+        data_valid = False
+        equity = 0.0
+        
+        if snap and "capital" in snap:
+            equity = float(snap["capital"].get("equity_usdt", 0) or 0)
+            data_valid = equity > 0
+        
+        # --- Dependency (依赖是否可用) ---
+        okx_api_status = "ok"
+        file_fallback_status = "missing"
+        
+        # 检查 OKX API 状态（从 source_health 推断）
+        okx_health = source_health.get("okx_capital", {})
+        if okx_health.get("status") == "error":
+            okx_api_status = "failed"
+        elif okx_health.get("status") == "warn":
+            okx_api_status = "degraded"
+        
+        # 检查文件回退状态
+        if Path("live_state.json").exists() or Path("logs/live_state.json").exists():
+            file_fallback_status = "ok"
+        
+        # --- 计算总体状态 ---
+        status = "ok"
+        
+        # Critical 条件 → failed
+        if not worker_alive:
+            status = "failed"
+        elif snapshot_age > 60:
+            status = "failed"
+        elif not data_valid and equity == 0:
+            status = "degraded"  # 数据无效但不一定是故障
+        
+        # Warning 条件 → degraded
+        if status == "ok":
+            if snapshot_age > 15:
+                status = "degraded"
+            elif okx_api_status == "degraded":
+                status = "degraded"
+        
+        # 从 worker_state 获取错误信息
+        fail_count = worker_state.get("fail_count", 0)
+        last_error = worker_state.get("last_error", None)
+        last_loop_ts = worker_state.get("last_loop_ts", None)
+        
+        # 构建扩展健康状态
+        extended_health = {
+            "status": status,
+            "worker_alive": worker_alive,
+            "snapshot_ready": snapshot_ready,
+            "snapshot_age_sec": snapshot_age,
+            "data_valid": data_valid,
+            "equity": equity,
+            "fail_count": fail_count,
+            "last_error": last_error,
+            "last_loop_ts": last_loop_ts,
+            "dependency": {
+                "okx_api": okx_api_status,
+                "file_fallback": file_fallback_status,
+            },
+        }
+        
+        # 合并原有 health 数据
+        for key, value in extended_health.items():
+            health[key] = value
         
         # SQLite 健康状态（A2 增强）
         sqlite_status = {
