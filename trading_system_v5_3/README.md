@@ -78,6 +78,36 @@ tail -f panel_v41.log
 # API
 curl http://127.0.0.1:8780/api/health | jq
 
+# 自动化健康检查（每分钟）
+./healthcheck.sh --notify
+
+# 查看告警日志
+cat healthcheck-alerts.log
+```
+
+### 定时任务配置
+
+**macOS (launchd):**
+```bash
+# 加载配置
+cp com.xiaolong.healthcheck.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.xiaolong.healthcheck.plist
+
+# 查看状态
+launchctl list | grep xiaolong
+
+# 卸载
+launchctl unload ~/Library/LaunchAgents/com.xiaolong.healthcheck.plist
+```
+
+**Linux (crontab):**
+```bash
+crontab -e
+# 添加：* * * * * /path/to/healthcheck.sh --notify >> /path/to/healthcheck.log 2>&1
+```
+
+详见 [`CRON_INSTALL.md`](CRON_INSTALL.md)
+
 # 关键指标
 curl http://127.0.0.1:8780/api/health | jq '{
   status: .status,

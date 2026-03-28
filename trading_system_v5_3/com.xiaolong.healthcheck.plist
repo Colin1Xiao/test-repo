@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 小龙交易系统健康检查 - launchd 配置 -->
+    <!-- 加载：launchctl load ~/Library/LaunchAgents/com.xiaolong.healthcheck.plist -->
+    <!-- 卸载：launchctl unload ~/Library/LaunchAgents/com.xiaolong.healthcheck.plist -->
+    <!-- 查看状态：launchctl list | grep xiaolong -->
+    
+    <key>Label</key>
+    <string>com.xiaolong.healthcheck</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/colin/.openclaw/workspace/trading_system_v5_3/healthcheck.sh</string>
+        <string>--notify</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/colin/.openclaw/workspace/trading_system_v5_3</string>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/colin/.openclaw/workspace/trading_system_v5_3/healthcheck.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/colin/.openclaw/workspace/trading_system_v5_3/healthcheck.log</string>
+    
+    <!-- 每分钟执行一次 -->
+    <key>StartInterval</key>
+    <integer>60</integer>
+    
+    <!-- 环境变量 -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>TELEGRAM_BOT_TOKEN</key>
+        <string>YOUR_BOT_TOKEN_HERE</string>
+        <key>TELEGRAM_CHAT_ID</key>
+        <string>YOUR_CHAT_ID_HERE</string>
+    </dict>
+    
+    <!-- 仅在用户登录时运行 -->
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+    
+    <!-- 运行用户 -->
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
