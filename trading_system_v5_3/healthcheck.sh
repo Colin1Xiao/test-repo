@@ -34,8 +34,13 @@ SNAPSHOT_AGE_WARN=15      # 快照年龄 >15s 告警
 SNAPSHOT_AGE_CRITICAL=60  # 快照年龄 >60s 严重
 EQUITY_ZERO_COUNT=3       # equity=0 持续次数触发告警
 
+# 告警降噪配置
+ALERT_COOLDOWN_SEC=300    # 相同告警冷却时间（5 分钟）
+RECOVERY_NOTIFY=true      # 是否发送恢复通知
+
 # 状态跟踪文件
 STATE_FILE="${SCRIPT_DIR}/.healthcheck_state.json"
+ALERT_HISTORY_FILE="${SCRIPT_DIR}/.healthcheck_alert_history.json"
 
 # 颜色输出（TTY 检测）
 if [ -t 1 ]; then
@@ -111,7 +116,7 @@ load_state() {
     if [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
     else
-        echo '{"equity_zero_count":0,"last_alert":""}'
+        echo '{"equity_zero_count":0,"last_alert":"","last_status":"OK","last_status_change":""}'
     fi
 }
 
@@ -119,7 +124,72 @@ load_state() {
 save_state() {
     local equity_zero_count="$1"
     local last_alert="$2"
-    echo "{\"equity_zero_count\":$equity_zero_count,\"last_alert\":\"$last_alert\"}" > "$STATE_FILE"
+    local last_status="$3"
+    local last_status_change="$4"
+    echo "{\"equity_zero_count\":$equity_zero_count,\"last_alert\":\"$last_alert\",\"last_status\":\"$last_status\",\"last_status_change\":\"$last_status_change\"}" > "$STATE_FILE"
+}
+
+# 读取告警历史（用于去重）
+load_alert_history() {
+    if [ -f "$ALERT_HISTORY_FILE" ]; then
+        cat "$ALERT_HISTORY_FILE"
+    else
+        echo '{"alerts":{}}'
+    fi
+}
+
+# 检查告警是否应该发送（去重 + cooldown）
+should_send_alert() {
+    local alert_key="$1"
+    local now=$(date +%s)
+    
+    local history=$(load_alert_history)
+    local last_sent=$(python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+alert=d.get('alerts',{}).get('$alert_key',{})
+print(alert.get('last_sent', 0))
+" <<< "$history" 2>/dev/null || echo "0")
+    
+    local diff=$((now - last_sent))
+    if [ "$diff" -lt "$ALERT_COOLDOWN_SEC" ]; then
+        return 1  # 不发送（冷却中）
+    fi
+    return 0  # 可以发送
+}
+
+# 记录告警发送
+record_alert_sent() {
+    local alert_key="$1"
+    local now=$(date +%s)
+    
+    local history=$(load_alert_history)
+    python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+if 'alerts' not in d: d['alerts']={}
+d['alerts']['$alert_key']={'last_sent':$now}
+print(json.dumps(d))
+" <<< "$history" > "$ALERT_HISTORY_FILE" 2>/dev/null || true
+}
+
+# 发送告警（带去重）
+send_alert() {
+    local level="$1"
+    local message="$2"
+    local alert_key="$3"
+    
+    # 检查 cooldown
+    if ! should_send_alert "$alert_key"; then
+        log_info "[告警抑制] $alert_key (冷却中)"
+        return 0
+    fi
+    
+    # 记录发送
+    record_alert_sent "$alert_key"
+    
+    # 发送 Telegram
+    send_telegram "$message"
 }
 
 # =============================================================================
@@ -216,24 +286,54 @@ check_health() {
             ;;
     esac
     
-    # 6. 发送通知（如需要）
-    if [ "$notify" = "true" ] && [ "$overall_status" != "OK" ]; then
-        local emoji="⚠️"
-        [ "$overall_status" = "FAILED" ] && emoji="🔴"
-        
-        send_telegram "${emoji} **交易系统告警**
+    # 6. 发送通知（如需要，带去重）
+    local now=$(date +%s)
+    local current_status="$overall_status"
+    local state=$(load_state)
+    local last_status=$(json_get "$state" "last_status" "UNKNOWN")
+    local last_status_change=$(json_get "$state" "last_status_change" "")
+    
+    # 检测状态变化
+    if [ "$current_status" != "$last_status" ]; then
+        # 状态变化，发送通知
+        if [ "$notify" = "true" ]; then
+            if [ "$current_status" = "OK" ] && [ "$RECOVERY_NOTIFY" = "true" ]; then
+                # 恢复通知
+                local emoji="✅"
+                local duration="未知"
+                if [ -n "$last_status_change" ]; then
+                    duration=$(( (now - last_status_change) / 60 ))
+                    duration="${duration}分钟"
+                fi
+                
+                send_alert "recovery" "${emoji} **交易系统恢复**
 
-状态：$overall_status
+状态：$last_status → $current_status
+持续时间：$duration
+时间：$(date '+%Y-%m-%d %H:%M:%S')" "recovery_from_${last_status}"
+            elif [ "$current_status" != "OK" ]; then
+                # 故障通知
+                local emoji="⚠️"
+                [ "$current_status" = "FAILED" ] && emoji="🔴"
+                
+                send_alert "failure" "${emoji} **交易系统告警**
+
+状态：$last_status → $current_status
 告警：$alerts
 Worker: $worker_alive
 快照：${snapshot_age}s
 权益：$equity USDT
 OKX: $okx_api
-时间：$(date '+%Y-%m-%d %H:%M:%S')"
+时间：$(date '+%Y-%m-%d %H:%M:%S')" "failure_to_${current_status}"
+            fi
+        fi
+        
+        # 记录状态变化时间
+        last_status_change=$now
     fi
     
     # 7. 保存状态
-    save_state "$equity_zero_count" "$overall_status"
+    save_state "$equity_zero_count" "$alerts" "$current_status" "$last_status_change"
     
     # 8. 返回状态码
     case "$overall_status" in
