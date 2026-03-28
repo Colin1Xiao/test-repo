@@ -17,8 +17,7 @@ import ccxt.async_support as ccxt
 from .types import TradeResult
 from .position_gate import PositionGate
 from .stop_loss import StopLossManager
-from ..state_store import record_trade as record_state_event
-from ..state_store_v54 import get_state_store as get_v54_store
+from ..state_store import record_trade
 from ..constants import GLOBAL_STOP_LOSS_PCT
 
 
@@ -143,46 +142,12 @@ class SafeExecutionV54:
             'notional_usdt': decision.notional_usdt if decision else 0,
             'equity_usdt': decision.equity_usdt if decision else 0,
             'capital_state': decision.capital_state if decision else 'LEGACY',
-            'capital_reason': getattr(decision, 'reason', '') if decision else '',
-            'leverage': getattr(decision, 'leverage', 100) if decision else 100,
-            'risk_pct': getattr(decision, 'risk_pct', 0.0) if decision else 0.0,
-            'trace_id': getattr(decision, 'trace_id', ''),
-            'signal_score': getattr(decision, 'signal_score', None),
-            'spread_bps': getattr(decision, 'spread_bps', None),
-            'volatility': getattr(decision, 'volatility', None),
-            'decision_source': getattr(getattr(decision, 'audit_context', {}), 'get', lambda *_: '')('decision_source', '') if decision else '',
+            'capital_reason': decision.reason if decision else '',
+            'leverage': decision.leverage if decision else 100,
+            'risk_pct': decision.risk_pct if decision else 0.0,
         }
         self.current_position = position
         await self.position_gate.set_position(position)
-
-        entry_event = {
-            'event': 'entry',
-            'symbol': self.symbol,
-            'entry_price': entry,
-            'position_size': size,
-            'margin_usdt': position['margin_usdt'],
-            'notional_usdt': position['notional_usdt'],
-            'equity_usdt': position['equity_usdt'],
-            'capital_state': position['capital_state'],
-            'capital_reason': position['capital_reason'],
-            'leverage': position['leverage'],
-            'risk_pct': position['risk_pct'],
-            'stop_ok': self.stop_order_id is not None,
-            'stop_verified': self.stop_order_id is not None,
-            'trace_id': position.get('trace_id', ''),
-            'signal_score': position.get('signal_score'),
-            'spread_bps': position.get('spread_bps'),
-            'volatility': position.get('volatility'),
-            'decision_source': position.get('decision_source', ''),
-        }
-        try:
-            record_state_event(entry_event)
-        except Exception as e:
-            print(f"⚠️ StateStore(entry) 写入失败: {e}")
-        try:
-            get_v54_store().record_event('entry', entry_event)
-        except Exception as e:
-            print(f"⚠️ StateStoreV54(entry) 写入失败: {e}")
     
     async def execute_exit(self, exit_source: str = "TIME_EXIT") -> Optional[TradeResult]:
         """安全平仓"""
@@ -201,41 +166,6 @@ class SafeExecutionV54:
             # 计算盈亏
             pnl = (exit_price - position['entry_price']) / position['entry_price']
             
-            stop_ok = self.stop_order_id is not None
-            stop_verified = stop_ok
-
-            exit_event = {
-                'event': 'exit',
-                'symbol': self.symbol,
-                'entry_price': position['entry_price'],
-                'exit_price': exit_price,
-                'pnl': pnl,
-                'exit_source': exit_source,
-                'position_size': position['size'],
-                'margin_usdt': position.get('margin_usdt', 0.0),
-                'notional_usdt': position.get('notional_usdt', 0.0),
-                'equity_usdt': position.get('equity_usdt', 0.0),
-                'capital_state': position.get('capital_state', 'UNKNOWN'),
-                'capital_reason': position.get('capital_reason', ''),
-                'leverage': position.get('leverage', 100),
-                'risk_pct': position.get('risk_pct', 0.0),
-                'stop_ok': stop_ok,
-                'stop_verified': stop_verified,
-                'trace_id': position.get('trace_id', ''),
-                'signal_score': position.get('signal_score'),
-                'spread_bps': position.get('spread_bps'),
-                'volatility': position.get('volatility'),
-                'decision_source': position.get('decision_source', ''),
-            }
-            try:
-                record_state_event(exit_event)
-            except Exception as e:
-                print(f"⚠️ StateStore(exit) 写入失败: {e}")
-            try:
-                get_v54_store().record_event('exit', exit_event)
-            except Exception as e:
-                print(f"⚠️ StateStoreV54(exit) 写入失败: {e}")
-
             # 清理
             await self._cleanup()
             
@@ -256,8 +186,8 @@ class SafeExecutionV54:
                 capital_reason=position.get('capital_reason', ''),
                 leverage=position.get('leverage', 100),
                 risk_pct=position.get('risk_pct', 0.0),
-                stop_ok=stop_ok,
-                stop_verified=stop_verified
+                stop_ok=True,
+                stop_verified=True
             )
             
         except Exception as e:
@@ -274,6 +204,37 @@ class SafeExecutionV54:
         """格式化交易对"""
         return self.symbol.replace("/", "-").replace(":USDT", "-SWAP")
     
+    async def try_execute(self, side: str, amount: float, context: Optional[Dict] = None) -> Optional[Dict]:
+        """向后兼容旧调用签名。"""
+        capital_decision = None
+        if context:
+            class _Decision:
+                pass
+            capital_decision = _Decision()
+            capital_decision.position_size = amount
+            capital_decision.margin_usdt = context.get('margin_usdt', 0.0)
+            capital_decision.notional_usdt = context.get('notional_usdt', 0.0)
+            capital_decision.equity_usdt = context.get('equity_usdt', 0.0)
+            capital_decision.capital_state = context.get('capital_state', 'UNKNOWN')
+            capital_decision.reason = context.get('capital_reason', '')
+            capital_decision.leverage = context.get('leverage', 100)
+            capital_decision.risk_pct = context.get('risk_pct', 0.0)
+        signal_price = context.get('entry_price', 0.0) if context else 0.0
+        return await self.execute_entry(signal_price=signal_price, capital_decision=capital_decision)
+
+    async def close_position(self, exit_source: str = "TIME_EXIT", trigger_module: str = None) -> Optional[Dict]:
+        """向后兼容旧接口，统一返回 dict。"""
+        result = await self.execute_exit(exit_source=exit_source)
+        if result is None:
+            return None
+        if hasattr(result, '__dict__'):
+            payload = dict(result.__dict__)
+        else:
+            payload = dict(result)
+        payload['trigger_module'] = trigger_module
+        payload['pnl_pct'] = payload.get('pnl', 0.0) * 100
+        return payload
+
     def get_stats(self) -> Dict:
         """获取统计"""
         return self.stats.copy()

@@ -146,11 +146,6 @@ class SafeExecutionV54:
             'capital_reason': getattr(decision, 'reason', '') if decision else '',
             'leverage': getattr(decision, 'leverage', 100) if decision else 100,
             'risk_pct': getattr(decision, 'risk_pct', 0.0) if decision else 0.0,
-            'trace_id': getattr(decision, 'trace_id', ''),
-            'signal_score': getattr(decision, 'signal_score', None),
-            'spread_bps': getattr(decision, 'spread_bps', None),
-            'volatility': getattr(decision, 'volatility', None),
-            'decision_source': getattr(getattr(decision, 'audit_context', {}), 'get', lambda *_: '')('decision_source', '') if decision else '',
         }
         self.current_position = position
         await self.position_gate.set_position(position)
@@ -169,11 +164,6 @@ class SafeExecutionV54:
             'risk_pct': position['risk_pct'],
             'stop_ok': self.stop_order_id is not None,
             'stop_verified': self.stop_order_id is not None,
-            'trace_id': position.get('trace_id', ''),
-            'signal_score': position.get('signal_score'),
-            'spread_bps': position.get('spread_bps'),
-            'volatility': position.get('volatility'),
-            'decision_source': position.get('decision_source', ''),
         }
         try:
             record_state_event(entry_event)
@@ -221,11 +211,6 @@ class SafeExecutionV54:
                 'risk_pct': position.get('risk_pct', 0.0),
                 'stop_ok': stop_ok,
                 'stop_verified': stop_verified,
-                'trace_id': position.get('trace_id', ''),
-                'signal_score': position.get('signal_score'),
-                'spread_bps': position.get('spread_bps'),
-                'volatility': position.get('volatility'),
-                'decision_source': position.get('decision_source', ''),
             }
             try:
                 record_state_event(exit_event)

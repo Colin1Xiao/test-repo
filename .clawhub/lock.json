@@ -168,6 +168,22 @@
     "multi-search-engine": {
       "version": "2.0.1",
       "installedAt": 1774477621282
+    },
+    "self-improving-agent": {
+      "version": "3.0.6",
+      "installedAt": 1774572905182
+    },
+    "validate-agent": {
+      "version": "1.0.0",
+      "installedAt": 1774573298728
+    },
+    "startup-idea-validation": {
+      "version": "1.0.0",
+      "installedAt": 1774573395125
+    },
+    "idea-coach": {
+      "version": "0.2.0",
+      "installedAt": 1774573458578
     }
   }
 }

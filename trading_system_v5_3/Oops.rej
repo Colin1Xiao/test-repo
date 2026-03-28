@@ -1,0 +1,229 @@
+@@ -94,6 +94,7 @@
+ print(f"[DEBUG] Methods: {[m for m in dir(SafeExecutor) if not m.startswith('_')]}")
+ 
+ from core.capital_controller_v2 import CapitalControllerV2
++from core.decision_hub import DecisionHub, Decision, DecisionType
+ from minimal_executor import execute_signal, close_trade, record_trade
+ from parameter_optimizer import ParameterOptimizer
+ from strategy_evolution import StrategyEvolutionEngine, create_evolution_engine
+@@ -115,6 +116,7 @@
+ 
+ # ========== 持仓管理（核心安全模块）==========
+ from position_manager import PositionManager, get_position_manager
++from decision_hub import get_decision_hub
+ 
+ 
+ class V52System:
+@@ -160,6 +162,9 @@
+         self._init_v4x_components()
+         self._init_v51_components()
+         self._init_v52_components()
++
++        self.decision_hub = DecisionHub(log_file=str(BASE_DIR / 'logs' / 'decision_hub_log.jsonl'))
++        print("✅ Decision Hub (主链授权源)")
+         
+         # ========== V5.4.1 信号链 Adapter ==========
+         v54_config_path = Path.home() / '.openclaw' / 'workspace' / 'trading_system_v5_4' / 'config' / 'signal_config_v54.json'
+@@ -411,6 +416,9 @@
+         print("   ✅ 配置版本管理器")
+         print("   ✅ 系统监控器")
+         print("   ✅ 安全控制器")
++
++        self.decision_hub = get_decision_hub()
++        print("   ✅ Decision Hub (审计授权源)")
+     
+     async def get_account_equity_usdt(self) -> float:
+         """获取账户权益（统一接口）- 优先从交易所 API 读取真实余额"""
+@@ -624,8 +632,9 @@
+                 price_change=price_change
+             )
+             
+-            # V5.4.1 集成：评分>=40 时让 V5.4.1 做最终决策
+-            should_trade = (score >= 40)
++            # V5.4.1 集成：有 Adapter 时允许 score>=40 进入 Adapter；无 Adapter 时回退到 V5.3 原始门控
++            has_v54_adapter = hasattr(self, "v54_adapter") and self.v54_adapter is not None
++            should_trade = (score >= 40) if has_v54_adapter else should_trade_v53
+             
+             # ========== 5.5 V5.4.1 信号链检查 ==========
+             if should_trade and hasattr(self, 'v54_adapter') and self.v54_adapter:
+@@ -669,23 +678,34 @@
+             print(f"[CHECK] should_trade={should_trade} gate_status={'PASS' if should_trade else 'REJECT'} gate_reasons={trade_reason}")
+             print(f"[CHECK] decision: score_ok={decision_trace['score_ok']}, volume_ok={decision_trace['volume_ok']}, momentum_ok={decision_trace['price_change_ok']}, final={decision_trace['final']}")
+             print(f"[CHECK] shadow_mode={self.shadow_mode}")
++
++            authorization = self._authorize_execution(
++                symbol=symbol,
++                score=score,
++                volume_ratio=volume_ratio,
++                price_change=price_change,
++                regime=regime.value,
++                current_price=current_price,
++                should_trade=should_trade,
++                decision_trace=decision_trace,
++                gate_reason=trade_reason
++            )
+             
+             # ========== 5.5 写入决策日志 ==========
+-            self._log_decision(symbol, score, volume_ratio, decision_trace, regime.value)
++            self._log_decision(authorization)
+             
+             # ========== 6. 执行 ==========
+             trade = None
+-            if should_trade:
++            if authorization['authorized']:
+                 self.stats['total_signals'] += 1
+                 # 📝 [EXECUTION_ATTEMPT] 执行尝试日志
+                 print(f"\n[EXECUTION_ATTEMPT] symbol={symbol} side=long size=0.14ETH leverage=100x margin=3USD score={score:.1f}")
+                 print(f"🚀 EXECUTION TRIGGERED for {symbol}")
+                 
+-                # 📝 [PRE_TRADE_CHECK] 下单前约束检查
+-                # 注意: 这里是旧执行链的占位日志，V5.4 安全执行链有自己的 PRE_TRADE_CHECK
++                # 仅记录执行上下文；真实 PRE_TRADE_CHECK 由 _execute_trade 内的资金链输出
+                 requested_notional = 3.0 * 100  # 3 USD * 100x
+                 min_order_size = 0.01  # ETH 最小下单量
+-                print(f"[PRE_TRADE_CHECK] available_balance=EXEC_V54 balance_source=exchange_runtime requested_notional={requested_notional}USDT min_order_size={min_order_size}ETH")
++                print(f"[EXECUTION_CONTEXT] trace_id={authorization['trace_id']} symbol={symbol} requested_notional={requested_notional}USDT min_order_size={min_order_size}ETH signal_score={score:.1f} regime={regime.value}")
+                 
+                 if self.shadow_mode:
+                     # 影子模式：只记录，不执行
+@@ -718,7 +738,7 @@
+                         trade = None
+                     elif DISABLE_EXECUTION_ENGINE:
+                         # 使用 SafeExecutor (唯一入口)
+-                        trade = await self._execute_trade(symbol, score, regime)
++                        trade = await self._execute_trade(symbol, score, regime, authorization)
+                     elif self.execution_engine:
+                         # 旧执行引擎（已弃用）
+                         signal = Signal(
+@@ -754,7 +774,7 @@
+                             print(f"⚠️ 信号提交失败")
+                             trade = None
+                     else:
+-                        trade = await self._execute_trade(symbol, score, regime)
++                        trade = await self._execute_trade(symbol, score, regime, authorization)
+                     if trade:
+                         print(f"✅ Trade executed: {trade}")
+                         
+@@ -934,44 +954,67 @@
+             traceback.print_exc()
+             return None
+     
+-    def _log_decision(self, symbol: str, score: float, volume_ratio: float, 
+-                      decision_trace: Dict, regime: str):
+-        """
+-        写入决策日志
+-        """
++    def _authorize_execution(self, symbol: str, score: float, volume_ratio: float, price_change: float, regime: str, current_price: float, should_trade: bool, decision_trace: Dict, gate_reason: str) -> Dict[str, Any]:
++        """统一交易授权结果。"""
++        volatility = float(decision_trace.get('volatility', 0.0) or 0.0)
++        spread_bps = float(decision_trace.get('spread_bps', 2.0) or 2.0)
++        authorization = {
++            'timestamp': datetime.now().isoformat(),
++            'symbol': symbol,
++            'signal_score': float(score),
++            'volume_ratio': float(volume_ratio),
++            'price_change': float(price_change),
++            'regime': regime,
++            'current_price': float(current_price),
++            'volatility': volatility,
++            'spread_bps': spread_bps,
++            'gate_decision': decision_trace.get('final', 'UNKNOWN'),
++            'gate_reason': gate_reason,
++            'authorized': False,
++            'decision_source': 'base_gate',
++            'decision_type': 'REJECT',
++            'trace_id': f"gate-{datetime.now().strftime('%Y%m%d%H%M%S%f')}",
++            'checks': {
++                'score_ok': bool(decision_trace.get('score_ok', False)),
++                'volume_ok': bool(decision_trace.get('volume_ok', False)),
++                'price_change_ok': bool(decision_trace.get('price_change_ok', True)),
++            },
++            'reasons': [gate_reason],
++        }
++
++        if not should_trade:
++            return authorization
++
++        decision = self.decision_hub.evaluate(
++            signal={'latency_ms': 0},
++            symbol=symbol,
++            price=current_price,
++            score=float(score),
++            regime=regime
++        )
++        authorization.update({
++            'authorized': bool(decision.can_trade and decision.authorized),
++            'decision_source': 'decision_hub',
++            'decision_type': decision.decision_type.name,
++            'trace_id': decision.trace_id,
++            'checks': decision.checks,
++            'reasons': decision.reasons,
++            'position_multiplier': float(decision.position_multiplier),
++            'decision_hash': decision.decision_hash,
++        })
++        print(f"[DECISION_HUB] decision={decision.decision_type.name} authorized={decision.authorized} trace_id={decision.trace_id}")
++        return authorization
++
++    def _log_decision(self, authorization: Dict[str, Any]):
++        """写入统一决策日志。"""
+         try:
+-            # 转换 numpy 类型为 Python 原生类型
+-            def to_python(v):
+-                if hasattr(v, 'item'):  # numpy 类型
+-                    return v.item()
+-                return v
+-            
+-            log_entry = {
+-                'timestamp': datetime.now().isoformat(),
+-                'symbol': symbol,
+-                'score': to_python(score),
+-                'volume_ratio': to_python(volume_ratio),
+-                'regime': regime,
+-                'decision': str(decision_trace.get('final', 'UNKNOWN')),
+-                'checks': {
+-                    'score_ok': bool(decision_trace.get('score_ok', False)),
+-                    'volume_ok': bool(decision_trace.get('volume_ok', False)),
+-                    'price_change_ok': bool(decision_trace.get('price_change_ok', True))
+-                },
+-                'context': {
+-                    'symbol': symbol,
+-                    'score': to_python(score),
+-                    'volume': to_python(volume_ratio),
+-                    'regime': regime
+-                }
+-            }
+-            
++            log_entry = dict(authorization)
+             log_file = BASE_DIR / 'logs' / 'decision_log.jsonl'
+             with open(log_file, 'a') as f:
+-                f.write(json.dumps(log_entry) + '\n')
++                f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+         except Exception as e:
+             print(f"⚠️ 写入决策日志失败: {e}")
+-    
++
+     def _check_execution_conditions(
+         self,
+         score: float,
+@@ -1029,7 +1072,7 @@
+         decision['final'] = 'ACCEPT'
+         return True, "条件满足", decision
+     
+-    async def _execute_trade(self, symbol: str, score: float, regime: MarketRegime) -> Optional[Dict[str, Any]]:
++    async def _execute_trade(self, symbol: str, score: float, regime: MarketRegime, authorization: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+         """
+         执行真实交易 - V5.4 安全执行链
+         
+@@ -1096,6 +1139,12 @@
+             edge_state=edge_state,
+             risk_state=risk_state,
+         )
++        if authorization:
++            capital_decision.trace_id = authorization.get('trace_id', '')
++            capital_decision.audit_context = authorization
++            capital_decision.signal_score = authorization.get('signal_score', score)
++            capital_decision.spread_bps = authorization.get('spread_bps', 0.0)
++            capital_decision.volatility = authorization.get('volatility', 0.0)
+         
+         if not capital_decision.can_trade:
+             print(f"⛔ Capital blocked trade: {capital_decision.reason}")

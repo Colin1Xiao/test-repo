@@ -139,7 +139,7 @@ curl http://localhost:8080/price/ETH-USDT-SWAP
 将 `client.py` 复制到本地系统：
 
 ```bash
-cp client.py /path/to/xiaolong_trading_system_4.2/core/market_data/
+cp client.py /path/to/trading_system_v5_3/core/market_data/
 ```
 
 ### 2. 修改配置
