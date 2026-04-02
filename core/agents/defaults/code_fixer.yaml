@@ -1,0 +1,19 @@
+name: code_fixer
+description: 修复代码并做验证
+whenToUse: 需要读代码、改代码、跑测试时
+tools:
+  - fs.read
+  - fs.write
+  - exec.run
+  - grep.search
+  - task.list
+  - task.output
+  - todo.write
+disallowedTools:
+  - git.push
+permissionMode: ask
+maxTurns: 12
+background: true
+memoryScope: project
+isolation: worktree
+effort: high

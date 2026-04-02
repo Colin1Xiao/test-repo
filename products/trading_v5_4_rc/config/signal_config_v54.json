@@ -1,0 +1,115 @@
+{
+  "_comment": "V5.4 信号层配置 - L1/L2/L3 分层放行",
+  "_version": "v5.4.1-signal-optimization",
+  "_created": "2026-03-26T21:45:00+08:00",
+  "_status": "ready_for_implementation",
+
+  "signal_v54": {
+    "l1_candidate": {
+      "_comment": "L1 候选信号层 - 只生成候选，不直接触发",
+      "min_trend_consistency": 0.60,
+      "min_pullback_breakout": 0.55,
+      "min_volume_confirm": 0.55,
+      "min_conditions_required": 2,
+      "output_fields": [
+        "signal_type",
+        "side",
+        "candidate_score_raw",
+        "trend_alignment",
+        "volume_ratio",
+        "breakout_strength"
+      ]
+    },
+
+    "l2_hard_filters": {
+      "_comment": "L2 硬过滤层 - 任意一项失败直接拒绝",
+      "spread_hard_gate_bps": 3.0,
+      "volatility_min": 0.0008,
+      "volatility_max": 0.008,
+      "price_staleness_seconds": 2.0,
+      "market_jump_gate_bps": 8,
+      "min_signal_interval_seconds": 600,
+      "cooldown_after_exit_seconds": 900,
+      "max_daily_trades": 2,
+      "loss_streak_pause": {
+        "enabled": true,
+        "consecutive_losses": 2,
+        "pause_seconds": 1800
+      },
+      "min_orderbook_depth_ratio": 1.5,
+      "temp_score_threshold": 80,
+      "temp_volume_threshold": 1.35
+    },
+
+    "l3_scoring": {
+      "_comment": "L3 评分放行层 - 最终决策",
+      "entry_threshold": 68,
+      "high_confidence_threshold": 78,
+      "record_only_threshold": 58,
+      "weights": {
+        "trend_consistency": 22,
+        "pullback_breakout": 18,
+        "volume_confirm": 18,
+        "spread_quality": 20,
+        "volatility_range": 12,
+        "rl_filter": 10
+      },
+      "score_buckets": {
+        "A": {"min": 78, "action": "high_confidence_trade"},
+        "B": {"min": 68, "max": 78, "action": "normal_trade"},
+        "C": {"min": 58, "max": 68, "action": "record_only"},
+        "D": {"max": 58, "action": "discard"}
+      }
+    },
+
+    "exit_optimization": {
+      "_comment": "退出链优化 - 避免过早 TIME_EXIT",
+      "min_hold_seconds": 20,
+      "time_exit_seconds": 45,
+      "break_even_guard_seconds": 15,
+      "logic": "前 20 秒不允许普通 TIME_EXIT，15 秒内浮亏轻微不砍，45-60 秒再 TIME_EXIT"
+    },
+
+    "audit_fields": {
+      "_comment": "必记 6 字段 + 4 个额外字段",
+      "required": [
+        "signal_score",
+        "signal_type",
+        "trend_alignment",
+        "spread_bps",
+        "volatility_regime",
+        "cooldown_reason"
+      ],
+      "recommended": [
+        "volume_ratio",
+        "market_quality_pass",
+        "price_staleness_ms",
+        "signal_bucket"
+      ]
+    }
+  },
+
+  "migration_notes": {
+    "changes_from_v52": [
+      "entry_threshold: 50 → 68",
+      "spread_max_bps: 5 → 3.0",
+      "volatility_min: 0.0005 → 0.0008",
+      "volatility_max: 0.02 → 0.008",
+      "min_signal_interval_seconds: 300 → 600",
+      "max_daily_trades: 3 → 2",
+      "temp_volume_threshold: 1.2 → 1.35",
+      "新增 L1/L2/L3 分层结构",
+      "新增 cooldown_after_exit_seconds: 900",
+      "新增 loss_streak_pause 机制",
+      "新增 6 字段审计记录"
+    ],
+    "weights_changed": [
+      "trend_consistency: 30 → 22 (-8)",
+      "pullback_breakout: 20 → 18 (-2)",
+      "volume_confirm: 15 → 18 (+3)",
+      "spread_quality: 15 → 20 (+5)",
+      "volatility_range: 10 → 12 (+2)",
+      "rl_filter: 10 → 10 (不变)"
+    ]
+  }
+}

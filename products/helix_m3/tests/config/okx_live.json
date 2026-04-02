@@ -1,0 +1,32 @@
+{
+  "_comment": "M2 单笔验证配置 - OKX 实盘",
+  "_created": "2026-04-01",
+  "_mode": "live",
+  "_purpose": "M2 Single Venue Live Canary 验证 (实盘)",
+  "_risk_warning": "实盘模式！小额测试！",
+  
+  "api_key": "8705ea66-bb2a-4eb3-b58a-768346d83657",
+  "secret_key": "8D2DF7BEA6EA559FE5BD1F36E11C44B1",
+  "passphrase": "Xzl405026.",
+  
+  "environment": "live",
+  "base_url": "https://www.okx.com",
+  
+  "symbol": "ETH-USDT-SWAP",
+  "qty": "0.01",
+  "leverage": 100,
+  
+  "protection": {
+    "stop_loss_pct": 0.005,
+    "take_profit_pct": 0.002
+  },
+  
+  "risk_limits": {
+    "max_position": 0.13,
+    "max_leverage": 100,
+    "stop_loss": 0.005,
+    "take_profit": 0.002,
+    "daily_limit": 100,
+    "max_daily_trades": 10
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "_comment": "M2 单笔验证配置 - OKX Testnet",
+  "_created": "2026-04-01",
+  "_mode": "testnet",
+  "_purpose": "M2 Single Venue Live Canary 验证",
+  
+  "api_key": "2b3952f8-6538-48a4-a65a-4e219b61d6f5",
+  "secret_key": "279DFFAE2F9F695C07A0D484FD414620",
+  "passphrase": "Xzl405026.",
+  
+  "environment": "testnet",
+  "base_url": "https://www.okx.com",
+  
+  "symbol": "ETH-USDT-SWAP",
+  "qty": "0.01",
+  "leverage": 100,
+  
+  "protection": {
+    "stop_loss_pct": 0.005,
+    "take_profit_pct": 0.002
+  }
+}

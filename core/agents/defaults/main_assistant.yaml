@@ -1,0 +1,15 @@
+name: main_assistant
+description: 主要助手，处理通用任务
+whenToUse: 默认代理，处理日常对话和通用任务
+tools:
+  - fs.read
+  - fs.write
+  - exec.run
+  - grep.search
+  - task.*
+permissionMode: ask
+maxTurns: 20
+background: false
+memoryScope: session
+isolation: none
+effort: medium

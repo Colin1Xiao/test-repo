@@ -1,0 +1,9 @@
+{
+  "test_id": "M2-LIVE-20260401080746",
+  "timestamp": "2026-04-01T08:07:46.725790+00:00",
+  "checks": {
+    "okx_connection": false
+  },
+  "details": {},
+  "passed": false
+}

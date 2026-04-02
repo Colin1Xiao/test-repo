@@ -1,0 +1,54 @@
+{
+  "test_id": "M2-TNET-20260331214453",
+  "timestamp": "2026-03-31T21:44:53.520180+00:00",
+  "checks": {
+    "okx_connection": true,
+    "balance_query": true,
+    "ticker_query": true,
+    "order_created": true,
+    "protection_created": true,
+    "order_submitted": false,
+    "event_chain": false,
+    "cockpit_readable": true
+  },
+  "details": {
+    "balances": {
+      "BTC": "1",
+      "OKB": "100",
+      "USDT": "4957.200115297843",
+      "ETH": "1"
+    },
+    "eth_price": "2100.13",
+    "order": {
+      "order_id": "M2-TNET-20260331214453",
+      "symbol": "ETH-USDT-SWAP",
+      "qty": "0.01",
+      "price": "2000"
+    },
+    "protection": {
+      "stop_loss": "1990.000",
+      "take_profit": "2004.000"
+    },
+    "submit_result": {
+      "success": false,
+      "error": "All operations failed",
+      "code": "1"
+    },
+    "event_count": 0,
+    "event_types": [],
+    "cockpit": {
+      "kpis": {
+        "equity": null,
+        "margin": null,
+        "exposure": null,
+        "pnl": null
+      },
+      "venues": {},
+      "active_orders": 0,
+      "protections": 0,
+      "active_breakers": 0,
+      "recent_incidents": 0
+    }
+  },
+  "passed": false
+}

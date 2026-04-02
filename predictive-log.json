@@ -1,0 +1,61 @@
+{
+  "schema": "openclaw.predictive.v1",
+  "lastUpdated": "2026-03-31T17:48:58.670Z",
+  "stateHistory": [
+    {
+      "timestamp": 1774949436,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774950965,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774952032,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774952649,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774955407,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774956409,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774966976,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774970963,
+      "status": "healthy"
+    },
+    {
+      "timestamp": 1774979338,
+      "status": "healthy"
+    }
+  ],
+  "predictions": [],
+  "statistics": {
+    "totalPredictions": 0,
+    "truePositives": 0,
+    "falsePositives": 0,
+    "accuracy": 0,
+    "lastPrediction": null
+  },
+  "hourlyCount": {
+    "hour": null,
+    "count": 0
+  },
+  "config": {
+    "window": 3,
+    "durationThreshold": 15,
+    "confidenceThreshold": 0.7,
+    "cooldown": 600,
+    "maxPredictivePerHour": 2
+  }
+}

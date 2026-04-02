@@ -1,0 +1,873 @@
+# 🧠 MEMORY.md - 长期记忆
+
+_精选的重要信息，跨会话持久化_
+
+---
+
+## 👤 用户档案
+
+- **名称**: Colin
+- **身份**: 量化交易者 / 开发者
+- **时区**: Asia/Shanghai (GMT+8)
+- **偏好**: 简洁高效，重视安全
+- **环境**: Intel Mac, macOS 26.3.1, Node v24.14.1, Python 3.11.15, Git 2.53.0, CLT 21.0.0
+- **基线日期**: 2026-03-29 (环境整理完成, 9.7/10)
+
+---
+
+## 🎯 核心项目
+
+### 小龙智能交易系统 V5.2 (2026-03-19 上线)
+
+**版本演进**:
+- V4.2 → 100x 杠杆 + 执行验证
+- V4.3 → Regime 驱动 + 动态权重
+- V5.1 → 自适应进化 + 自动停止
+- V5.2 → 完全可控 + 异常回滚 ✅ 当前版本
+
+**系统架构**:
+- 14 个核心模块，生产级可控系统
+- Regime 驱动 (RANGE/TREND/BREAKOUT)
+- 7 层安全防护
+
+**关键配置**:
+- 交易所：OKX (实盘/Testnet)
+- 杠杆：100x (强制锁定)
+- 止损：-0.5%
+- 止盈：0.2%
+- 爆仓前退出：-0.4%
+- Phase 1 仓位：3 USD
+
+**安全设置**:
+- 提现权限：关闭
+- API 权限：仅交易，无提币
+- 样本过滤：启用
+- 参数审计锁：启用
+- 异常自动回滚：启用
+
+---
+
+## 🔐 安全偏好
+
+- **风险容忍度**: 中等偏低
+- **密码策略**: 强密码 + 定期轮换
+- **API 安全**: 最小权限原则，禁用提现
+- **系统安全**: 启用防火墙，定期安全审计
+
+---
+
+## 🤖 AI 助手配置
+
+- **助手名称**: 小龙
+- **性格**: 幽默友好，可切换正式模式
+- **Emoji**: 🐉
+- **记忆搜索**: 已启用 (2026-03-16)
+
+---
+
+## 📅 重要日期
+
+| 日期 | 事件 |
+|------|------|
+| 2026-03-12 | 小龙智能交易系统完整搭建 |
+| 2026-03-16 | OpenClaw 安全审计与加固 |
+| 2026-03-17 | 本地 Memory Search 完全启用 |
+| 2026-03-18 | V5.2 生产级系统完成，Phase 1 启动 |
+
+---
+
+## ⚠️ 安全事件
+
+### 2026-03-16 安全审计
+
+**发现问题**:
+- `repo-analyzer` skill: 5 个关键问题，已隔离
+- `skill-mermaid-diagrams`: 2 个关键问题，已审查恢复
+- 应用防火墙：已启用
+
+**处置状态**:
+- ✅ repo-analyzer: 保持隔离
+- ✅ skill-mermaid-diagrams: 已恢复
+- ✅ 防火墙：已启用
+
+---
+
+## 🔧 系统配置
+
+### OpenClaw
+- **版本**: 2026.3.12 (stable)
+- **网关**: 127.0.0.1:18789 (本地回环)
+- **通道**: Telegram (@AlanColin_Xiao_bot)
+- **Memory Search**: ✅ **本地向量检索已完全启用**
+
+### 已安装 Skills (36 个)
+- clawhub
+- coding-agent
+- skill-vetter
+- skill-mermaid-diagrams (已恢复)
+- ...等
+
+### 隔离区 Skills
+- repo-analyzer (高风险，保持隔离)
+
+---
+
+## 📝 决策记录
+
+### 2026-03-16
+1. **保持 repo-analyzer 隔离**: 命令注入风险，需进一步审查
+2. **恢复 skill-mermaid-diagrams**: 风险可控，仅调用 mmdc
+3. **启用 Memory Search**: 提升跨会话记忆能力
+4. **跳过 Time Machine**: 用户取消备份策略
+
+### 2026-03-17
+1. **OpenClaw 本地 memory search 已成功启用**
+2. **当前使用本地模型** `/Users/colin/.openclaw/memory/models/embeddinggemma-300M-Q8_0.gguf`
+3. **node-llama-cpp 需使用预编译包** `@node-llama-cpp/mac-x64` **才能稳定工作**
+4. **本机已完成 5/5 files、12 chunks 的本地向量索引，hybrid search 可用**
+
+### 2026-03-18
+1. **100x 杠杆系统验证通过**: 执行测试滑点 0.00007%
+2. **V4.3 Regime 驱动架构完成**: 解决"错过趋势行情"问题
+3. **手续费优化**: 从 50% 降至 27.6%（提高止盈到 0.2%）
+4. **V5.1 质量评估系统完成**: 信号质量 + 执行质量 + 守护者
+5. **V5.2 安全控制层完成**: 7 层防护 + 异常自动回滚
+6. **盘口深度检查修复**: `depth` 变量按 `side` 选择
+7. **Phase 1 启动**: 3 USD × 100x，严格 3 笔验证
+
+### 2026-03-19
+1. **系统状态**: FULLY CLEARED FOR PHASE 1
+2. **角色定位**: OBSERVER_ONLY
+3. **等待**: 第一笔真实交易审计数据
+4. **🔥 OpenClaw 智能自愈系统完成**: V1.0 → V3.6 完整演进
+   - V1.0: 状态检测
+   - V1.5: 状态变化 + 健康度
+   - V2.0: 状态驱动行为 + 自愈建议
+   - V2.5: 受控自动恢复（安全版）
+   - V3.0: 智能自愈（策略选择 + 学习）
+   - V3.5: 预测性恢复（受控版）
+   - V3.6: **行为收敛 + 控制系统**（迟滞 + 门控 + 速率限制）
+   - V3.7: **决策一致性层**（仲裁器 + 冲突检测）
+   - V3.8: **决策动量**（防止过度约束 → 系统僵死）
+   - V3.9: **行为护栏**（防止行为漂移 → 系统失控）
+   - V4.0: **自认知系统**（可解释性 + 自评估 + TL;DR）
+5. **Shadow Mode 启用**: 预测系统只记录不执行，验证准确性
+6. **错误预算机制**: 定义系统健康阈值
+7. **每日运行报告**: 自动化系统健康统计
+8. **进入收敛阶段**: 不再加功能，跑 5-7 天验证稳定性
+9. **V3.6 核心升级**:
+   - 迟滞控制：状态必须稳定 10 秒才确认
+   - 恢复门控：判断"该不该恢复"
+   - 预测执行灰度：置信度 ≥ 85% 执行
+   - 速率限制：最多 5 次/小时，20 次/天
+
+---
+
+## 🔧 OpenClaw 智能自愈系统
+
+**版本**: V3.5（预测式自愈）
+**状态**: Shadow Mode（验证阶段）
+
+### 系统架构
+```
+感知层：健康检查 → 事件识别 → 状态变化检测
+决策层：策略选择 → 动态优先级 → 学习反馈 → 预测判断
+执行层：Wrapper 启动 → Recovery(V2.5) → Recovery(V3) → Predictive
+知识层：策略库 + 历史记录 + 学习系统 + 预测统计
+```
+
+### 核心文件
+| 文件 | 功能 |
+|-----|------|
+| `openclaw-health-check.json` | 实时健康状态 |
+| `recovery-strategies.json` | 多策略数据库 |
+| `recovery-history.json` | 恢复历史 + 学习 |
+| `predictive-log.json` | 预测日志 + 统计 |
+| `error-budget.json` | 错误预算 |
+
+### 安全机制
+- 冷却时间（防止频繁恢复）
+- 最大尝试次数（防止无限重试）
+- Shadow Mode（预测只记录不执行）
+- 错误预算（定义系统健康阈值）
+
+### 运行脚本
+- `scripts/openclaw-health-check.sh` - 健康检查
+- `scripts/recovery-controller.sh` - V2.5 安全恢复
+- `scripts/recovery-controller-v3.sh` - V3.0 智能恢复
+- `scripts/predictive-engine.sh` - V3.5 预测引擎
+- `scripts/daily-report.sh` - 每日报告
+
+---
+
+## 💡 使用模式
+
+- 偏好简洁回复，避免冗余
+- 重视代码审查和安全分析
+- 需要时会要求详细解释
+- 喜欢结构化的输出格式
+- Phase 1 阶段：不干预系统，只记录和提交
+
+---
+
+### 2026-03-19
+1. **OCNMPS Bridge v2 完成**: 从 2.6/5 提升到 4.8/5
+2. **修复 4 个核心漏洞**: CODE 边界、CN 意图组、LONG 前置纠偏、REASON 中文意图组
+3. **灰度集成就绪**: 可通过 `ocnmps_integration_config.py` 控制灰度比例
+4. **完整闭环**: 路由 + 日志 + 日报 + 回退机制
+5. **进入灰度运营阶段**: 30% 起步，数据驱动扩容
+6. **汇报体系统一**: Daily Digest 唯一入口，6 套→1 套
+7. **决策闭环系统**: 异常检测 → 自动追问 → 决策建议，L5 自动运营
+8. **7 天验证实验启动**: 验证"系统是否改变行为"
+9. **证据驱动补证体系建立**:
+   - 台账 → 看级别
+   - 全景汇报 → 看全貌
+   - 证据缺口清单 → 推动升级
+10. **4 类证据模板**: 真实调用、端到端闭环、日志可追溯、异常/恢复验证
+
+### 2026-03-21
+1. **交易质量验证完成**: 46 笔样本
+2. **策略本质确认**: 尾部捕获策略 (Tail Capture Strategy)
+   - 低胜率 (11.4%) + 高赔率
+   - 99.8% 收益来自主动退出
+3. **关键指标**:
+   - Profit Factor: 3.23 ✅
+   - Expectancy: +0.03% ✅
+   - Edge 存在但极度脆弱
+4. **连续亏损保护已添加**: 最大 30 笔暂停
+5. **目标**: 100 笔验证稳定性
+6. **🚨 P0 生产级漏洞发现**: Position Control Failure
+   - 系统在同一周期内重复开仓 (0.13→0.26 ETH)
+   - 根因：缺少 Position Gate (持仓门控)
+   - 状态：待修复 (等当前交易闭环)
+   - 计划：V5.4 首要修复
+7. **止损机制升级关键知识**:
+   - ❌ 当前是"逻辑止损"(轮询触发) → 网络卡顿会失效
+   - ✅ 必须是"订单级止损"(交易所托管) → 最安全
+   - 关键参数：`reduceOnly=True` (防止反向开仓)
+   - 止损数量 = 持仓数量 (必须绑定)
+8. **V5.4 修复优先级**:
+   - P0: Position Gate + 真实 Fill Pipeline
+   - P1: 订单级止损 (交易所托管)
+   - P2: Trailing Stop / Break-even Stop
+9. **系统生存三原则**:
+   - 不乱开仓 (Position Gate)
+   - 不丢数据 (真实 Fill)
+   - 不爆仓 (订单级止损)
+10. **2026-03-21 首笔真实交易审计完成**:
+    - 盈利：+$1.09 (+19.5%)
+    - 执行链验证：✅ 真实闭环
+    - 市场连接：✅ 滑点<0.01%
+    - 问题：叠仓 + 无订单级止损
+    - 文档：`audit/TRADE_AUDIT_2026-03-21.md`
+11. **V5.4 最小修复包（严格排序）**:
+    - P0-1: Position Gate（防叠仓）→ 风险指数级放大
+    - P0-2: Exit Source 记录 → Edge 审计基础
+    - P1: 订单级止损 → 交易所托管
+12. **系统阶段划分**:
+    - 执行验证阶段 ✅ 完成
+    - 控制验证阶段 🔜 V5.4
+    - Edge 验证阶段 🔜 待启动
+13. **V5.4 验收标准**:
+    - 每笔 trade 必须包含：entry_price, exit_price, pnl, exit_source, position_size
+    - 缺任何一个字段 → 不合格
+14. **V5.4 三个隐藏坑**:
+    - 坑 1: Position Gate 误判 → OKX 返回 pos/contracts/positionAmt 多种字段，必须兼容
+    - 坑 2: 止损挂单失败 → 必须 try + fallback，否则你以为有止损其实没有
+    - 坑 3: Exit Source 误标 → 来源≠结果，不能根据 pnl 判断，要根据触发原因
+15. **工程顺序修正**:
+    - ❌ 错误顺序：Position Gate / Exit Source / Stop Loss
+    - ✅ 正确顺序：Execution → Position State → Risk Binding
+16. **V5.4 硬验收清单**:
+    - 连续触发信号 → 只开 1 笔
+    - 交易所订单列表 → 能看到止损单
+    - 数据完整性 → 所有字段非零
+    - 不允许 → pnl=0, exit=ticker 长期，多笔叠仓
+17. **核心原则**:
+    - V5.4 做完 ≠ 系统变强
+    - V5.4 做完 = 系统变"可信"
+18. **执行引擎禁用必须双断路**:
+    - 逻辑断路：DISABLE_EXECUTION_ENGINE = True
+    - 物理断路：stop() + = None
+    - 单独 stop() 不安全 → 线程可能还在跑
+19. **Position Gate 必须双层**:
+    - 第一层：本地状态 (self.current_position)
+    - 第二层：交易所状态 (get_position_size)
+    - 两者都必须通过
+    - 只检查字典 ≠ 真实仓位
+20. **止损价格必须用真实成交价**:
+    - ❌ estimated_price * 0.995 → 位置偏移
+    - ✅ entry_price * 0.995 → 真实风险
+21. **OKX 止损订单完整参数**:
+    - stopPrice, reduceOnly, tdMode (cross/isolated)
+    - 缺 tdMode 可能 silently fail
+22. **Exit Source 需要 trigger_module**:
+    - exit_source: STOP_LOSS/TAKE_PROFIT/TIME_EXIT/MANUAL
+    - trigger_module: 谁触发的 (便于 debug)
+23. **当前风险等级**:
+    - Execution 🟢 Data 🟢 Control 🟡 Risk 🔴
+24. **修复顺序**:
+    - Step 1: 执行入口（最危险）
+    - Step 2: Position Gate（双层）
+    - Step 3: 止损（真实 entry）
+    - ❌ 不要调参数、优化策略、加功能
+25. **两个隐性风险（关键）**:
+    - 风险 1: Position Gate 与执行之间有时间窗口 → 并发叠仓
+    - 风险 2: 止损单"成功提交 ≠ 真正存在" → OKX 可能静默失败
+26. **执行锁 (execution_lock)**:
+    - 必须加锁形成"原子化执行" (Critical Section)
+    - 不加锁 → 未来一定会再次叠仓
+    - 流程：检查锁 → 加锁 → Gate → 执行 → 解锁
+27. **止损二次验证**:
+    - 提交后必须 fetch_open_orders 验证
+    - 确认止损单真正存在
+    - OKX 有概率返回成功但实际没挂上
+28. **仓位限制**:
+    - MAX_POSITION = 0.13 ETH（锁死单仓）
+    - 当前余额 $13.86，杠杆 ≈ 40x+
+    - 极端波动 → 账户清零风险
+29. **V5.4 不可失败标准（最终版）**:
+    - 同一时间只能有 1 个执行线程
+    - 永远不会叠仓（除非设计允许）
+    - 每一笔都有止损单（交易所可见）
+    - 止损价格基于真实成交价
+    - 所有 trade 数据完整（5 字段）
+30. **进入 5 笔验证的条件**:
+    - ✔ 双执行入口彻底关闭
+    - ✔ execution_lock 已加
+    - ✔ 止损验证机制存在
+31. **系统骨架（最终成型）**:
+    ```
+    Signal → Decision Hub → 🔒Execution Lock → 🔒Position Gate(双层)
+           → Execution → 🔒Stop Loss(交易所) → 二次验证
+    ```
+32. **Shadow Mode 认知纠正**:
+    - Shadow ≠ Execution System
+    - Shadow 验证的是信号/决策逻辑
+    - 但问题在 Execution/Control/Risk 层
+    - 205 笔 Shadow ≠ 1 笔真实交易验证
+33. **系统真实评级**:
+    - Strategy: 🟢 irrelevant
+    - Decision: 🟢 irrelevant
+    - Execution: 🟢 ⚠️
+    - Control: 🔴 ❌ 禁止上线
+    - Risk: 🔴 ❌ 禁止上线
+34. **最大风险不是"没止损"，而是"多执行入口 + 叠仓 + 无锁"**
+    - 这是"账户瞬间爆炸级风险"
+35. **当前阶段**: SYSTEM SAFETY VALIDATION (系统安全验证)
+    - 验证"系统不会犯致命错误"，不是验证策略有效
+    - 优先级：先解决"不会死"，再考虑"能不能赚"
+36. **正确路径 (纠正后)**:
+    - Step 1: 完成 V5.4 全部修复 (5 项)
+    - Step 2: 3 笔 Live Safety Test (不是 5 笔)
+    - Step 3: 验收无叠仓/止损有效/数据完整
+    - 通过后才允许扩大样本
+37. **Live Safety Test 必须输出 6 字段**:
+    - entry_price, exit_price, pnl, exit_source, position_size
+    - stop_ok, stop_verified
+38. **+$1.09 盈利的正确解读**:
+    - ✅ 执行链正确
+    - ❌ 风控无效 (叠仓)
+    - ❌ 不能代表 Edge
+    - 这笔盈利是"错误行为产生的"
+39. **Single Source of Truth 已建立**:
+    - `state_store.json` = 唯一真相源
+    - 所有事件必须通过 `record_trade()` 写入
+    - Dashboard 只能从 `state_store.to_dict()` 读取
+40. **StateStore 三个关键修复**:
+    - 🔒 文件锁：防止并发写入损坏数据
+    - 📦 缓存：避免每次 API 都读取文件
+    - 📊 区分：event（事件数）vs trade（交易数）
+41. **StateStore 数据结构**:
+    ```json
+    {
+      "total_events": 2,    // entry + exit
+      "total_trades": 1,    // 仅 exit 算 trade
+      "last_event": {...},  // 最近事件
+      "last_trade": {...}   // 最近完整交易
+    }
+    ```
+42. **Safety Test #1 失败 (2026-03-21 22:18)**:
+    - 🔴 Position Gate 失效 → 叠仓 0.13 → 2.88 ETH
+    - 🔴 TIME_EXIT 缺失 → 持仓 6 小时
+    - 🔴 止损单不存在 → 裸奔
+    - 结果：MANUAL 紧急平仓，亏损 -0.10%
+43. **Safety Test 验收 5 项必测**:
+    - Execution Lock: 无重复开仓
+    - Position Gate: 单仓 0.13 ETH
+    - Stop Loss: 存在且可查
+    - TIME_EXIT: ≤ 30s 触发
+    - Exit Source: 正确记录
+44. **TIME_EXIT 必须由主循环控制**:
+    - ❌ 线程版 → 多线程状态竞争
+    - ✅ 主循环检查 → 单点控制
+45. **止损强制验证**:
+    ```python
+    if not stop_result.get("stop_ok"):
+        raise RuntimeError("STOP_LOSS_FAILED - SYSTEM_STOP")
+    ```
+    无止损 = 系统停止（不可运行）
+46. **当前系统状态**: 🔴 不可上线
+    - 需要重新验证 Safety Test
+
+### 2026-03-22
+1. **V5.4 修复开始**: 创建 `safe_execution_v54.py`
+2. **PositionGate**: 双层检查（本地 + 交易所）
+3. **StopLossManager**: 止损提交 + 二次验证
+4. **SafeExecutionV54**: asyncio.Lock 原子化执行
+5. **Safety Test 脚本**: `run_safety_test.py`
+6. **验收标准**: 连续 3 笔通过 5 项检查
+7. **系统阶段**: SYSTEM SAFETY VALIDATION
+8. **核心原则**: 先解决"不会死"，再考虑"能不能赚"
+
+### 2026-03-23
+1. **OCNMPS 插件创建完成**: `~/.openclaw/plugins/ocnmps-router/`
+2. **插件架构**: 
+   - `plugin.js` - 主插件，注册 `message:preprocessed` hook
+   - `ocnmps_bridge_v2.py` - Python 桥接脚本
+   - `openclaw.plugin.json` - OpenClaw 插件 manifest
+3. **接入路径**: `hook → Python bridge → applyModelOverrideToSessionEntry`
+4. **灰度配置**: 30% 流量，一致性哈希
+5. **模型映射**: CODE/REASON/LONG/CN → 对应模型
+
+### 2026-03-26
+1. **V5.4 文档化完成** - RC 状态达成:
+   - ✅ `V5_4_ARCHITECTURE.md` (1,269 行) - 完整架构、调用顺序、失败语义
+   - ✅ `V5_4_TEST_REPORT.md` (676 行) - 14/14 测试用例全部通过
+   - ✅ `PRODUCTION_READINESS_CHECKLIST.md` (519 行) - 生产验证清单、禁止上线条件
+   - ✅ `RELEASE_NOTES_V5.4.md` (2,588 行) - 快速入口
+   - 📦 Git 提交：`8483132` (核心文档) + `cd1bd40` (Release Notes)
+2. **V5.4 状态**: ✅ **正式候选版本 (RC)**
+   - 可审阅：有快速入口，也有完整细节
+   - 可回归：测试报告和 checklist 都齐
+   - 可移交：团队成员能按文档接手
+   - 可追溯：两次关键提交都已落库
+3. **下一步**: ⏳ 等待 OKX 环境恢复后，按 Checklist 执行 3 笔最小实盘验证
+4. **实盘验证重点**:
+   - Execution Lock: 单线程执行
+   - Position Gate: 无叠仓
+   - Stop Loss: 交易所侧真实止损单
+   - Exit Source: 正确记录
+   - StateStore: 完整落盘 (5 字段)
+
+### 2026-03-26 (实盘验证完成)
+1. **V5.4 实盘验证完成** - 生产就绪版本:
+   - ✅ 第 1 笔：开仓 + 止损单提交 + 验证 (8/8 通过)
+   - ✅ 第 2 笔：Position Gate 重复保护 (5/5 通过)
+   - ✅ 第 3 笔补测：V5.4 管控下退出 + StateStore 更新 (4/4 通过)
+2. **关键修复**:
+   - StateStore 持仓恢复逻辑 (`_restore_position_from_file`)
+   - StopLossManager 条件单验证 API (`ordType: conditional`)
+   - stop_loss_result 传递到 gate_snapshot
+   - safe_execution_assembly 环境变量支持
+3. **版本状态**: ✅ **v5.4.0-verified** - 生产就绪
+4. **Git 提交**: `7dff5d1` - feat(V5.4): 实盘验证完成 - 生产就绪版本
+5. **结论**: V5.4 核心安全链 + 退出审计链，全部实盘验证通过。具备生产就绪条件。
+
+---
+
+## 🎨 UI-3.x 控制面板演进
+
+### 2026-03-27: UI-3.6 完成
+
+**阶段**: 交互与状态增强 ✅
+
+**核心成果**:
+- 历史页 range 交互闭环 (7D/30D/90D)
+- URL 参数持久化 + active 态同步
+- 后端 days 查询语义统一
+- 标准状态反馈体系 (loading/empty/error)
+- Empty 场景化提示 + hint
+- 真实数据联调验证通过
+
+**关键修复** (`c423b17`):
+- else 块未闭合 → JS 解析失败
+- currentRangeDays 顺序 → 变量未定义
+- fetchHistory API_BASE → 404 错误
+- data.data?.summary → 数据路径错误
+
+**验证数据**:
+- 告警总数：11,554
+- CRITICAL: 422
+- WARN: 11,093
+- 控制变更：8
+- 决策事件：13,224
+- 决策分布：hold 11,146 / buy 2,078
+
+**提交**: `c423b17` - fix(ui-3.6): 修复历史页 JS 执行、API 路径与数据映射问题
+
+### 2026-03-27: UI-3.7 完成
+
+**阶段**: 模板化与状态统一 ✅
+
+**核心成果**:
+- Flask 模板化：从 `render_template_string` 迁移到 `render_template`
+- 三页 stale/delayed 状态统一（主面板/历史页/报表页）
+- 模板文件结构化：`templates/index.html`, `history.html`, `reports.html`
+- 统一 freshness 数据传递：所有页面接收 `freshness` 对象
+- `render_freshness_badge` 函数全局可用
+
+**技术变更**:
+- `panel_v40.py`: `render_template_string` → `render_template`
+- 新增 `templates/` 目录，包含 4 个模板文件
+- 三页路由统一传递 `freshness` 数据
+- 备份：`panel_v40.py.backup.*`
+
+**文件结构**:
+```
+trading_system_v5_3/
+├── templates/
+│   ├── base.html          # 基础模板（备用）
+│   ├── index.html         # 主面板（从 INDEX_TEMPLATE 提取）
+│   ├── history.html       # 历史页（从 history_analysis.html 迁移）
+│   └── reports.html       # 报表页（从 reports_page.html 迁移）
+└── panel_v40.py           # 更新为使用文件模板
+```
+
+**验证**:
+- ✅ 语法检查通过
+- ✅ 模板渲染测试通过
+- ✅ 所有路由正常注册 (`/`, `/history`, `/reports`)
+- ✅ 三页 HTML 正常加载
+- ✅ 所有 API 端点正常响应
+- ✅ Freshness Badge 统一显示
+- ✅ Chart.js 图表库加载
+- ✅ Auto Refresh 自动刷新
+- ✅ Range 切换（历史页/报表页）
+
+**修复**:
+- 报表页数据解包：`alerts.data.summary` → `alertsData.summary`
+- 历史页 Chart.js 缺失：添加 `<script src="chart.js">`
+- 日志数据源状态追踪：`load_evolution/load_structure/load_decisions` 添加 `source_health` 更新 + `update_freshness` 调用
+
+**验证结果**:
+```
+数据源健康状态:
+- decision_log   [ok]   freshness: fresh (0s)
+- evolution_log  [ok]   freshness: fresh (0s)
+- structure_log  [ok]   freshness: fresh (0s)
+- market         [ok]   freshness: fresh (0s)
+- okx_capital    [ok]   freshness: fresh (0s)
+- okx_position   [ok]   freshness: fresh (0s)
+```
+
+**下一阶段**: UI-3.8 (性能优化 + 缓存策略)
+
+---
+
+### 2026-03-27: UI-3.8 代码优化完成
+
+**阶段**: 代码质量与可维护性提升 ✅
+
+**核心成果**:
+- 提取通用工具函数到 `utils.py` (安全转换/格式化/重试装饰器等)
+- 统一异常处理和日志记录 (`logger.error()` 代替 `print()`)
+- 完整类型注解 (64 函数中 44 个有返回类型，69%)
+- 优化可选模块导入 (优雅降级，ImportError 代替 Exception)
+- 提取公共函数 (`read_jsonl_last_lines`, `update_source_health`, `safe_json_load`)
+- 代码结构优化 (添加章节注释，统一代码风格)
+
+**代码统计**:
+- 总改动：843 行 (479 新增 / 364 删除)
+- 函数数量：64 个
+- 类型注解覆盖率：69%
+- 语法检查：✅ 通过
+- 运行时测试：✅ 通过
+
+**新增文件**:
+- `utils.py` - 通用工具函数库 (安全转换/格式化/装饰器/常量)
+
+**优化内容**:
+1. 工具函数提取：`safe_float/safe_int/fmt_pct/fmt_money/fmt_num/fmt_side`
+2. Badge 函数：`badge_for_side/badge_for_pnl/badge_for_state`
+3. 装饰器：`retry_on_exception/timed_execution`
+4. 工具函数：`merge_dicts/get_nested/truncate_string/format_timestamp`
+5. 日志优化：统一使用 `logger.error()` 代替 `print()`
+6. 导入优化：使用 `ImportError` 代替 `Exception`
+7. 类型注解：添加 `Optional/Union/Any` 等类型提示
+
+**验证结果**:
+```
+✅ 语法检查通过
+✅ 函数数量：64
+✅ 类型注解：44/64 (69%)
+✅ 服务器启动正常
+✅ API 响应正常
+✅ Worker 循环正常
+```
+
+**下一阶段**: UI-3.9 (PWA + Service Worker 离线缓存)
+
+---
+
+### 2026-03-27: UI-3.9 PWA 完成
+
+**阶段**: 离线缓存 + PWA 支持 ✅
+
+**核心成果**:
+- Web App Manifest (`manifest.json`)
+- Service Worker (`static/sw.js`)
+- 三页 PWA 支持 (index/history/reports)
+- 三种缓存策略 (Cache First / Network First / Stale While Revalidate)
+- 离线检测 + 用户提示
+- 后台数据同步
+
+**缓存策略**:
+1. **静态资源** (HTML/CSS/JS/图片) - Cache First
+2. **API 数据** - Network First + Cache Fallback
+3. **图表数据** - Stale While Revalidate
+
+**新增文件**:
+- `manifest.json` - PWA Manifest (应用名称/图标/主题色)
+- `static/sw.js` - Service Worker (5.7KB)
+- `static/icons/` - 应用图标目录
+
+**功能特性**:
+- ✅ 离线访问 (显示缓存数据)
+- ✅ 后台数据同步
+- ✅ 自动更新检测
+- ✅ 离线状态提示
+- ✅ 添加到主屏幕支持
+- ✅ 主题色适配
+
+**验证结果**:
+```
+✅ /manifest.json - 正常返回
+✅ /static/sw.js - 正常返回
+✅ PWA meta 标签 - 三页已添加
+✅ Service Worker 注册 - 已集成
+✅ 离线检测 - 已实现
+```
+
+**下一阶段**: UI-3.10 (性能监控 + 错误追踪)
+
+---
+
+### 2026-03-27: UI-3.9 Freshness Badge 统一
+
+**问题**: 三个页面的 Freshness Badge 实现不一致
+- 主面板：服务端渲染 (`render_freshness_badge()`)
+- 历史页：混合实现（服务端 + JS 内联函数）
+- 报表页：纯 JS 内联函数 + 硬编码颜色
+
+**修复方案**:
+1. 创建统一 JS 文件 `/static/freshness-badge.js`
+2. 三页都引用统一 JS 文件
+3. 删除各页内联 `updateFreshnessBadge()` 函数
+4. 统一使用 CSS 变量 (`var(--freshness-fresh)` 等)
+5. 统一 badge 类名 (`badge-fresh`/`badge-delayed`/`badge-stale`)
+
+**统一后的 HTML 结构**:
+```html
+<span class="badge badge-fresh" style="background:var(--freshness-fresh);color:#000">
+  ● 数据新鲜 (0s)
+</span>
+```
+
+**验证结果**:
+```
+✅ 主面板 - 使用统一 badge
+✅ 历史页 - 使用统一 badge
+✅ 报表页 - 使用统一 badge
+✅ /static/freshness-badge.js - 正常加载
+```
+
+**下一阶段**: UI-3.10 (性能监控 + 错误追踪)
+
+---
+
+## ⚠️ 2026-03-29 代码优化事故记录
+
+### 问题描述
+**每次代码优化必定导致某些功能失效**，例如：
+- 面板里的账户余额清零
+- 数据写入异常
+- 已完成的功能被破坏
+
+### 根因分析
+1. **优化前未充分理解代码依赖关系**
+2. **缺少回归测试验证**
+3. **优化范围过大，一次性改动过多**
+4. **未保留回滚方案**
+
+### 解决方案
+**制定严格的代码优化准则**，见 `docs/CODE_REFACTORING_GUIDELINES.md`
+
+### 核心原则
+1. **优化前必须先写测试**
+2. **小步快跑，每次只优化一个函数**
+3. **优化后必须验证核心功能**
+4. **保留完整 git 历史，随时可回滚**
+
+---
+
+### 2026-04-02 — OCNMPS 灰度修复验收通过
+
+**当前阶段**
+OCNMPS 已从"灰度异常排查"进入"等待首条命中样本"的正常验证阶段。
+
+**已确认通过**
+- 意图识别层正常：
+  - CODE 正确识别
+  - REASON 正确识别
+  - FAST 正确识别
+  - LONG 正确识别
+  - MAIN 作为兜底正常
+- 灰度算法层正常：
+  - 已从不稳定的 hash() 切换为稳定的 MD5 分桶
+  - gray_ratio=0.05 配置生效
+  - hash_bucket / threshold / gray_hit 日志字段已生效
+- 日志可解释性恢复：
+  - 修复了灰度 miss 时硬编码返回 intent=MAIN 的问题
+  - 日志现在能真实反映分类结果
+
+**当前未完成项**
+- 尚未拿到首条 gray_hit=true 的完整命中链路样本
+- 执行层仍待完成命中链路验收
+
+**下一步行动**
+1. 维持 5% 灰度，不提升到 15%
+2. 等待首条命中样本后，验收以下 6 项：
+   - gray_hit = true
+   - intent 与任务类型一致
+   - recommended_model 符合映射
+   - final_model 与推荐一致，或存在合理 fallback
+   - 路由日志出现 Model override applied
+   - 实际会话模型已切换
+3. 积累到 50+ 请求后，再评估是否从 5% 提升到 15%
+
+**当前结论**
+OCNMPS 灰度修复验收：通过。
+当前状态不是故障，而是正常等待首条命中样本。
+
+### 2026-04-02 17:08 — OCNMPS 50 样本测试验收完成
+
+**测试执行：** 2026-04-02 07:45-07:55 (10 分钟)
+**总样本数：** 50 条 (MAIN 10 / CODE 10 / REASON 10 / LONG 8 / CN 6 / FAST 6)
+
+**验收结果：**
+- ✅ 意图识别层：6 类意图全部正确识别
+- ✅ 灰度算法层：MD5 分桶 + 5% 阈值生效
+- ✅ 日志可解释性：字段完整，无硬编码
+- ✅ 系统稳定性：0 错误 / 0 fallback 触发
+- 🟡 灰度命中率：0/50 (统计学正常，0.95^50 ≈ 7.7%)
+
+**最终判定：** ✅ **测试通过** — 进入「等待首条命中样本」阶段
+
+**下一步：**
+1. 继续监控，等待 gray_hit=true 出现
+2. 命中后执行 6 项链路验收
+3. 积累 50+ 命中样本后评估 15% 扩容
+
+---
+
+### 2026-04-02 — M3 Helix 驾驶舱第一阶段完成
+
+**已完成后端 API 框架** (端口 8000)
+- ✅ FastAPI 异步框架
+- ✅ 6 个核心端点：health/system/market/positions/orders/strategies
+- ✅ 事件总线 + WebSocket 实时推送支持
+- ✅ Pydantic v2 配置管理 + 结构化日志
+
+**待完成**
+- 🔄 前端界面开发 (4-8 小时工作量)
+- 🔄 连接 V5.4 交易系统
+- ⏳ OKX 网络恢复后补测 M2 Live
+
+---
+
+### 2026-04-02 — OKX 网络连接问题
+
+**问题描述**
+- 🔴 持续 5+ 小时连接失败 (SSL_ERROR_SYSCALL / Connection reset by peer)
+- 🔴 DNS 污染检测：www.okx.com → 169.254.0.2 (无效地址)
+
+**影响**
+- M2 Live 验证推迟
+- M3 开发不阻塞 (使用模拟数据)
+
+**待解决**
+- ⏳ 手机热点绕过测试
+- ⏳ 或等待网络恢复
+
+---
+
+### 2026-04-02 — OpenClaw 升级问题与修复
+
+**升级**: 2026.3.12 → 2026.4.1 ✅ 完成
+
+**遇到的问题**:
+1. **npm ENOTEMPTY 错误** — 旧版本目录清理失败
+   - 根因：`/usr/local/lib/node_modules/openclaw/dist/plugin-sdk/src/agents/cli-runner` 非空
+   - 解决：`rm -rf` 手动清理后重新安装
+
+2. **openclaw 命令丢失** — npm 安装中断导致 bin 链接断开
+   - 解决：等待后台 npm install 完成自动恢复
+
+3. **健康检查脚本版本号硬编码** — 升级后仍显示旧版本
+   - 根因：`scripts/openclaw-health-check.sh` 硬编码 `"2026.3.12"`
+   - 修复：改为动态获取 `$(openclaw --version | grep -oE '2026\.[0-9]+\.[0-9]+')`
+   - 提交：`b4d19a9`
+
+**经验教训**:
+- npm 全局包升级前先备份：`cp -r /usr/local/lib/node_modules/openclaw /tmp/openclaw.bak`
+- 脚本中的版本号必须动态获取，不能硬编码
+- 升级后验证不仅要看 `openclaw --version`，还要检查健康检查 JSON
+
+**升级后检查清单** (更新到 `scripts/post-upgrade-check.sh`):
+- [ ] `openclaw --version` 验证版本号
+- [ ] `openclaw status` 验证网关状态
+- [ ] 检查 `openclaw-health-check.json` 版本号是否同步
+- [ ] 运行 `post-upgrade-check.sh` 验证环境
+
+---
+
+### 2026-04-03 — OCNMPS 配置一致性修复
+
+**问题**: 发现 OCNMPS 各配置文件的意图定义不一致
+- `ocnmps_core.js`: ✅ 11 意图完整
+- `ocnmps_bridge_v2.py`: ❌ 仅 7 意图 (缺失 PATCH/DEBUG/REVIEW/TEST)
+- `ocnmps_plugin_config.json`: ❌ CODE-PLUS 命名错误 (应为 CODE_PLUS)
+- `openclaw.plugin.json`: ❌ configSchema.enum 仅 6 意图
+
+**修复内容**:
+1. `ocnmps_bridge_v2.py` - 补全 11 意图配置 (INTENT_KEYWORDS + INTENT_MODEL_MAP)
+2. `ocnmps_plugin_config.json` - 修正 CODE-PLUS → CODE_PLUS
+3. `openclaw.plugin.json` - 更新 configSchema.properties.enabledIntents.enum (11 个)
+4. 创建 `verify_config_consistency.py` - 配置一致性验证脚本
+
+**11 意图完整列表**:
+| 意图 | 用途 | 模型 |
+|------|------|------|
+| MAIN | 通用任务 | qwen3.5-plus |
+| FAST | 快速问题 | qwen3-max-2026-01-23 |
+| CODE | 代码编写 | qwen3-coder-next |
+| CODE_PLUS | 复杂代码 | qwen3-coder-plus |
+| PATCH | 代码修复 | grok-code-fast-1 |
+| DEBUG | 调试问题 | grok-4-1-fast-reasoning |
+| REVIEW | 代码审查 | grok-4-1-fast-reasoning |
+| TEST | 测试相关 | qwen3-max-2026-01-23 |
+| REASON | 推理/解释 | grok-4-1-fast-reasoning |
+| LONG | 长文本 | qwen3.5-plus |
+| CN | 中文问题 | MiniMax-M2.5 |
+
+**验证脚本**:
+```bash
+# 插件目录验证
+python3 ~/.openclaw/plugins/ocnmps-router/verify_config_consistency.py
+
+# Workspace 验证
+python3 ~/.openclaw/workspace/scripts/ocnmps-verify-config.py
+```
+
+**经验教训**:
+1. 多文件配置必须保持同步，否则会出现配置漂移
+2. 必须自动化验证，不能依赖人工检查
+3. 以单一文件为基准 (ocnmps_core.js)，其他文件同步
+4. 验证脚本应纳入 CI/CD 或升级后检查流程
+
+**状态**: ✅ 所有配置文件意图一致 (11/11)
+
+---
+
+_最后更新：2026-04-03 04:15_

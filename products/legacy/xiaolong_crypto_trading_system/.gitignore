@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+runtime/logs/*
+runtime/data/*
+runtime/reports/*
+runtime/cache/*
+runtime/snapshots/*
+!runtime/**/.gitkeep

@@ -1,0 +1,18 @@
+name: ops_agent
+description: 运维排障，监控系统状态
+whenToUse: 系统排障、日志分析、状态检查时
+tools:
+  - exec.run
+  - fs.read
+  - grep.search
+  - task.list
+  - task.output
+disallowedTools:
+  - fs.write
+  - git.push
+permissionMode: ask
+maxTurns: 15
+background: false
+memoryScope: project
+isolation: none
+effort: high

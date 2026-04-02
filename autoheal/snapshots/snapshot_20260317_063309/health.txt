@@ -1,6 +1,0 @@
-Telegram: ok (@AlanColin_Xiao_bot) (1301ms)
-Agents: main (default)
-Heartbeat interval: 30m (main)
-Session store (main): /Users/colin/.openclaw/agents/main/sessions/sessions.json (2 entries)
-- agent:main:subagent:54cf12b2-64a7-48d4-baf0-f57ae06041e6 (4m ago)
-- agent:main:main (6m ago)

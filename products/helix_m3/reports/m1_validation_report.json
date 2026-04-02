@@ -1,0 +1,83 @@
+{
+  "passed": 0,
+  "total": 5,
+  "pass_rate": 0.0,
+  "m2_ready": false,
+  "results": [
+    {
+      "scenario_id": "SCN-002",
+      "scenario_name": "行情停滞",
+      "passed": false,
+      "duration_seconds": 5.6e-05,
+      "events_produced": 0,
+      "checks": {
+        "breaker_tripped": false,
+        "order_state_consistent": true,
+        "position_stable": true,
+        "protection_correct": true,
+        "cockpit_readable": true
+      },
+      "issues": []
+    },
+    {
+      "scenario_id": "SCN-001",
+      "scenario_name": "网络断开",
+      "passed": false,
+      "duration_seconds": 3.1e-05,
+      "events_produced": 0,
+      "checks": {
+        "breaker_tripped": false,
+        "order_state_consistent": true,
+        "position_stable": true,
+        "protection_correct": true,
+        "cockpit_readable": true
+      },
+      "issues": []
+    },
+    {
+      "scenario_id": "SCN-003",
+      "scenario_name": "拒绝风暴",
+      "passed": false,
+      "duration_seconds": 3.3e-05,
+      "events_produced": 0,
+      "checks": {
+        "breaker_tripped": false,
+        "order_state_consistent": true,
+        "position_stable": true,
+        "protection_correct": true,
+        "cockpit_readable": true
+      },
+      "issues": []
+    },
+    {
+      "scenario_id": "SCN-004",
+      "scenario_name": "价格跳空",
+      "passed": false,
+      "duration_seconds": 2.7e-05,
+      "events_produced": 0,
+      "checks": {
+        "breaker_tripped": false,
+        "order_state_consistent": true,
+        "position_stable": true,
+        "protection_correct": true,
+        "cockpit_readable": true
+      },
+      "issues": []
+    },
+    {
+      "scenario_id": "SCN-005",
+      "scenario_name": "混合故障",
+      "passed": false,
+      "duration_seconds": 3e-05,
+      "events_produced": 0,
+      "checks": {
+        "breaker_tripped": false,
+        "order_state_consistent": true,
+        "position_stable": true,
+        "protection_correct": true,
+        "cockpit_readable": true
+      },
+      "issues": []
+    }
+  ]
+}

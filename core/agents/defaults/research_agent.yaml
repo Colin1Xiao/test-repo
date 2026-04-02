@@ -1,0 +1,17 @@
+name: research_agent
+description: 信息搜集与研究
+whenToUse: 需要搜索信息、整理资料时
+tools:
+  - grep.search
+  - fs.read
+  - fs.write
+  - task.list
+  - task.output
+disallowedTools:
+  - exec.run
+permissionMode: ask
+maxTurns: 10
+background: true
+memoryScope: session
+isolation: none
+effort: medium

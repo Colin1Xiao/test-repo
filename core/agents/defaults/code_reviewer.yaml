@@ -1,0 +1,17 @@
+name: code_reviewer
+description: 审查改动并给出风险与验证建议
+whenToUse: 需要审查代码改动、评估风险时
+tools:
+  - fs.read
+  - diff.read
+  - grep.search
+disallowedTools:
+  - fs.write
+  - exec.run
+  - git.push
+permissionMode: deny
+maxTurns: 8
+background: false
+memoryScope: project
+isolation: none
+effort: medium

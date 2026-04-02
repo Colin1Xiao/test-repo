@@ -1,0 +1,52 @@
+{
+  "test_id": "M2-PAPER-20260331214035",
+  "timestamp": "2026-03-31T21:40:35.461941",
+  "passed": true,
+  "checks": {
+    "order_created": true,
+    "order_submitted": true,
+    "protection_created": true,
+    "order_filled": true,
+    "event_store": true,
+    "cockpit_readable": true,
+    "admin_controls": true,
+    "connected": true,
+    "balance_query": true,
+    "position_query": true
+  },
+  "details": {
+    "order": {
+      "order_id": "ORD-M2-001",
+      "symbol": "ETH/USDT",
+      "qty": "0.01",
+      "price": "2000.0"
+    },
+    "protection": {
+      "stop_loss": "1990.0000",
+      "take_profit": "2004.0000"
+    },
+    "fill": {
+      "filled_quantity": "0.010",
+      "average_price": "2000.15"
+    },
+    "events": {
+      "count": 12,
+      "types": [
+        "order_filled",
+        "order_accepted"
+      ]
+    },
+    "cockpit": {
+      "active_orders": 0,
+      "protections": 0
+    },
+    "balances": {
+      "BTC": "1",
+      "OKB": "100",
+      "USDT": "4957.200115297843",
+      "ETH": "1"
+    },
+    "positions": 0
+  },
+  "issues": []
+}
