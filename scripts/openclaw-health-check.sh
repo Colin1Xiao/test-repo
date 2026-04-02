@@ -176,7 +176,7 @@ main() {
   },
   "overall": $overall_json,
   "system": {
-    "version": "2026.3.12",
+    "version": "$(openclaw --version 2>/dev/null | grep -oE '2026\.[0-9]+\.[0-9]+' || echo 'unknown')",
     "nodeVersion": "$(node -v 2>/dev/null || echo 'unknown')",
     "platform": "$(uname -s | tr '[:upper:]' '[:lower:]')",
     "arch": "$(uname -m)"
