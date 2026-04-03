@@ -15,6 +15,7 @@ import type {
 } from '../types/surface_types';
 import type { OperatorContextAdapter } from './operator_context_adapter';
 import type { OperatorViewFactory } from './operator_view_factory';
+import type { InboxService } from '../inbox/inbox_service';
 
 // ============================================================================
 // 默认实现
@@ -23,13 +24,16 @@ import type { OperatorViewFactory } from './operator_view_factory';
 export class DefaultOperatorSurfaceService implements OperatorSurfaceService {
   private contextAdapter: OperatorContextAdapter;
   private viewFactory: OperatorViewFactory;
+  private inboxService: InboxService | null = null;
   
   constructor(
     contextAdapter: OperatorContextAdapter,
-    viewFactory: OperatorViewFactory
+    viewFactory: OperatorViewFactory,
+    inboxService?: InboxService
   ) {
     this.contextAdapter = contextAdapter;
     this.viewFactory = viewFactory;
+    this.inboxService = inboxService || null;
   }
   
   async getDashboardView(input: GetSurfaceViewInput): Promise<OperatorViewPayload> {
@@ -93,6 +97,72 @@ export class DefaultOperatorSurfaceService implements OperatorSurfaceService {
   }
   
   async getInboxView(input: GetSurfaceViewInput): Promise<OperatorViewPayload> {
+    const now = Date.now();
+    
+    // 优先使用 InboxService（如果已配置）
+    if (this.inboxService) {
+      const snapshot = await this.inboxService.getInboxSnapshot(input.workspaceId);
+      
+      // 构建可用动作
+      const availableActions = [
+        {
+          actionType: 'view_approvals' as const,
+          label: '查看所有审批',
+          targetType: 'approval' as const,
+          style: 'default' as const,
+        },
+        {
+          actionType: 'view_incidents' as const,
+          label: '查看所有事件',
+          targetType: 'incident' as const,
+          style: 'default' as const,
+        },
+        {
+          actionType: 'view_tasks' as const,
+          label: '查看所有任务',
+          targetType: 'task' as const,
+          style: 'default' as const,
+        },
+      ];
+      
+      // 为紧急项添加快速动作
+      const urgentItems = snapshot.items.filter(
+        i => i.severity === 'critical' || i.severity === 'high'
+      ).slice(0, 5);
+      
+      for (const item of urgentItems) {
+        if (item.suggestedActions) {
+          for (const action of item.suggestedActions.slice(0, 2)) {
+            availableActions.push({
+              actionType: action as any,
+              label: `${item.itemType === 'approval' ? '批准' : item.itemType === 'incident' ? '确认' : '重试'}：${item.sourceId}`,
+              targetType: item.itemType as any,
+              targetId: item.sourceId,
+              style: item.severity === 'critical' ? 'danger' : 'warning' as const,
+            });
+          }
+        }
+      }
+      
+      return {
+        viewKind: 'inbox' as const,
+        title: '收件箱',
+        subtitle: `总计 ${snapshot.summary.totalCount} 项待处理`,
+        mode: input.mode,
+        summary: `审批 ${snapshot.summary.pendingApprovals} | 事件 ${snapshot.summary.openIncidents} | 任务 ${snapshot.summary.blockedTasks} | 紧急 ${snapshot.summary.criticalCount}`,
+        content: {
+          summary: snapshot.summary,
+          items: snapshot.items.slice(0, 20), // 只显示前 20 项
+          urgentItems: urgentItems,
+        },
+        availableActions,
+        breadcrumbs: ['Dashboard', 'Inbox'],
+        generatedAt: now,
+        freshnessMs: now - snapshot.generatedAt,
+      };
+    }
+    
+    // 降级：使用轻量聚合
     const [controlSnapshot, humanLoopSnapshot] = await Promise.all([
       this.contextAdapter.getControlSnapshot(input.workspaceId),
       this.contextAdapter.getHumanLoopSnapshot(input.workspaceId),

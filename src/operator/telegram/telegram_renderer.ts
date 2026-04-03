@@ -157,12 +157,22 @@ export class DefaultTelegramRenderer implements TelegramRenderer {
     } else if (Array.isArray(content)) {
       content.forEach((item, idx) => {
         if (typeof item === "object" && item !== null) {
-          lines.push(this.renderObjectItem(item, idx + 1));
+          // 检查是否是 InboxItem
+          if (this.isInboxItem(item)) {
+            lines.push(this.renderInboxItem(item, idx + 1));
+          } else {
+            lines.push(this.renderObjectItem(item, idx + 1));
+          }
         } else {
           lines.push(`${idx + 1}. ${String(item)}`);
         }
       });
     } else if (typeof content === "object" && content !== null) {
+      // 检查是否是 Inbox 内容
+      if (this.isInboxContent(content)) {
+        return this.renderInboxContent(content);
+      }
+      
       Object.entries(content).forEach(([key, value]) => {
         lines.push(`• *${key}*: ${this.formatValue(value)}`);
       });
@@ -268,5 +278,67 @@ export class DefaultTelegramRenderer implements TelegramRenderer {
       return `${Math.floor(ms / 60000)}分钟前`;
     }
     return `${Math.floor(ms / 3600000)}小时前`;
+  }
+  
+  // ============================================================================
+  // Inbox 渲染辅助方法
+  // ============================================================================
+  
+  private isInboxItem(item: any): boolean {
+    return item.itemType && item.severity && item.sourceId;
+  }
+  
+  private isInboxContent(content: any): boolean {
+    return content.summary && content.items && Array.isArray(content.items);
+  }
+  
+  private renderInboxContent(content: any): string[] {
+    const lines: string[] = [];
+    
+    // 渲染摘要
+    const summary = content.summary;
+    lines.push("*📥 收件箱摘要*");
+    lines.push(`审批：${summary.pendingApprovals || 0}`);
+    lines.push(`事件：${summary.openIncidents || 0}`);
+    lines.push(`任务：${summary.blockedTasks || 0}`);
+    lines.push(`紧急：${summary.criticalCount || 0}`);
+    lines.push("");
+    
+    // 渲染紧急项（只限前 5 项）
+    const urgentItems = content.urgentItems || content.items?.filter((i: any) => 
+      i.severity === 'critical' || i.severity === 'high'
+    ) || [];
+    
+    if (urgentItems.length > 0) {
+      lines.push("*🔴 紧急项*");
+      urgentItems.slice(0, 5).forEach((item: any, idx: number) => {
+        lines.push(this.renderInboxItem(item, idx + 1));
+      });
+      lines.push("");
+    }
+    
+    return lines;
+  }
+  
+  private renderInboxItem(item: any, index: number): string {
+    const severityIcon = {
+      critical: '🔴',
+      high: '🟠',
+      medium: '🟡',
+      low: '🟢',
+    }[item.severity] || '⚪';
+    
+    const typeIcon = {
+      approval: '📋',
+      incident: '🚨',
+      task: '📝',
+      intervention: '⚠️',
+      attention: '👀',
+    }[item.itemType] || '📌';
+    
+    const statusStr = item.status ? ` [${item.status}]` : '';
+    const ageStr = item.ageMs ? ` (${this.formatFreshness(item.ageMs)})` : '';
+    
+    return `${index}. ${severityIcon} ${typeIcon} *${item.title}*${statusStr}${ageStr}`;
   }
 }

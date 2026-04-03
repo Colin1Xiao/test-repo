@@ -234,18 +234,25 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     
     const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
-    // 刷新审批视图
-    const updatedView = await this.surfaceService.getApprovalView({
-      actor: command.actor,
-      viewKind: 'approvals',
-      workspaceId: command.actor.workspaceId,
-    });
+    // 刷新审批视图和 inbox
+    const [approvalView, inboxView] = await Promise.all([
+      this.surfaceService.getApprovalView({
+        actor: command.actor,
+        viewKind: 'approvals',
+        workspaceId: command.actor.workspaceId,
+      }),
+      this.surfaceService.getInboxView({
+        actor: command.actor,
+        viewKind: 'inbox',
+        workspaceId: command.actor.workspaceId,
+      }),
+    ]);
     
     return {
       success: execResult.success,
       message: execResult.message,
       actionResult,
-      updatedView,
+      updatedView: inboxView, // 返回 inbox 视图，让用户看到 queue 变化
       respondedAt: Date.now(),
     };
   }
@@ -325,17 +332,25 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     
     const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
-    const updatedView = await this.surfaceService.getIncidentView({
-      actor: command.actor,
-      viewKind: 'incidents',
-      workspaceId: command.actor.workspaceId,
-    });
+    // 刷新事件视图和 inbox
+    const [incidentView, inboxView] = await Promise.all([
+      this.surfaceService.getIncidentView({
+        actor: command.actor,
+        viewKind: 'incidents',
+        workspaceId: command.actor.workspaceId,
+      }),
+      this.surfaceService.getInboxView({
+        actor: command.actor,
+        viewKind: 'inbox',
+        workspaceId: command.actor.workspaceId,
+      }),
+    ]);
     
     return {
       success: execResult.success,
       message: execResult.message,
       actionResult,
-      updatedView,
+      updatedView: inboxView,
       respondedAt: Date.now(),
     };
   }
@@ -410,17 +425,25 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     
     const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
-    const updatedView = await this.surfaceService.getTaskView({
-      actor: command.actor,
-      viewKind: 'tasks',
-      workspaceId: command.actor.workspaceId,
-    });
+    // 刷新任务视图和 inbox
+    const [taskView, inboxView] = await Promise.all([
+      this.surfaceService.getTaskView({
+        actor: command.actor,
+        viewKind: 'tasks',
+        workspaceId: command.actor.workspaceId,
+      }),
+      this.surfaceService.getInboxView({
+        actor: command.actor,
+        viewKind: 'inbox',
+        workspaceId: command.actor.workspaceId,
+      }),
+    ]);
     
     return {
       success: execResult.success,
       message: execResult.message,
       actionResult,
-      updatedView,
+      updatedView: inboxView,
       respondedAt: Date.now(),
     };
   }
