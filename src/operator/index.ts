@@ -61,6 +61,12 @@ export type {
 export { DefaultOperatorExecutionBridge, createOperatorExecutionBridge } from "./services/operator_execution_bridge";
 
 // ============================================================================
+// 数据层导出
+// ============================================================================
+
+export * from './data';
+
+// ============================================================================
 // 服务工具导出
 // ============================================================================
 
@@ -69,6 +75,14 @@ export type {
   OperatorContextAdapterConfig,
 } from "./services/operator_context_adapter";
 export { DefaultOperatorContextAdapter, createOperatorContextAdapter } from "./services/operator_context_adapter";
+
+// V2 - 使用真实数据源
+export type {
+  OperatorContextAdapterV2,
+  OperatorContextAdapterV2Config,
+  DataSourceMode,
+} from "./services/operator_context_adapter_v2";
+export { DefaultOperatorContextAdapterV2, createOperatorContextAdapterV2 } from "./services/operator_context_adapter_v2";
 
 export type {
   OperatorViewFactory,
