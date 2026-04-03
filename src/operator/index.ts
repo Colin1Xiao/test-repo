@@ -33,6 +33,7 @@ export type {
 // ============================================================================
 
 export type { OperatorSurfaceService } from "./services/operator_surface_service";
+export { DefaultOperatorSurfaceService, createOperatorSurfaceService } from "./services/default_operator_surface_service";
 
 export type {
   OperatorCommandDispatch,
@@ -43,6 +44,32 @@ export {
   COMMAND_REGISTRY,
   PHASE_2A1_MINIMAL_COMMANDS,
 } from "./services/operator_command_dispatch";
+
+export type { OperatorCommandDispatch as DefaultOperatorCommandDispatch } from "./services/default_operator_command_dispatch";
+export { createOperatorCommandDispatch } from "./services/default_operator_command_dispatch";
+
+// ============================================================================
+// 服务工具导出
+// ============================================================================
+
+export type {
+  OperatorContextAdapter,
+  OperatorContextAdapterConfig,
+} from "./services/operator_context_adapter";
+export { DefaultOperatorContextAdapter, createOperatorContextAdapter } from "./services/operator_context_adapter";
+
+export type {
+  OperatorViewFactory,
+  BuildDashboardViewInput,
+  BuildTaskViewInput,
+  BuildApprovalViewInput,
+  BuildIncidentViewInput,
+  BuildAgentViewInput,
+  BuildInboxViewInput,
+  BuildInterventionViewInput,
+  BuildDetailViewInput,
+} from "./services/operator_view_factory";
+export { DefaultOperatorViewFactory, createOperatorViewFactory } from "./services/operator_view_factory";
 
 // ============================================================================
 // CLI 导出
