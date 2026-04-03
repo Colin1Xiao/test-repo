@@ -12,6 +12,11 @@
 import type { ControlSurfaceBuilder } from '../ux/control_surface';
 import type { HumanLoopService } from '../ux/human_loop_service';
 import type { ControlActionResult } from '../ux/control_types';
+import type { ExecutionPolicy } from './operator_execution_policy';
+import type { TaskDataSource } from '../data/task_data_source';
+import type { ApprovalDataSource } from '../data/approval_data_source';
+import type { IncidentDataSource } from '../data/incident_data_source';
+import type { AgentDataSource } from '../data/agent_data_source';
 
 // ============================================================================
 // 执行结果类型
@@ -129,6 +134,15 @@ export interface OperatorExecutionBridgeConfig {
   
   /** HumanLoopService 实例（用于 HITL 动作） */
   humanLoopService?: HumanLoopService;
+  
+  /** 执行策略（用于 per-action 控制） */
+  executionPolicy?: ExecutionPolicy;
+  
+  /** 数据源（用于状态同步） */
+  taskDataSource?: TaskDataSource;
+  approvalDataSource?: ApprovalDataSource;
+  incidentDataSource?: IncidentDataSource;
+  agentDataSource?: AgentDataSource;
 }
 
 // ============================================================================
@@ -143,12 +157,19 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
       enableRealExecution: config.enableRealExecution ?? false,
       controlSurfaceBuilder: config.controlSurfaceBuilder ?? null,
       humanLoopService: config.humanLoopService ?? null,
+      executionPolicy: config.executionPolicy ?? null,
+      taskDataSource: config.taskDataSource ?? null,
+      approvalDataSource: config.approvalDataSource ?? null,
+      incidentDataSource: config.incidentDataSource ?? null,
+      agentDataSource: config.agentDataSource ?? null,
     } as Required<OperatorExecutionBridgeConfig>;
   }
   
   async approveApproval(id: string, actorId?: string): Promise<ExecutionResult> {
-    // 真实执行路径
-    if (this.config.enableRealExecution && this.config.controlSurfaceBuilder) {
+    // 检查执行策略
+    const mode = this.getExecutionMode('approve');
+    
+    if (mode === 'real' && this.config.controlSurfaceBuilder) {
       try {
         const result = await this.config.controlSurfaceBuilder.dispatchControlAction({
           type: 'approve',
@@ -157,6 +178,11 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
           requestedBy: actorId || 'operator',
           requestedAt: Date.now(),
         });
+        
+        // 同步状态到数据源
+        if (result.success && this.config.approvalDataSource) {
+          this.config.approvalDataSource.updateApprovalStatus(id, 'approved', actorId);
+        }
         
         return {
           success: result.success,
@@ -186,7 +212,9 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
   }
   
   async rejectApproval(id: string, actorId?: string): Promise<ExecutionResult> {
-    if (this.config.enableRealExecution && this.config.controlSurfaceBuilder) {
+    const mode = this.getExecutionMode('reject');
+    
+    if (mode === 'real' && this.config.controlSurfaceBuilder) {
       try {
         const result = await this.config.controlSurfaceBuilder.dispatchControlAction({
           type: 'reject',
@@ -195,6 +223,10 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
           requestedBy: actorId || 'operator',
           requestedAt: Date.now(),
         });
+        
+        if (result.success && this.config.approvalDataSource) {
+          this.config.approvalDataSource.updateApprovalStatus(id, 'rejected', actorId);
+        }
         
         return {
           success: result.success,
@@ -223,7 +255,9 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
   }
   
   async ackIncident(id: string, actorId?: string): Promise<ExecutionResult> {
-    if (this.config.enableRealExecution && this.config.controlSurfaceBuilder) {
+    const mode = this.getExecutionMode('ack_incident');
+    
+    if (mode === 'real' && this.config.controlSurfaceBuilder) {
       try {
         const result = await this.config.controlSurfaceBuilder.dispatchControlAction({
           type: 'ack_incident',
@@ -232,6 +266,10 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
           requestedBy: actorId || 'operator',
           requestedAt: Date.now(),
         });
+        
+        if (result.success && this.config.incidentDataSource) {
+          this.config.incidentDataSource.acknowledgeIncident(id, actorId);
+        }
         
         return {
           success: result.success,
@@ -260,7 +298,9 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
   }
   
   async retryTask(id: string, actorId?: string): Promise<ExecutionResult> {
-    if (this.config.enableRealExecution && this.config.controlSurfaceBuilder) {
+    const mode = this.getExecutionMode('retry_task');
+    
+    if (mode === 'real' && this.config.controlSurfaceBuilder) {
       try {
         const result = await this.config.controlSurfaceBuilder.dispatchControlAction({
           type: 'retry_task',
@@ -269,6 +309,10 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
           requestedBy: actorId || 'operator',
           requestedAt: Date.now(),
         });
+        
+        if (result.success && this.config.taskDataSource) {
+          this.config.taskDataSource.updateTaskStatus(id, 'running');
+        }
         
         return {
           success: result.success,
@@ -297,7 +341,9 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
   }
   
   async pauseAgent(id: string, actorId?: string): Promise<ExecutionResult> {
-    if (this.config.enableRealExecution && this.config.controlSurfaceBuilder) {
+    const mode = this.getExecutionMode('pause_agent');
+    
+    if (mode === 'real' && this.config.controlSurfaceBuilder) {
       try {
         const result = await this.config.controlSurfaceBuilder.dispatchControlAction({
           type: 'pause_agent',
@@ -306,6 +352,10 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
           requestedBy: actorId || 'operator',
           requestedAt: Date.now(),
         });
+        
+        if (result.success && this.config.agentDataSource) {
+          this.config.agentDataSource.updateAgentStatus(id, 'paused');
+        }
         
         return {
           success: result.success,
@@ -567,6 +617,19 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
   // 辅助方法
   // ============================================================================
   
+  /**
+   * 获取动作的执行模式
+   */
+  private getExecutionMode(actionType: string): ExecutionMode {
+    // 优先使用 execution policy
+    if (this.config.executionPolicy) {
+      return this.config.executionPolicy.getExecutionMode(actionType as any);
+    }
+    
+    // 回退到全局开关
+    return this.config.enableRealExecution ? 'real' : 'simulated';
+  }
+  
   private buildSimulatedResult(actionType: string, targetId: string, message: string): ExecutionResult {
     return {
       success: true,
@@ -583,6 +646,7 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
    */
   enableRealExecution(): void {
     this.config.enableRealExecution = true;
+    this.config.executionPolicy?.enableRealExecution();
   }
   
   /**
@@ -590,6 +654,7 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
    */
   disableRealExecution(): void {
     this.config.enableRealExecution = false;
+    this.config.executionPolicy?.disableRealExecution();
   }
   
   /**
@@ -598,14 +663,39 @@ export class DefaultOperatorExecutionBridge implements OperatorExecutionBridge {
   isRealExecutionEnabled(): boolean {
     return this.config.enableRealExecution;
   }
+  
+  /**
+   * 设置动作的执行模式
+   */
+  setExecutionMode(actionType: string, mode: ExecutionMode): void {
+    if (this.config.executionPolicy) {
+      this.config.executionPolicy.setExecutionMode(actionType as any, mode);
+    }
+  }
+  
+  /**
+   * 获取执行策略状态
+   */
+  getExecutionPolicyState(): any {
+    return this.config.executionPolicy?.getPolicyState() || {
+      defaultMode: this.config.enableRealExecution ? 'real' : 'simulated',
+      globalEnabled: this.config.enableRealExecution,
+    };
+  }
 }
 
 // ============================================================================
 // 工厂函数
 // ============================================================================
 
+import { createExecutionPolicy, type ExecutionPolicy } from './operator_execution_policy';
+
 export function createOperatorExecutionBridge(
-  config?: OperatorExecutionBridgeConfig
+  config?: OperatorExecutionBridgeConfig,
+  executionPolicy?: ExecutionPolicy
 ): OperatorExecutionBridge {
-  return new DefaultOperatorExecutionBridge(config);
+  return new DefaultOperatorExecutionBridge({
+    ...config,
+    executionPolicy: executionPolicy ?? createExecutionPolicy(config),
+  });
 }

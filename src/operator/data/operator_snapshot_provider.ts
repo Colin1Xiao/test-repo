@@ -53,6 +53,11 @@ export interface OperatorSnapshotProvider {
    * 刷新所有数据源
    */
   refresh(): Promise<void>;
+  
+  /**
+   * 按域失效缓存
+   */
+  invalidate(domain?: 'task' | 'approval' | 'incident' | 'agent' | 'all'): void;
 }
 
 // ============================================================================
@@ -144,14 +149,16 @@ export class DefaultOperatorSnapshotProvider implements OperatorSnapshotProvider
   
   async refresh(): Promise<void> {
     // 清除缓存
+    this.invalidate('all');
+  }
+  
+  invalidate(domain: 'task' | 'approval' | 'incident' | 'agent' | 'all' = 'all'): void {
+    // 清除缓存
     this.snapshotCache = {
       snapshot: null,
       cachedAt: 0,
       health: { task: 'mock', approval: 'mock', incident: 'mock', agent: 'mock' },
     };
-    
-    // 重新构建快照
-    await this.buildSnapshot(this.config.defaultWorkspaceId);
   }
   
   // ============================================================================

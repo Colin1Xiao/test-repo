@@ -49,6 +49,23 @@ export type { OperatorCommandDispatch as DefaultOperatorCommandDispatch } from "
 export { createOperatorCommandDispatch } from "./services/default_operator_command_dispatch";
 
 // ============================================================================
+// 执行策略导出
+// ============================================================================
+
+export type {
+  ExecutionPolicy,
+  ExecutionPolicyConfig,
+  ExecutionMode,
+} from "./services/operator_execution_policy";
+export {
+  DefaultExecutionPolicy,
+  createExecutionPolicy,
+  createSafeExecutionPolicy,
+  create2A1RPrimeBExecutionPolicy,
+  createProductionExecutionPolicy,
+} from "./services/operator_execution_policy";
+
+// ============================================================================
 // 执行桥接导出
 // ============================================================================
 
@@ -56,7 +73,6 @@ export type {
   OperatorExecutionBridge,
   OperatorExecutionBridgeConfig,
   ExecutionResult,
-  ExecutionMode,
 } from "./services/operator_execution_bridge";
 export { DefaultOperatorExecutionBridge, createOperatorExecutionBridge } from "./services/operator_execution_bridge";
 

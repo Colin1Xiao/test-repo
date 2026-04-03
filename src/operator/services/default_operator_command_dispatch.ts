@@ -31,17 +31,20 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
   private executionBridge: OperatorExecutionBridge;
   private controlSurfaceBuilder: ControlSurfaceBuilder | null = null;
   private humanLoopService: HumanLoopService | null = null;
+  private snapshotProvider: any | null = null;
   
   constructor(
     surfaceService: OperatorSurfaceService,
     executionBridge: OperatorExecutionBridge,
     controlSurfaceBuilder?: ControlSurfaceBuilder,
-    humanLoopService?: HumanLoopService
+    humanLoopService?: HumanLoopService,
+    snapshotProvider?: any
   ) {
     this.surfaceService = surfaceService;
     this.executionBridge = executionBridge;
     this.controlSurfaceBuilder = controlSurfaceBuilder || null;
     this.humanLoopService = humanLoopService || null;
+    this.snapshotProvider = snapshotProvider || null;
   }
   
   async dispatch(
@@ -224,6 +227,11 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       command.actor.actorId
     );
     
+    // 失效缓存
+    if (execResult.executionMode === 'real' && this.snapshotProvider) {
+      this.snapshotProvider.invalidate('approval');
+    }
+    
     const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     // 刷新审批视图
@@ -310,6 +318,11 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       command.actor.actorId
     );
     
+    // 失效缓存
+    if (execResult.executionMode === 'real' && this.snapshotProvider) {
+      this.snapshotProvider.invalidate('incident');
+    }
+    
     const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     const updatedView = await this.surfaceService.getIncidentView({
@@ -389,6 +402,11 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       command.targetId,
       command.actor.actorId
     );
+    
+    // 失效缓存
+    if (execResult.executionMode === 'real' && this.snapshotProvider) {
+      this.snapshotProvider.invalidate('task');
+    }
     
     const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
@@ -802,17 +820,20 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
 // ============================================================================
 
 import type { OperatorExecutionBridge } from './operator_execution_bridge';
+import type { OperatorSnapshotProvider } from '../data/operator_snapshot_provider';
 
 export function createOperatorCommandDispatch(
   surfaceService: OperatorSurfaceService,
   executionBridge: OperatorExecutionBridge,
   controlSurfaceBuilder?: ControlSurfaceBuilder,
-  humanLoopService?: HumanLoopService
+  humanLoopService?: HumanLoopService,
+  snapshotProvider?: OperatorSnapshotProvider
 ): OperatorCommandDispatch {
   return new DefaultOperatorCommandDispatch(
     surfaceService,
     executionBridge,
     controlSurfaceBuilder,
-    humanLoopService
+    humanLoopService,
+    snapshotProvider
   );
 }
