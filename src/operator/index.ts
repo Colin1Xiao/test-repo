@@ -83,6 +83,25 @@ export { DefaultOperatorExecutionBridge, createOperatorExecutionBridge } from ".
 export * from './data';
 
 // ============================================================================
+// Session / Workspace 导出
+// ============================================================================
+
+export * from './session';
+
+// Session 类型
+export type {
+  OperatorSessionStatus,
+  OperatorSurface,
+  WorkspaceEnvironment,
+  OperatorNavigationState,
+  OperatorSession,
+  CreateSessionInput,
+  UpdateNavigationInput,
+  WorkspaceDescriptor,
+  WorkspaceSwitchResult,
+} from './types/session_types';
+
+// ============================================================================
 // 服务工具导出
 // ============================================================================
 
