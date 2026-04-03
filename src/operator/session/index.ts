@@ -42,3 +42,29 @@ export { InMemoryWorkspaceRegistry, createWorkspaceRegistry } from './workspace_
 
 export type { WorkspaceSwitcherConfig } from './workspace_switcher';
 export { DefaultWorkspaceSwitcher, createWorkspaceSwitcher } from './workspace_switcher';
+
+// ============================================================================
+// V2 Cockpits (with Session integration)
+// ============================================================================
+
+export type {
+  CliCockpitV2,
+  CliCockpitV2Config,
+} from '../cli/cli_cockpit_v2';
+export { DefaultCliCockpitV2, createCliCockpitV2 } from '../cli/cli_cockpit_v2';
+
+export type {
+  TelegramCockpitV2,
+  TelegramCockpitV2Config,
+} from '../telegram/telegram_cockpit_v2';
+export { DefaultTelegramCockpitV2, createTelegramCockpitV2 } from '../telegram/telegram_cockpit_v2';
+
+// ============================================================================
+// V2 Command Dispatch (with Session integration)
+// ============================================================================
+
+export type {
+  OperatorCommandDispatchV2,
+  OperatorCommandDispatchV2Config,
+} from '../services/operator_command_dispatch_v2';
+export { createOperatorCommandDispatchV2 } from '../services/operator_command_dispatch_v2';
