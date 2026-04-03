@@ -15,10 +15,12 @@ import type {
   OperatorActionResult,
   OperatorCommandError,
   OperatorCommandDispatch,
+  OperatorConfirmationState,
 } from '../types/surface_types';
 import type { OperatorSurfaceService } from './operator_surface_service';
 import type { ControlSurfaceBuilder } from '../ux/control_surface';
 import type { HumanLoopService } from '../ux/human_loop_service';
+import type { OperatorExecutionBridge, ExecutionResult } from './operator_execution_bridge';
 
 // ============================================================================
 // 默认实现
@@ -26,15 +28,18 @@ import type { HumanLoopService } from '../ux/human_loop_service';
 
 export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
   private surfaceService: OperatorSurfaceService;
+  private executionBridge: OperatorExecutionBridge;
   private controlSurfaceBuilder: ControlSurfaceBuilder | null = null;
   private humanLoopService: HumanLoopService | null = null;
   
   constructor(
     surfaceService: OperatorSurfaceService,
+    executionBridge: OperatorExecutionBridge,
     controlSurfaceBuilder?: ControlSurfaceBuilder,
     humanLoopService?: HumanLoopService
   ) {
     this.surfaceService = surfaceService;
+    this.executionBridge = executionBridge;
     this.controlSurfaceBuilder = controlSurfaceBuilder || null;
     this.humanLoopService = humanLoopService || null;
   }
@@ -213,17 +218,13 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       return this.buildErrorResult(command, new Error('Missing targetId'));
     }
     
-    // TODO: 调用真实的 approval workflow
-    // 目前返回模拟结果
+    // 使用 execution bridge 执行真实动作
+    const execResult = await this.executionBridge.approveApproval(
+      command.targetId,
+      command.actor.actorId
+    );
     
-    const actionResult: OperatorActionResult = {
-      success: true,
-      actionType: 'approve',
-      targetType: 'approval',
-      targetId: command.targetId,
-      message: `Approval ${command.targetId} approved`,
-      executedAt: Date.now(),
-    };
+    const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     // 刷新审批视图
     const updatedView = await this.surfaceService.getApprovalView({
@@ -233,8 +234,8 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     });
     
     return {
-      success: true,
-      message: `Approval ${command.targetId} approved`,
+      success: execResult.success,
+      message: execResult.message,
       actionResult,
       updatedView,
       respondedAt: Date.now(),
@@ -249,14 +250,12 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       return this.buildErrorResult(command, new Error('Missing targetId'));
     }
     
-    const actionResult: OperatorActionResult = {
-      success: true,
-      actionType: 'reject',
-      targetType: 'approval',
-      targetId: command.targetId,
-      message: `Approval ${command.targetId} rejected`,
-      executedAt: Date.now(),
-    };
+    const execResult = await this.executionBridge.rejectApproval(
+      command.targetId,
+      command.actor.actorId
+    );
+    
+    const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     const updatedView = await this.surfaceService.getApprovalView({
       actor: command.actor,
@@ -265,8 +264,8 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     });
     
     return {
-      success: true,
-      message: `Approval ${command.targetId} rejected`,
+      success: execResult.success,
+      message: execResult.message,
       actionResult,
       updatedView,
       respondedAt: Date.now(),
@@ -306,14 +305,12 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       return this.buildErrorResult(command, new Error('Missing targetId'));
     }
     
-    const actionResult: OperatorActionResult = {
-      success: true,
-      actionType: 'ack_incident',
-      targetType: 'incident',
-      targetId: command.targetId,
-      message: `Incident ${command.targetId} acknowledged`,
-      executedAt: Date.now(),
-    };
+    const execResult = await this.executionBridge.ackIncident(
+      command.targetId,
+      command.actor.actorId
+    );
+    
+    const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     const updatedView = await this.surfaceService.getIncidentView({
       actor: command.actor,
@@ -322,8 +319,8 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     });
     
     return {
-      success: true,
-      message: `Incident ${command.targetId} acknowledged`,
+      success: execResult.success,
+      message: execResult.message,
       actionResult,
       updatedView,
       respondedAt: Date.now(),
@@ -388,14 +385,12 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       return this.buildErrorResult(command, new Error('Missing targetId'));
     }
     
-    const actionResult: OperatorActionResult = {
-      success: true,
-      actionType: 'retry_task',
-      targetType: 'task',
-      targetId: command.targetId,
-      message: `Task ${command.targetId} retry initiated`,
-      executedAt: Date.now(),
-    };
+    const execResult = await this.executionBridge.retryTask(
+      command.targetId,
+      command.actor.actorId
+    );
+    
+    const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     const updatedView = await this.surfaceService.getTaskView({
       actor: command.actor,
@@ -404,8 +399,8 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     });
     
     return {
-      success: true,
-      message: `Task ${command.targetId} retry initiated`,
+      success: execResult.success,
+      message: execResult.message,
       actionResult,
       updatedView,
       respondedAt: Date.now(),
@@ -495,14 +490,12 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
       return this.buildErrorResult(command, new Error('Missing targetId'));
     }
     
-    const actionResult: OperatorActionResult = {
-      success: true,
-      actionType: 'pause_agent',
-      targetType: 'agent',
-      targetId: command.targetId,
-      message: `Agent ${command.targetId} paused`,
-      executedAt: Date.now(),
-    };
+    const execResult = await this.executionBridge.pauseAgent(
+      command.targetId,
+      command.actor.actorId
+    );
+    
+    const actionResult: OperatorActionResult = this.toActionResult(execResult);
     
     const updatedView = await this.surfaceService.getDashboardView({
       actor: command.actor,
@@ -511,8 +504,8 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
     });
     
     return {
-      success: true,
-      message: `Agent ${command.targetId} paused`,
+      success: execResult.success,
+      message: execResult.message,
       actionResult,
       updatedView,
       respondedAt: Date.now(),
@@ -721,6 +714,58 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
   // 辅助方法
   // ============================================================================
   
+  /**
+   * 将 ExecutionResult 转换为 OperatorActionResult
+   */
+  private toActionResult(execResult: ExecutionResult): OperatorActionResult {
+    return {
+      success: execResult.success,
+      actionType: execResult.actionType,
+      targetType: execResult.targetId ? this.inferTargetType(execResult.actionType) : undefined,
+      targetId: execResult.targetId,
+      message: execResult.message,
+      confirmationState: this.inferConfirmationState(execResult.actionType),
+      executedAt: execResult.executedAt,
+      data: {
+        executionMode: execResult.executionMode,
+      },
+    };
+  }
+  
+  /**
+   * 根据动作类型推断目标类型
+   */
+  private inferTargetType(actionType: string): string | undefined {
+    const mapping: Record<string, string> = {
+      approve: 'approval',
+      reject: 'approval',
+      escalate: 'approval',
+      ack_incident: 'incident',
+      request_recovery: 'incident',
+      request_replay: 'incident',
+      retry_task: 'task',
+      cancel_task: 'task',
+      pause_task: 'task',
+      resume_task: 'task',
+      pause_agent: 'agent',
+      resume_agent: 'agent',
+      inspect_agent: 'agent',
+    };
+    return mapping[actionType];
+  }
+  
+  /**
+   * 根据动作类型推断确认状态
+   */
+  private inferConfirmationState(actionType: string): OperatorConfirmationState | undefined {
+    // 需要确认的动作
+    const confirmableActions = ['approve', 'reject', 'escalate', 'confirm_action'];
+    if (confirmableActions.includes(actionType)) {
+      return 'confirmed';
+    }
+    return undefined;
+  }
+  
   private buildUnsupportedResult(command: OperatorCommand): OperatorCommandResult {
     return {
       success: false,
@@ -756,13 +801,17 @@ export class DefaultOperatorCommandDispatch implements OperatorCommandDispatch {
 // 工厂函数
 // ============================================================================
 
+import type { OperatorExecutionBridge } from './operator_execution_bridge';
+
 export function createOperatorCommandDispatch(
   surfaceService: OperatorSurfaceService,
+  executionBridge: OperatorExecutionBridge,
   controlSurfaceBuilder?: ControlSurfaceBuilder,
   humanLoopService?: HumanLoopService
 ): OperatorCommandDispatch {
   return new DefaultOperatorCommandDispatch(
     surfaceService,
+    executionBridge,
     controlSurfaceBuilder,
     humanLoopService
   );

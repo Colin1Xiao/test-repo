@@ -49,6 +49,18 @@ export type { OperatorCommandDispatch as DefaultOperatorCommandDispatch } from "
 export { createOperatorCommandDispatch } from "./services/default_operator_command_dispatch";
 
 // ============================================================================
+// 执行桥接导出
+// ============================================================================
+
+export type {
+  OperatorExecutionBridge,
+  OperatorExecutionBridgeConfig,
+  ExecutionResult,
+  ExecutionMode,
+} from "./services/operator_execution_bridge";
+export { DefaultOperatorExecutionBridge, createOperatorExecutionBridge } from "./services/operator_execution_bridge";
+
+// ============================================================================
 // 服务工具导出
 // ============================================================================
 
