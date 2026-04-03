@@ -55,3 +55,26 @@ export { createReviewBridge } from './review_bridge';
 
 export type { CheckStatusAdapter, CheckStatusAdapterConfig } from './check_status_adapter';
 export { createCheckStatusAdapter } from './check_status_adapter';
+
+// ============================================================================
+// GitHub Operator Bridge
+// ============================================================================
+
+export type { GitHubOperatorBridge, GitHubOperatorBridgeConfig } from './github_operator_bridge';
+export { createGitHubOperatorBridge } from './github_operator_bridge';
+
+// ============================================================================
+// Validation Config
+// ============================================================================
+
+export type {
+  GitHubValidationConfig,
+  GitHubTestCase,
+  ValidationReport,
+} from './github_validation_config';
+export {
+  getGitHubValidationConfig,
+  GITHUB_TEST_CASES,
+  generateTestWebhookPayload,
+  validateConfig,
+} from './github_validation_config';
