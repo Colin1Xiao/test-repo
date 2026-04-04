@@ -2,7 +2,7 @@ name: Test Gate
 
 on:
   push:
-    branches: ['**']  # 所有分支
+    branches: ['**']
   pull_request:
     branches: ['**']
 
@@ -23,7 +23,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     
     - name: Install dependencies
-      run: cd openclaw-runtime && npm ci
+      run: cd openclaw-runtime && npm install
     
     - name: Run P0 consistency tests
       run: cd openclaw-runtime && npm test -- --testPathPattern="consistency" --verbose
