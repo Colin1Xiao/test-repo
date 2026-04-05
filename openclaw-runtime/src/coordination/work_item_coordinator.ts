@@ -130,6 +130,12 @@ export class WorkItemCoordinator {
   private leaseManager: LeaseManager;
   private registry: InstanceRegistry;
   private items: Map<string, WorkItemRecord> = new Map();
+  
+  // Log buffer for batch writes
+  private logBuffer: WorkItemEvent[] = [];
+  private logBufferFlushTimer: NodeJS.Timeout | null = null;
+  private readonly LOG_BUFFER_SIZE = 100;
+  private readonly LOG_BUFFER_FLUSH_MS = 100;
 
   constructor(config: WorkItemCoordinatorConfig) {
     this.config = config;
@@ -150,7 +156,12 @@ export class WorkItemCoordinator {
   }
 
   async shutdown(): Promise<void> {
-    // No cleanup needed for now
+    // Flush remaining log events
+    if (this.logBufferFlushTimer) {
+      clearTimeout(this.logBufferFlushTimer);
+      this.logBufferFlushTimer = null;
+    }
+    await this.flushLog();
   }
 
   async claim(input: ClaimWorkItemInput): Promise<ClaimResult> {
@@ -535,8 +546,33 @@ export class WorkItemCoordinator {
   }
 
   private async logEvent(event: WorkItemEvent): Promise<void> {
+    this.logBuffer.push(event);
+    
+    // Start flush timer if buffer is not empty and no timer running
+    if (this.logBuffer.length >= this.LOG_BUFFER_SIZE || !this.logBufferFlushTimer) {
+      if (this.logBufferFlushTimer) {
+        clearTimeout(this.logBufferFlushTimer);
+      }
+      this.logBufferFlushTimer = setTimeout(() => this.flushLog(), this.LOG_BUFFER_FLUSH_MS);
+    }
+  }
+  
+  private async flushLog(): Promise<void> {
+    if (this.logBuffer.length === 0) {
+      this.logBufferFlushTimer = null;
+      return;
+    }
+    
+    const events = this.logBuffer.splice(0);
     const logPath = join(this.config.dataDir, 'work_items', 'work_items_log.jsonl');
-    const line = JSON.stringify(event) + '\n';
-    await fs.appendFile(logPath, line, 'utf-8');
+    const lines = events.map(e => JSON.stringify(e) + '\n').join('');
+    
+    try {
+      await fs.appendFile(logPath, lines, 'utf-8');
+    } catch (error) {
+      // Ignore errors during shutdown (directory may be cleaned up)
+    }
+    
+    this.logBufferFlushTimer = null;
   }
 }

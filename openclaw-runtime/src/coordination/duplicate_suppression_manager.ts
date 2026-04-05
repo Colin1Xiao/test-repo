@@ -121,6 +121,16 @@ export class DuplicateSuppressionManager {
   private config: DuplicateSuppressionManagerConfig;
   private suppressionConfig: SuppressionConfig;
   private records: Map<string, SuppressionRecord> = new Map();
+  
+  // Hot key cache for storm scenarios (LRU cache)
+  private hotKeyCache: Map<string, SuppressionRecord> = new Map();
+  private readonly HOT_KEY_CACHE_SIZE = 1000;
+  
+  // Log buffer for batch writes
+  private logBuffer: SuppressionEvent[] = [];
+  private logBufferFlushTimer: NodeJS.Timeout | null = null;
+  private readonly LOG_BUFFER_SIZE = 100;
+  private readonly LOG_BUFFER_FLUSH_MS = 100;
 
   constructor(config: DuplicateSuppressionManagerConfig) {
     this.config = config;
@@ -139,6 +149,13 @@ export class DuplicateSuppressionManager {
   }
 
   async shutdown(): Promise<void> {
+    // Flush remaining log events
+    if (this.logBufferFlushTimer) {
+      clearTimeout(this.logBufferFlushTimer);
+      this.logBufferFlushTimer = null;
+    }
+    await this.flushLog();
+    
     // Save final snapshot
     await this.saveSnapshot();
   }
@@ -157,8 +174,14 @@ export class DuplicateSuppressionManager {
       };
     }
 
-    // Check existing record
-    const existing = this.records.get(suppressionKey);
+    // Check existing record (try hot key cache first for storm scenarios)
+    let existing = this.getFromCache(suppressionKey);
+    if (!existing) {
+      existing = this.records.get(suppressionKey);
+      if (existing) {
+        this.addToCache(suppressionKey, existing);
+      }
+    }
 
     // Check if expired first (before replay mode check)
     if (existing && existing.status === 'active' && now > existing.expires_at) {
@@ -282,17 +305,22 @@ export class DuplicateSuppressionManager {
       };
     }
 
-    // Duplicate - suppress
+    // Duplicate - suppress (fast path: cache hit)
+    // Update cache entry
     existing.hit_count++;
     existing.last_seen_at = now;
-    existing.version++;
-
-    // Log event
-    await this.logEvent({
+    this.addToCache(suppressionKey, existing);
+    
+    // Log event asynchronously (buffered)
+    this.logEvent({
       type: 'suppression_hit',
       suppression_key: suppressionKey,
       timestamp: now,
-      data: { ...existing },
+      data: { 
+        suppression_key: suppressionKey,
+        hit_count: existing.hit_count,
+        last_seen_at: now,
+      },
     });
 
     return {
@@ -384,6 +412,37 @@ export class DuplicateSuppressionManager {
     }
   }
 
+  // ==================== Hot Key Cache Helpers ====================
+  
+  private getFromCache(key: string): SuppressionRecord | undefined {
+    const record = this.hotKeyCache.get(key);
+    if (record) {
+      // Move to end (most recently used)
+      this.hotKeyCache.delete(key);
+      this.hotKeyCache.set(key, record);
+    }
+    return record;
+  }
+  
+  private addToCache(key: string, record: SuppressionRecord): void {
+    // If already in cache, remove old entry
+    if (this.hotKeyCache.has(key)) {
+      this.hotKeyCache.delete(key);
+    }
+    
+    // Evict oldest if at capacity
+    if (this.hotKeyCache.size >= this.HOT_KEY_CACHE_SIZE) {
+      const oldestKey = this.hotKeyCache.keys().next().value;
+      if (oldestKey) {
+        this.hotKeyCache.delete(oldestKey);
+      }
+    }
+    
+    this.hotKeyCache.set(key, record);
+  }
+  
+  // ==================== Snapshot/Log ====================
+  
   async saveSnapshot(): Promise<void> {
     const snapshotPath = join(this.config.dataDir, 'suppression', 'suppression_snapshot.json');
     const snapshot = {
@@ -473,8 +532,33 @@ export class DuplicateSuppressionManager {
   }
 
   private async logEvent(event: SuppressionEvent): Promise<void> {
+    this.logBuffer.push(event);
+    
+    // Start flush timer if buffer is not empty and no timer running
+    if (this.logBuffer.length >= this.LOG_BUFFER_SIZE || !this.logBufferFlushTimer) {
+      if (this.logBufferFlushTimer) {
+        clearTimeout(this.logBufferFlushTimer);
+      }
+      this.logBufferFlushTimer = setTimeout(() => this.flushLog(), this.LOG_BUFFER_FLUSH_MS);
+    }
+  }
+  
+  private async flushLog(): Promise<void> {
+    if (this.logBuffer.length === 0) {
+      this.logBufferFlushTimer = null;
+      return;
+    }
+    
+    const events = this.logBuffer.splice(0);
     const logPath = join(this.config.dataDir, 'suppression', 'suppression_log.jsonl');
-    const line = JSON.stringify(event) + '\n';
-    await fs.appendFile(logPath, line, 'utf-8');
+    const lines = events.map(e => JSON.stringify(e) + '\n').join('');
+    
+    try {
+      await fs.appendFile(logPath, lines, 'utf-8');
+    } catch (error) {
+      // Ignore errors during shutdown (directory may be cleaned up)
+    }
+    
+    this.logBufferFlushTimer = null;
   }
 }

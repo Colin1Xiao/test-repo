@@ -137,7 +137,9 @@
 
 ## 三、关键指标 (B)
 
-### 性能指标
+### 性能指标 (场景分层)
+
+#### 常规场景 (≤10 并发/秒)
 
 | 指标 | 定义 | 目标 | 告警 |
 |------|------|------|------|
@@ -150,7 +152,18 @@
 | `complete_latency_p50_ms` | complete latency P50 | ≤ 30ms | > 80ms |
 | `complete_latency_p99_ms` | complete latency P99 | ≤ 100ms | > 200ms |
 | `suppression_latency_p50_ms` | suppression latency P50 | ≤ 10ms | > 30ms |
-| `suppression_latency_p99_ms` | suppression latency P99 | ≤ 50ms | > 100ms |
+| `suppression_latency_p99_ms` | suppression latency P99 | ≤ 20ms | > 50ms |
+
+#### Storm 场景 (高热 key / 同 key ≥1000 并发)
+
+| 指标 | 定义 | 目标 | 告警 |
+|------|------|------|------|
+| `suppression_storm_p50_ms` | suppression P50 (storm) | ≤ 100ms | > 150ms |
+| `suppression_storm_p99_ms` | suppression P99 (storm) | ≤ 150ms | > 200ms |
+| `acquire_storm_p50_ms` | acquire P50 (storm) | ≤ 50ms | > 100ms |
+| `acquire_storm_p99_ms` | acquire P99 (storm) | ≤ 100ms | > 200ms |
+| `claim_storm_p50_ms` | claim P50 (storm) | ≤ 100ms | > 200ms |
+| `claim_storm_p99_ms` | claim P99 (storm) | ≤ 200ms | > 500ms |
 
 ### 一致性指标
 

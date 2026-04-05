@@ -109,6 +109,12 @@ export class LeaseManager {
   private registry: InstanceRegistry;
   private leases: Map<string, LeaseRecord> = new Map();
   private cleanupInterval: NodeJS.Timeout | null = null;
+  
+  // Log buffer for batch writes
+  private logBuffer: LeaseEvent[] = [];
+  private logBufferFlushTimer: NodeJS.Timeout | null = null;
+  private readonly LOG_BUFFER_SIZE = 100;
+  private readonly LOG_BUFFER_FLUSH_MS = 100;
 
   constructor(config: LeaseManagerConfig) {
     this.config = config;
@@ -138,6 +144,13 @@ export class LeaseManager {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
+    
+    // Flush remaining log events
+    if (this.logBufferFlushTimer) {
+      clearTimeout(this.logBufferFlushTimer);
+      this.logBufferFlushTimer = null;
+    }
+    await this.flushLog();
   }
 
   async acquire(input: AcquireLeaseInput): Promise<AcquireLeaseResult> {
@@ -471,9 +484,34 @@ export class LeaseManager {
   }
 
   private async logEvent(event: LeaseEvent): Promise<void> {
+    this.logBuffer.push(event);
+    
+    // Start flush timer if buffer is not empty and no timer running
+    if (this.logBuffer.length >= this.LOG_BUFFER_SIZE || !this.logBufferFlushTimer) {
+      if (this.logBufferFlushTimer) {
+        clearTimeout(this.logBufferFlushTimer);
+      }
+      this.logBufferFlushTimer = setTimeout(() => this.flushLog(), this.LOG_BUFFER_FLUSH_MS);
+    }
+  }
+  
+  private async flushLog(): Promise<void> {
+    if (this.logBuffer.length === 0) {
+      this.logBufferFlushTimer = null;
+      return;
+    }
+    
+    const events = this.logBuffer.splice(0);
     const logPath = join(this.config.dataDir, 'leases', 'leases_log.jsonl');
-    const line = JSON.stringify(event) + '\n';
-    await fs.appendFile(logPath, line, 'utf-8');
+    const lines = events.map(e => JSON.stringify(e) + '\n').join('');
+    
+    try {
+      await fs.appendFile(logPath, lines, 'utf-8');
+    } catch (error) {
+      // Ignore errors during shutdown (directory may be cleaned up)
+    }
+    
+    this.logBufferFlushTimer = null;
   }
 
   private startAutoCleanup(): void {
