@@ -11,6 +11,7 @@ export default {
       'ts-jest',
       {
         useESM: true,
+        tsconfig: 'tsconfig.test.json',
       },
     ],
   },
@@ -31,7 +32,7 @@ export default {
   },
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
+  // setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'], // Temporarily disabled for ESM compatibility
   testTimeout: 30000,
   verbose: true,
   forceExit: true,
