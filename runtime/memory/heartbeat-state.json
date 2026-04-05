@@ -1,24 +1,22 @@
 {
   "lastChecks": {
-    "health": "2026-04-04T13:47:42Z",
-    "trading_position": "2026-04-04T13:47:42Z",
-    "trading_api": "2026-04-04T13:47:42Z",
-    "okx_network": "2026-04-04T13:38:42Z"
+    "health": "2026-04-05T06:19:02Z",
+    "trading_position": "2026-04-05T06:19:02Z",
+    "trading_signal": null,
+    "trading_api": null,
+    "calendar": null,
+    "email": null,
+    "git": "2026-04-05T06:21:00Z",
+    "weather": null
   },
   "lastNotifiedCritical": null,
-  "lastNotifiedWarning": null,
-  "pendingAlerts": [],
-  "tradingState": {
-    "position": null,
-    "balance_usdt": 10.45,
-    "total_trades": 0,
-    "total_pnl": 0.0,
-    "status": "normal"
-  },
-  "systemState": {
-    "gateway": "running",
-    "telegram": "configured",
-    "memorySearch": "ready",
-    "okx_network": "connected"
-  }
+  "lastNotifiedWarning": "2026-04-05T06:19:02Z",
+  "pendingAlerts": [
+    {
+      "level": "warning",
+      "component": "trading_system",
+      "issue": "ModuleNotFoundError: No module named 'ccxt'",
+      "detectedAt": "2026-04-05T06:19:02Z"
+    }
+  ]
 }
