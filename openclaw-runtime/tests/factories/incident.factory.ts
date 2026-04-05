@@ -30,6 +30,7 @@ export function createTestIncident(overrides?: Partial<Incident> & { status?: In
     related_alerts: overrides?.related_alerts || [],
     related_incidents: overrides?.related_incidents || [],
     metadata: overrides?.metadata || {},
+    version: overrides?.version || 1,  // Phase 4.x-A1: Default version
   };
 }
 

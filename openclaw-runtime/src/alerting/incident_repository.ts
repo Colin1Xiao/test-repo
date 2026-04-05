@@ -32,6 +32,7 @@ export interface Incident {
   related_alerts: string[];
   related_incidents?: string[];
   metadata?: Record<string, unknown>;
+  version: number;  // Phase 4.x-A1: Optimistic locking version
 }
 
 export interface IncidentCreateRequest {
@@ -52,6 +53,27 @@ export interface IncidentUpdateRequest {
   related_incidents?: string[];
   metadata?: Record<string, unknown>;
   updated_by: string;
+  version?: number;  // Phase 4.x-A1: Expected version for compare-and-set
+}
+
+// Phase 4.x-A1: Optimistic locking result types
+export interface IncidentUpdateSuccess {
+  success: true;
+  incident: Incident;
+}
+
+export interface IncidentUpdateConflict {
+  success: false;
+  error: 'VERSION_MISMATCH' | 'NOT_FOUND';
+  message: string;
+  current_version?: number;
+}
+
+export type IncidentUpdateResult = IncidentUpdateSuccess | IncidentUpdateConflict;
+
+// Phase 4.x-A1: Repository configuration
+export interface IncidentRepositoryConfig {
+  strict_version_check?: boolean;  // Default: false (backward compatible)
 }
 
 export interface IncidentQuery {

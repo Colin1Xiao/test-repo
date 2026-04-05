@@ -10,7 +10,7 @@
 
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
-import { Incident, IncidentUpdateRequest, IncidentQuery, IncidentStatus } from '../alerting/incident_repository.js';
+import { Incident, IncidentUpdateRequest, IncidentQuery, IncidentStatus, IncidentUpdateResult } from '../alerting/incident_repository.js';
 import { getTimelineStore } from '../alerting/timeline_integration.js';
 import { getFileLock } from './file_lock.js';
 
@@ -135,7 +135,12 @@ export class IncidentFileRepository {
       
       this.incidents.clear();
       for (const [id, incident] of Object.entries(snapshot.incidents)) {
-        this.incidents.set(id, incident);
+        // Phase 4.x-A1: Backward compatibility - default version to 1
+        const incidentWithVersion = {
+          ...incident,
+          version: incident.version || 1,
+        };
+        this.incidents.set(id, incidentWithVersion);
       }
       
       this.lastSnapshotAt = snapshot.snapshot_at;
@@ -214,13 +219,24 @@ export class IncidentFileRepository {
   private async applyEvent(event: IncidentEvent): Promise<void> {
     if (event.type === 'incident_created') {
       const incident = event.data as Incident;
-      this.incidents.set(event.id, incident);
+      // Phase 4.x-A1: Backward compatibility
+      const incidentWithVersion = {
+        ...incident,
+        version: incident.version || 1,
+      };
+      this.incidents.set(event.id, incidentWithVersion);
     } else if (event.type === 'incident_updated') {
       const incident = this.incidents.get(event.id);
       if (incident) {
         const update = event.data as IncidentUpdateRequest;
         Object.assign(incident, update);
         incident.updated_at = event.timestamp;
+        // Phase 4.x-A1: Backward compatibility
+        if (update.version !== undefined) {
+          incident.version = update.version;
+        } else if (incident.version === undefined) {
+          incident.version = 1;
+        }
         this.incidents.set(event.id, incident);
       }
     }
@@ -234,15 +250,21 @@ export class IncidentFileRepository {
   async create(incident: Incident): Promise<void> {
     const fileLock = getFileLock();
     await fileLock.withLock('incidents', async () => {
+      // Phase 4.x-A1: Initialize version
+      const incidentWithVersion: Incident = {
+        ...incident,
+        version: incident.version || 1,
+      };
+      
       const event: IncidentEvent = {
         type: 'incident_created',
         id: incident.id,
         timestamp: incident.created_at,
-        data: incident,
+        data: incidentWithVersion,
       };
       
       await this.appendEvent(event);
-      this.incidents.set(incident.id, incident);
+      this.incidents.set(incident.id, incidentWithVersion);
       
       // Maybe create snapshot
       await this.maybeCreateSnapshot();
@@ -252,23 +274,31 @@ export class IncidentFileRepository {
   /**
    * Update incident (with file lock)
    */
-  async update(incident_id: string, update: IncidentUpdateRequest): Promise<Incident | undefined> {
+  async update(incident_id: string, update: IncidentUpdateRequest): Promise<IncidentUpdateResult> {
     const fileLock = getFileLock();
     return await fileLock.withLock('incidents', async () => {
       const incident = this.incidents.get(incident_id);
       if (!incident) {
-        return undefined;
+        return {
+          success: false,
+          error: 'NOT_FOUND',
+          message: `Incident ${incident_id} not found`,
+        };
+      }
+      
+      // Phase 4.x-A1: Optional version check (backward compatible)
+      if (update.version !== undefined) {
+        if (incident.version !== update.version) {
+          return {
+            success: false,
+            error: 'VERSION_MISMATCH',
+            message: `Expected version ${update.version}, got ${incident.version}`,
+            current_version: incident.version,
+          };
+        }
       }
       
       const now = Date.now();
-      const event: IncidentEvent = {
-        type: 'incident_updated',
-        id: incident_id,
-        timestamp: now,
-        data: { ...update, updated_at: now },
-      };
-      
-      await this.appendEvent(event);
       
       // Apply update
       if (update.status) {
@@ -285,12 +315,26 @@ export class IncidentFileRepository {
       incident.updated_at = now;
       incident.updated_by = update.updated_by;
       
+      // Phase 4.x-A1: Increment version
+      incident.version++;
+      
+      const event: IncidentEvent = {
+        type: 'incident_updated',
+        id: incident_id,
+        timestamp: now,
+        data: { ...update, updated_at: now, version: incident.version },
+      };
+      
+      await this.appendEvent(event);
       this.incidents.set(incident_id, incident);
       
       // Maybe create snapshot
       await this.maybeCreateSnapshot();
       
-      return incident;
+      return {
+        success: true,
+        incident,
+      };
     });
   }
 
