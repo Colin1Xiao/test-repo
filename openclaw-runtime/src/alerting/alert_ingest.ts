@@ -126,6 +126,7 @@ export class AlertIngestService {
             related_alerts: [alert_name],
             related_incidents: [],
             metadata: { ...metadata, alert_value },
+            version: 1,
           };
           await this.incidentRepo.create(incident);
           created = true;

@@ -160,10 +160,12 @@ export function createAlertingRoutes(): Router {
     const previous = incidentRepo.getById(id);
     const previousStatus = previous?.status;
     
-    const incident = await incidentRepo.update(id, { status, description, metadata, updated_by: performer });
-    if (!incident) {
-      return res.status(404).json({ ok: false, error: 'Incident not found' });
+    const result = await incidentRepo.update(id, { status, description, metadata, updated_by: performer });
+    if (!result || !result.success) {
+      return res.status(404).json({ ok: false, error: 'Incident not found or conflict' });
     }
+    
+    const incident = result.incident;
     
     // Record status change in timeline
     if (status && previousStatus && previousStatus !== status) {

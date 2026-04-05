@@ -175,6 +175,7 @@ export class IncidentRepository {
       related_alerts: alert_name ? [alert_name] : [],
       related_incidents: [],
       metadata,
+      version: 1,
     };
 
     this.save(incident);
