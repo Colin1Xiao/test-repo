@@ -13,7 +13,7 @@ import {
   cleanupLongRunningFixture, 
   runLongRunningTest,
   LongRunningFixture 
-} from '../../fixtures/long-running-fixture.js';
+} from 'tests/fixtures/long-running-fixture.js';
 
 describe('Phase 4.x-B3: 12h Baseline Stability Test', () => {
   let fixture: LongRunningFixture;

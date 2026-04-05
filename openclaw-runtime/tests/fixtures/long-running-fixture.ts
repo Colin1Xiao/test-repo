@@ -11,7 +11,7 @@
  * - 异常中断后恢复与继续观测
  */
 
-import { createMultiInstanceFixture, cleanupMultiInstanceFixture, MultiInstanceFixture } from './multi-instance-fixture.js';
+import { createMultiInstanceFixture, cleanupMultiInstanceFixture, MultiInstanceFixture } from 'tests/fixtures/multi-instance-fixture.js';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 

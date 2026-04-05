@@ -7,10 +7,10 @@
  * - 统一的临时共享目录 / snapshot / log 视图
  */
 
-import { InstanceRegistry } from '../../src/coordination/instance_registry.js';
-import { LeaseManager } from '../../src/coordination/lease_manager.js';
-import { WorkItemCoordinator } from '../../src/coordination/work_item_coordinator.js';
-import { DuplicateSuppressionManager } from '../../src/coordination/duplicate_suppression_manager.js';
+import { InstanceRegistry } from 'src/coordination/instance_registry.js';
+import { LeaseManager } from 'src/coordination/lease_manager.js';
+import { WorkItemCoordinator } from 'src/coordination/work_item_coordinator.js';
+import { DuplicateSuppressionManager } from 'src/coordination/duplicate_suppression_manager.js';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
@@ -32,9 +32,9 @@ export interface TestInstance {
   // Reference to shared components
   registry: InstanceRegistry;
   leaseManager: LeaseManager;
-  suppressionManager: DuplicateSuppressionManager;
   // Per-instance components (with injected identity)
   itemCoordinator: WorkItemCoordinator;
+  suppressionManager: DuplicateSuppressionManager;
 }
 
 export interface MultiInstanceConfig {
@@ -107,20 +107,9 @@ export async function createMultiInstanceFixture(
   });
   await sharedLeaseManager.initialize();
 
-  // Setup SINGLE shared Suppression Manager
-  const sharedSuppressionManager = new DuplicateSuppressionManager({
-    dataDir: sharedDataDir,
-    config: {
-      default_ttl_ms: config.sharedSuppressionTtlMs ?? 10000,
-      scope_ttls: { test: 5000 },
-    },
-    autoCleanup: false,
-  });
-  await sharedSuppressionManager.initialize();
-
   const instances: TestInstance[] = [];
 
-  // Create per-instance components with shared registry/lease/suppression managers
+  // Create per-instance components with shared registry/lease manager
   for (let i = 0; i < config.instanceCount; i++) {
     const { instanceId, sessionId, identityFile } = identities[i];
 
@@ -136,14 +125,25 @@ export async function createMultiInstanceFixture(
     });
     await itemCoordinator.initialize();
 
+    // Setup Suppression Manager (with shared data directory)
+    const suppressionManager = new DuplicateSuppressionManager({
+      dataDir: sharedDataDir,
+      config: {
+        default_ttl_ms: config.sharedSuppressionTtlMs ?? 10000,
+        scope_ttls: { test: 5000 },
+      },
+      autoCleanup: false,
+    });
+    await suppressionManager.initialize();
+
     instances.push({
       id: i + 1,
       instanceId,
       sessionId,
       registry: sharedRegistry,
       leaseManager: sharedLeaseManager,
-      suppressionManager: sharedSuppressionManager,
       itemCoordinator,
+      suppressionManager,
     });
   }
 
@@ -162,11 +162,11 @@ export async function createMultiInstanceFixture(
 export async function cleanupMultiInstanceFixture(fixture: MultiInstanceFixture): Promise<void> {
   // Shutdown per-instance components
   for (const instance of fixture.instances) {
+    await instance.suppressionManager.shutdown();
     await instance.itemCoordinator.shutdown();
   }
   
   // Shutdown shared components once
-  await fixture.instances[0].suppressionManager.shutdown();
   await fixture.sharedLeaseManager.shutdown();
   await fixture.sharedRegistry.shutdown();
 
