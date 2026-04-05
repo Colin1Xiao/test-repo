@@ -1,0 +1,41 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "noEmitOnError": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true
+  },
+  "include": [
+    "src/domain/trading/trading_http_server_v3.ts",
+    "src/domain/trading/trading_types.ts",
+    "src/domain/trading/trading_runbook_actions.ts",
+    "src/domain/trading/trading_approval_mapper.ts",
+    "src/domain/trading/trading_incident_mapper.ts",
+    "src/domain/trading/trading_connector_bridge.ts",
+    "src/domain/trading/trading_event_ingest.ts",
+    "src/domain/trading/trading_ops_pack.ts",
+    "src/domain/trading/trading_risk_state_service.ts",
+    "src/domain/trading/trading_dashboard_projection.ts",
+    "src/domain/trading/trading_operator_views.ts",
+    "src/domain/trading/trading_webhook_routes.ts",
+    "src/infrastructure/persistence/persistence_store.ts",
+    "src/infrastructure/persistence/approval_repository.ts",
+    "src/infrastructure/persistence/incident_repository.ts",
+    "src/infrastructure/persistence/event_repository.ts",
+    "src/infrastructure/persistence/audit_log_service.ts",
+    "src/infrastructure/persistence/replay_engine.ts",
+    "src/infrastructure/persistence/recovery_engine.ts",
+    "src/infrastructure/persistence/timeline_service.ts",
+    "src/infrastructure/persistence/policy_audit_service.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts",
+    "tests"
+  ]
+}

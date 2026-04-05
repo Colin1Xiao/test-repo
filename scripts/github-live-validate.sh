@@ -1,194 +1,178 @@
 #!/bin/bash
-# GitHub Live Validation 脚本
-# Phase 2B-1-L - 真实 GitHub 环境端到端验证
-#
-# 使用方法：
-#   ./scripts/github-live-validate.sh
-#
-# 环境变量：
-#   GITHUB_TEST_OWNER - 测试仓库 Owner
-#   GITHUB_TEST_REPO - 测试仓库名称
-#   GITHUB_TOKEN - GitHub API Token
-#   GITHUB_WEBHOOK_SECRET - Webhook Secret
-#   GITHUB_WEBHOOK_URL - Webhook URL (ngrok 等)
+# Phase 2B-2-I: GitHub Actions Live Validation
+# 实盘测试脚本
 
 set -e
 
-echo "🔍 GitHub Live Validation"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║  Phase 2B-2-I: GitHub Actions Live Validation          ║"
+echo "║  小龙智能系统 - 实盘测试                                ║"
+echo "╚════════════════════════════════════════════════════════╝"
 echo ""
 
-# 1. 检查环境变量
-echo "【1/6】检查环境变量..."
-
-required_vars=(
-  "GITHUB_TEST_OWNER"
-  "GITHUB_TEST_REPO"
-  "GITHUB_TOKEN"
-  "GITHUB_WEBHOOK_SECRET"
-)
-
-missing_vars=()
-for var in "${required_vars[@]}"; do
-  if [ -z "${!var}" ]; then
-    missing_vars+=("$var")
-  fi
-done
-
-if [ ${#missing_vars[@]} -gt 0 ]; then
-  echo "❌ 缺少必需的环境变量:"
-  for var in "${missing_vars[@]}"; do
-    echo "   - $var"
-  done
-  echo ""
-  echo "请设置环境变量后重试:"
-  echo "  export GITHUB_TEST_OWNER=your-owner"
-  echo "  export GITHUB_TEST_REPO=your-repo"
-  echo "  export GITHUB_TOKEN=your-token"
-  echo "  export GITHUB_WEBHOOK_SECRET=your-secret"
-  exit 1
+# 检查环境变量
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "❌ 错误：GITHUB_TOKEN 未设置"
+    echo ""
+    echo "请先设置环境变量："
+    echo "  export GITHUB_TOKEN=ghp_xxx"
+    echo ""
+    exit 1
 fi
 
-echo "   ✅ 所有必需环境变量已设置"
-echo "   仓库：${GITHUB_TEST_OWNER}/${GITHUB_TEST_REPO}"
+if [ -z "$GITHUB_WEBHOOK_SECRET" ]; then
+    echo "❌ 错误：GITHUB_WEBHOOK_SECRET 未设置"
+    echo ""
+    echo "请先设置环境变量："
+    echo "  export GITHUB_WEBHOOK_SECRET=your_secret"
+    echo ""
+    exit 1
+fi
+
+echo "✅ 环境变量检查通过"
 echo ""
 
-# 2. 验证 GitHub API 连接
-echo "【2/6】验证 GitHub API 连接..."
+# 获取用户名
+USERNAME=$(gh api user | jq -r '.login')
+echo "👤 GitHub 用户：$USERNAME"
 
-api_response=$(curl -s -o /dev/null -w "%{http_code}" \
-  -H "Authorization: token ${GITHUB_TOKEN}" \
-  -H "Accept: application/vnd.github.v3+json" \
-  "https://api.github.com/repos/${GITHUB_TEST_OWNER}/${GITHUB_TEST_REPO}")
+# 测试仓库名称
+TEST_REPO="test-github-actions-$(date +%s)"
+echo "📦 测试仓库：$TEST_REPO"
+echo ""
 
-if [ "$api_response" -ge 200 ] && [ "$api_response" -lt 300 ]; then
-  echo "   ✅ GitHub API 连接正常 (${api_response})"
+# Step 1: 创建测试仓库
+echo "=== Step 1: 创建测试仓库 ==="
+gh repo create "$TEST_REPO" --private --clone --source=/dev/null 2>/dev/null || {
+    echo "⚠️  仓库创建失败（可能已存在），尝试使用现有仓库..."
+}
+echo ""
+
+# Step 2: 配置 Webhook
+echo "=== Step 2: 配置 Webhook ==="
+WEBHOOK_URL="http://localhost:18789/webhooks/github"
+echo "Webhook URL: $WEBHOOK_URL"
+
+gh api repos/$USERNAME/$TEST_REPO/hooks \
+  -X POST \
+  -F config[url]="$WEBHOOK_URL" \
+  -F config[content_type]="json" \
+  -F config[secret]="$GITHUB_WEBHOOK_SECRET" \
+  -F events=["deployment","workflow_run"] \
+  -F active=true || {
+    echo "⚠️  Webhook 创建失败，可能已存在"
+}
+echo ""
+
+# Step 3: 创建测试文件并提交
+echo "=== Step 3: 创建测试文件 ==="
+cd "$TEST_REPO" 2>/dev/null || {
+    echo "⚠️  仓库目录不存在，跳过本地克隆步骤"
+    echo ""
+    echo "请手动创建仓库后继续："
+    echo "  1. 访问 https://github.com/$USERNAME/$TEST_REPO"
+    echo "  2. 创建 README.md"
+    echo "  3. 然后手动触发 Deployment（见下方 API 调用）"
+    echo ""
+    exit 1
+}
+
+echo "# Test Repository for GitHub Actions Integration" > README.md
+echo "Phase 2B-2-I Live Validation" >> README.md
+git add .
+git commit -m "Initial commit for 2B-2-I validation" || true
+git push -u origin main 2>/dev/null || {
+    echo "⚠️  Git push 失败，尝试继续..."
+}
+cd ..
+echo ""
+
+# Step 4: 触发 Deployment
+echo "=== Step 4: 触发 Deployment ==="
+DEPLOYMENT_RESPONSE=$(gh api repos/$USERNAME/$TEST_REPO/deployments \
+  -X POST \
+  -F ref="main" \
+  -F environment="production" \
+  -F task="deploy" \
+  -F description="Phase 2B-2-I Live Validation Test")
+
+DEPLOYMENT_ID=$(echo "$DEPLOYMENT_RESPONSE" | jq -r '.id')
+echo "Deployment ID: $DEPLOYMENT_ID"
+echo ""
+
+# Step 5: 等待 Webhook 处理
+echo "=== Step 5: 等待 Webhook 处理 (5 秒) ==="
+sleep 5
+echo ""
+
+# Step 6: 检查 OpenClaw 审批
+echo "=== Step 6: 检查 OpenClaw 审批 ==="
+echo "调用：curl http://localhost:18789/operator/approvals"
+echo ""
+
+APPROVALS_RESPONSE=$(curl -s http://localhost:18789/operator/approvals)
+echo "$APPROVALS_RESPONSE" | jq '.'
+
+# 检查是否包含 GitHub Actions 来源的审批
+GITHUB_APPROVAL=$(echo "$APPROVALS_RESPONSE" | jq -r ".[] | select(.metadata.source == \"github_actions\")" | head -1)
+
+if [ -n "$GITHUB_APPROVAL" ]; then
+    echo ""
+    echo "✅ 成功：发现 GitHub Actions 审批"
+    echo "$GITHUB_APPROVAL" | jq '.approvalId, .scope, .status, .metadata.environment'
 else
-  echo "   ❌ GitHub API 连接失败 (${api_response})"
-  echo "   请检查 GITHUB_TOKEN 和仓库权限"
-  exit 1
+    echo ""
+    echo "⚠️  警告：未发现 GitHub Actions 审批"
+    echo ""
+    echo "可能原因："
+    echo "  1. Webhook 未触发（检查 GitHub 仓库 Settings → Webhooks）"
+    echo "  2. OpenClaw 未运行（检查 openclaw gateway status）"
+    echo "  3. 审批数据源未集成（检查代码集成）"
+    echo ""
 fi
 echo ""
 
-# 3. 检查 Webhook 配置
-echo "【3/6】检查 Webhook 配置..."
-
-if [ -n "${GITHUB_WEBHOOK_URL}" ]; then
-  echo "   ✅ Webhook URL 已配置：${GITHUB_WEBHOOK_URL}"
-  
-  # 测试 Webhook 可达性
-  webhook_test=$(curl -s -o /dev/null -w "%{http_code}" \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -d '{"test": true}' \
-    "${GITHUB_WEBHOOK_URL}" || echo "000")
-  
-  if [ "$webhook_test" -ge 200 ] && [ "$webhook_test" -lt 300 ]; then
-    echo "   ✅ Webhook 端点可达 (${webhook_test})"
-  else
-    echo "   ⚠️  Webhook 端点不可达 (${webhook_test})"
-    echo "   请确保本地服务器正在运行且 URL 正确"
-  fi
-else
-  echo "   ⚠️  Webhook URL 未配置"
-  echo "   如需接收真实 webhook，请设置 GITHUB_WEBHOOK_URL"
-fi
+# Step 7: 检查 Inbox
+echo "=== Step 7: 检查 Inbox ==="
+echo "调用：curl http://localhost:18789/operator/inbox"
 echo ""
 
-# 4. 创建测试 PR (可选)
-echo "【4/6】创建测试 PR..."
-
-if [ "${GITHUB_CREATE_TEST_PR:-false}" = "true" ]; then
-  echo "   📝 创建测试 PR..."
-  
-  # 创建测试分支
-  base_sha=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-    "https://api.github.com/repos/${GITHUB_TEST_OWNER}/${GITHUB_TEST_REPO}/git/refs/heads/main" \
-    | jq -r '.object.sha')
-  
-  if [ -n "$base_sha" ] && [ "$base_sha" != "null" ]; then
-    # 创建测试分支
-    branch_name="test/pr-validation-$(date +%s)"
-    
-    curl -s -X POST \
-      -H "Authorization: token ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github.v3+json" \
-      -d "{\"ref\":\"refs/heads/${branch_name}\",\"sha\":\"${base_sha}\"}" \
-      "https://api.github.com/repos/${GITHUB_TEST_OWNER}/${GITHUB_TEST_REPO}/git/refs"
-    
-    echo "   ✅ 测试分支创建成功：${branch_name}"
-    echo "   ⚠️  请手动创建 PR 以继续验证"
-  else
-    echo "   ❌ 无法获取 main 分支 SHA"
-  fi
-else
-  echo "   ⏭️  跳过测试 PR 创建 (GITHUB_CREATE_TEST_PR=false)"
-  echo "   请使用现有 PR 进行验证"
-fi
+INBOX_RESPONSE=$(curl -s http://localhost:18789/operator/inbox)
+echo "$INBOX_RESPONSE" | jq '.summary, .items[:3]'
 echo ""
 
-# 5. 运行验证脚本
-echo "【5/6】运行端到端验证脚本..."
-
-export GITHUB_VALIDATION_MODE=live
-
-if command -v ts-node &> /dev/null; then
-  ts-node scripts/validate_github_connector.ts
-  validation_exit=$?
-  
-  if [ $validation_exit -eq 0 ]; then
-    echo "   ✅ 验证脚本执行成功"
-  elif [ $validation_exit -eq 1 ]; then
-    echo "   🟡 验证脚本部分通过"
-  else
-    echo "   ❌ 验证脚本失败"
-  fi
-else
-  echo "   ⚠️  ts-node 未安装，跳过验证脚本"
-  echo "   请手动运行：ts-node scripts/validate_github_connector.ts"
-fi
+# Step 8: 测试 Approve 动作（可选）
+echo "=== Step 8: 测试 Approve 动作（可选）==="
+echo ""
+echo "要执行 Approve 动作，请运行："
+echo ""
+echo "  curl -X POST http://localhost:18789/operator/actions \\"
+echo "    -H 'Content-Type: application/json' \\"
+echo "    -d '{\"actionType\":\"approve\",\"targetType\":\"approval\",\"targetId\":\"github_deployment_$DEPLOYMENT_ID\"}'"
+echo ""
+echo "或通过 Telegram Bot 发送 /inbox 然后点击 Approve 按钮"
 echo ""
 
-# 6. 发送测试 Webhook
-echo "【6/6】发送测试 Webhook..."
+# Step 9: 验证 GitHub Deployment 状态
+echo "=== Step 9: 验证 GitHub Deployment 状态 ==="
+echo "调用：gh api repos/$USERNAME/$TEST_REPO/deployments/$DEPLOYMENT_ID/statuses"
+echo ""
 
-if [ -n "${GITHUB_WEBHOOK_URL}" ]; then
-  export GITHUB_WEBHOOK_URL
-  
-  if command -v ts-node &> /dev/null; then
-    ts-node scripts/test_github_webhook.ts all
-  else
-    echo "   ⚠️  ts-node 未安装，跳过 Webhook 测试"
-  fi
-else
-  echo "   ⏭️  跳过 Webhook 测试 (GITHUB_WEBHOOK_URL 未设置)"
-fi
+gh api repos/$USERNAME/$TEST_REPO/deployments/$DEPLOYMENT_ID/statuses 2>/dev/null | jq '.' || {
+    echo "⚠️  无法获取 Deployment 状态（可能还未创建）"
+}
 echo ""
 
 # 总结
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Live Validation 完成"
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║  测试完成                                              ║"
+echo "╚════════════════════════════════════════════════════════╝"
 echo ""
-echo "下一步:"
-echo "1. 在 GitHub 仓库配置 Webhook:"
-echo "   Settings → Webhooks → Add webhook"
-echo "   Payload URL: ${GITHUB_WEBHOOK_URL:-<未设置>}"
-echo "   Content type: application/json"
-echo "   Secret: ${GITHUB_WEBHOOK_SECRET}"
-echo "   Events: Pull requests, Check suites"
+echo "下一步："
+echo "  1. 检查上述输出，确认审批已创建"
+echo "  2. 执行 Approve 动作（见 Step 8 命令）"
+echo "  3. 再次检查 GitHub Deployment 状态是否更新为 success"
 echo ""
-echo "2. 创建或打开一个测试 PR"
+echo "清理测试仓库："
+echo "  gh repo delete $USERNAME/$TEST_REPO --yes"
 echo ""
-echo "3. 请求 Review:"
-echo "   Reviewers → 选择测试 reviewer"
-echo ""
-echo "4. 在 OpenClaw 中查看:"
-echo "   oc inbox"
-echo "   /inbox (Telegram)"
-echo ""
-echo "5. 执行动作:"
-echo "   oc approve <approval_id>"
-echo "   或在 Telegram 中点击 Approve 按钮"
-echo ""
-echo "6. 验证 GitHub Review 状态更新"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

@@ -1,0 +1,25 @@
+{
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "allowFrom": [
+        "@AlanColin_Xiao_bot"
+      ],
+      "groups": {
+        "policy": "allowlist",
+        
+        "// 示例配置 - 复制并修改以下块": "",
+        "your-channel-id": {
+          "enabled": true,
+          "description": "频道描述（可选）",
+          "requireMention": false,
+          "threadId": null,
+          "autoArchiveMin": 60
+        }
+      },
+      "errorPolicy": "suppress",
+      "errorCooldownMs": 300000
+    }
+  }
+}

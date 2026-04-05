@@ -1,8 +1,102 @@
 # RUNBOOK.md - OpenClaw 运行手册
 
-**版本**: 1.0  
+**版本**: 2.0 (灰度版)  
 **最后更新**: 2026-04-03  
 **适用环境**: 生产/灰度/预发布
+
+---
+
+# 灰度上线执行清单 v1
+
+**文档定位**
+用于 OpenClaw Agent Runtime System 进入生产灰度阶段时的统一执行、检查、降级与复盘。
+本清单适用于当前版本能力边界：
+
+* runtime v2
+* approval bridge
+* worktree
+* memory autowrite
+* telegram callbacks
+* health_report
+* recovery
+* worktree_cleanup
+
+**灰度期纪律**
+
+1. 不扩新功能
+2. 不改 runtime 主链
+3. 只允许：
+ * bugfix
+ * 策略微调
+ * 监控补充
+ * 渠道接线
+ * 运维修复
+4. 任何异常优先通过开关降级，不现场改大逻辑
+5. 灰度期间所有异常必须形成 task、原因、处理、结论闭环
+
+---
+
+## 一、角色分工
+
+### 1. 发布负责人
+
+负责上线动作、版本确认、开关切换、回退决策。
+
+### 2. 运行观察负责人
+
+负责监控面板、告警确认、失败任务抽样、指标记录。
+
+### 3. 审批链路负责人
+
+负责 approval bridge、TelegramBridge、callback 可用性与审批恢复链路。
+
+### 4. 隔离执行负责人
+
+负责 worktree 生命周期、残留清理、patch 产物检查。
+
+### 5. 记录负责人
+
+负责灰度日志、复盘表、异常归档、结论沉淀到 RUNBOOK/POLICY。
+
+> 小团队可由 1 人兼任多角色，但职责不能省略。
+
+---
+
+## 二、灰度目标
+
+### 核心目标
+
+验证新 runtime 在真实入口、真实任务、真实审批链路下可稳定运行，并具备可降级、可恢复、可观测能力。
+
+### 成功判定
+
+满足以下条件可视为灰度通过：
+
+* 任务成功率持续高于 95%
+* 审批延迟稳定低于 5 分钟
+* QueryGuard 冲突接近 0，且无连续异常
+* 无高风险未隔离执行事故
+* worktree 残留处于可控范围
+* recovery 可正常恢复 ask / interrupted / pending task
+* 无不可解释 deny / 卡死 / silent failure
+* 无因 memory autowrite 导致明显污染或错误行为放大
+
+---
+
+## 三、灰度开关表
+
+| 开关 | 默认状态 | 作用 | 降级策略 |
+| ------------------ | --------: | --------------- | ------------------- |
+| runtime v2 | ON | 启用统一 runtime 主链 | 关闭后回退旧执行链 |
+| approval bridge | ON | ask 权限走审批闭环 | 关闭后 ask 改为拒绝或人工本地执行 |
+| worktree | ON | 高风险任务隔离执行 | 关闭后禁止高风险写操作，不允许裸跑 |
+| memory autowrite | OFF/灰度小流量 | 自动记忆写入 | 关闭后只保留显式写入 |
+| telegram callbacks | ON | 远程审批与交互恢复 | 关闭后改轮询或临时停用审批远程恢复 |
+| health_report | ON | 健康度输出与状态汇总 | 不建议关闭 |
+| recovery | ON | 恢复中断任务/审批 | 不建议关闭 |
+| worktree_cleanup | ON | 清理隔离环境残留 | 不建议关闭，但异常时可切手动清理 |
+
+> 当前建议：`memory autowrite` 不要从第一天就全量开启，应采用保守灰度。
 
 ---
 

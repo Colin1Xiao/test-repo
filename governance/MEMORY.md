@@ -870,4 +870,37 @@ python3 ~/.openclaw/workspace/scripts/ocnmps-verify-config.py
 
 ---
 
-_最后更新：2026-04-03 04:15_
+### 2026-04-04 — OCNMPS V3 P0 补丁完成
+
+**问题**: `resolved.model.split is not a function` (24 小时内 10 次)
+
+**根因**:
+- 函数 `splitModelRef(ref)` 假设 `ref` 是字符串
+- 实际调用传入 `{ provider, model }` 对象
+- 类型不匹配导致 `split()` 失败
+
+**修复**:
+- 位置：`/usr/local/lib/node_modules/openclaw/dist/pi-embedded-BYdcxQ5A.js`
+- 方案：类型守卫 + 对象兼容
+- 时间：18:41 应用补丁，18:41 Gateway 重启
+
+**验证**:
+- ✅ 补丁后 0 次错误
+- ✅ OCNMPS 路由正常
+- ✅ Gateway 运行正常
+
+**状态**: Resolved, Monitoring (24 小时观察期)
+
+**文档**:
+- `OCNMPS_V3_GATEWAY_PATCH_P0.md` — P0 补丁方案
+- `OCNMPS_V3_P0_OBSERVE_24H.md` — 观察清单
+- `OCNMPS_V3_P1_SOURCE_FIX_PLAN.md` — 源级修复计划
+
+**待办**:
+- [ ] P0 观察期结束 (2026-04-05 18:45)
+- [ ] P1 源码固化 (提升为正式版本)
+- [ ] P2 灰度配置核验 (3-4% vs 30%)
+
+---
+
+_最后更新：2026-04-04 18:50_

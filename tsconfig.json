@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "noEmitOnError": true,
+    "declaration": true,
+    "inlineSourceMap": true,
+    "inlineSources": true
+  },
+  "include": [
+    "src/domain/**/*.ts",
+    "src/infrastructure/**/*.ts",
+    "src/connectors/**/*.ts",
+    "src/operators/**/*.ts",
+    "src/mcp/**/*.ts",
+    "src/code/**/*.ts",
+    "src/utils/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "core",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ]
+}

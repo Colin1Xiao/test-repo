@@ -161,8 +161,11 @@ export class GitHubActionsConnectorImpl implements GitHubActionsConnector {
     deploymentId: number,
     description?: string
   ): Promise<void> {
+    // GitHub API: POST /repos/{owner}/{repo}/deployments/{deployment_id}/statuses
+    const path = `/repos/${owner}/${repo}/deployments/${deploymentId}/statuses`;
+    console.log('[GitHubConnector] Approve Deployment:', { owner, repo, deploymentId, path });
     await this.apiClient.post(
-      `/repos/${owner}/${repo}/deployment_statuses/${deploymentId}`,
+      path,
       {
         state: 'success',
         description: description ?? 'Approved via OpenClaw Operator',
@@ -176,8 +179,9 @@ export class GitHubActionsConnectorImpl implements GitHubActionsConnector {
     deploymentId: number,
     reason?: string
   ): Promise<void> {
+    // GitHub API: POST /repos/{owner}/{repo}/deployments/{deployment_id}/statuses
     await this.apiClient.post(
-      `/repos/${owner}/${repo}/deployment_statuses/${deploymentId}`,
+      `/repos/${owner}/${repo}/deployments/${deploymentId}/statuses`,
       {
         state: 'failure',
         description: reason ?? 'Rejected via OpenClaw Operator',

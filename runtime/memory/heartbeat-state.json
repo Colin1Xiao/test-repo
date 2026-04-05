@@ -1,22 +1,24 @@
 {
   "lastChecks": {
-    "health": "2026-04-02T18:36:52Z",
-    "trading_position": "2026-04-02T18:36:52Z",
-    "trading_signal": "2026-04-01T23:34:00Z",
-    "trading_api": "2026-04-01T23:34:00Z",
-    "calendar": "2026-04-01T23:34:00Z",
-    "email": "2026-04-01T19:06:01Z",
-    "git": "2026-04-02T18:36:52Z",
-    "weather": "2026-04-01T23:34:00Z",
-    "recovery_controller": "2026-04-01T19:06:01Z",
-    "predictive_engine": "2026-04-01T19:06:01Z",
-    "last_heartbeat": "2026-04-02T18:36:52Z"
+    "health": "2026-04-04T13:47:42Z",
+    "trading_position": "2026-04-04T13:47:42Z",
+    "trading_api": "2026-04-04T13:47:42Z",
+    "okx_network": "2026-04-04T13:38:42Z"
   },
   "lastNotifiedCritical": null,
   "lastNotifiedWarning": null,
   "pendingAlerts": [],
-  "notes": "系统正常 - 空仓状态，Git 干净，健康检查全绿",
-  "check_type": "系统核心 + 项目监控 (H) (轮换 8)",
-  "timestamp": "2026-04-02T18:36:52Z",
-  "heartbeat_sequence": 8
+  "tradingState": {
+    "position": null,
+    "balance_usdt": 10.45,
+    "total_trades": 0,
+    "total_pnl": 0.0,
+    "status": "normal"
+  },
+  "systemState": {
+    "gateway": "running",
+    "telegram": "configured",
+    "memorySearch": "ready",
+    "okx_network": "connected"
+  }
 }
