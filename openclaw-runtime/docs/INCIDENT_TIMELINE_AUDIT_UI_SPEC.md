@@ -381,6 +381,224 @@ interface AuditLog {
 
 ---
 
+## 四、三链联动查询 (新增)
+
+### 目的
+
+提供 Incident → Timeline → Audit 三链联动查询能力，支持：
+- 跨链追溯
+- 关联分析
+- 根因定位
+- 影响范围评估
+
+### 联动架构
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Query Bar                                                      │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Search: [incident-123 / lease-456 / correlation-id] [🔍]│   │
+│  │                                                         │   │
+│  │ Results: 1 Incident · 12 Timeline Events · 24 Audit Logs│   │
+│  └─────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  Chain 1: Incident View                                         │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Incident #123                                           │   │
+│  │ Status: Resolved | Severity: P1 | Type: LeaseConflict   │   │
+│  │                                                         │   │
+│  │ Timeline: ──●────●────●────●──                          │   │
+│  │          Created  Updated  Linked   Resolved            │   │
+│  └─────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  Chain 2: Timeline View                                         │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 12 Related Events                                       │   │
+│  │ ─────────────────────────────────────────────────────── │   │
+│  │ 18:30:05  LEASE_ACQUIRED   lease-456  instance-1       │   │
+│  │ 18:30:10  ITEM_CLAIMED     item-456   instance-1       │   │
+│  │ 18:30:15  LEASE_CONFLICT   lease-456  instance-2  ⚠️   │   │
+│  │ 18:30:20  INCIDENT_CREATED incident-123  system        │   │
+│  │ ...                                                     │   │
+│  │                                                         │   │
+│  │ [Load More] [Export]                                    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  Chain 3: Audit View                                            │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 24 Audit Logs                                           │   │
+│  │ ─────────────────────────────────────────────────────── │   │
+│  │ 18:30:05  ACQUIRE   lease-456  ✅ SUCCESS  instance-1   │   │
+│  │ 18:30:10  CLAIM     item-456   ✅ SUCCESS  instance-1   │   │
+│  │ 18:30:15  ACQUIRE   lease-456  ❌ FAIL     instance-2   │   │
+│  │ 18:30:20  INCID_CREATE incident-123 ✅ SUCCESS  system  │   │
+│  │ ...                                                     │   │
+│  │                                                         │   │
+│  │ [Load More] [Export]                                    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 查询类型
+
+#### 1. Incident 查询
+
+**输入**: `incident-123` 或 `#123`
+
+**返回**:
+- Incident 详情 (Chain 1)
+- 关联 Timeline 事件 (Chain 2)
+- 关联 Audit 日志 (Chain 3)
+
+**联动逻辑**:
+```
+Incident → correlation_id → Timeline Events
+Incident → related_alerts → Audit Logs
+Incident → resource → All related operations
+```
+
+#### 2. Lease/Item 查询
+
+**输入**: `lease-456` 或 `item-789`
+
+**返回**:
+- 相关 Incident (如有)
+- 完整操作时间线
+- 完整审计日志
+
+**联动逻辑**:
+```
+Lease/Item → All operations → Timeline
+Lease/Item → All operations → Audit Logs
+Operations with errors → Incidents
+```
+
+#### 3. Correlation ID 查询
+
+**输入**: `corr-abc-123`
+
+**返回**:
+- 完整调用链
+- 所有相关事件
+- 所有相关操作
+
+**联动逻辑**:
+```
+Correlation ID → All events (any chain)
+Cross-chain correlation
+End-to-end trace
+```
+
+### 联动交互
+
+#### 点击联动
+
+| 点击位置 | 联动效果 |
+|---------|---------|
+| Timeline 事件 | 高亮关联 Audit 日志 |
+| Audit 日志 | 高亮关联 Timeline 事件 |
+| Incident | 展开关联 Timeline + Audit |
+| 时间戳 | 三链同步到该时间点 |
+
+#### 筛选联动
+
+| 筛选条件 | 影响范围 |
+|---------|---------|
+| 时间范围 | 三链同步筛选 |
+| 实例 ID | 三链同步筛选 |
+| 事件类型 | Timeline + Audit 同步 |
+| 严重性 | Incident + Timeline 同步 |
+
+#### 导航联动
+
+| 操作 | 联动效果 |
+|------|---------|
+| 时间跳转 | 三链同步跳转 |
+| 上一页/下一页 | 三链同步翻页 |
+| 导出 | 三链打包导出 |
+
+### API 端点
+
+#### 三链联合查询
+
+```typescript
+// GET /api/v1/triple-chain/query
+interface TripleChainQueryRequest {
+  query: string;  // incident-123 / lease-456 / corr-abc
+  queryType?: 'incident' | 'lease' | 'item' | 'correlation' | 'auto';
+  timeRange?: {
+    startTime: string;
+    endTime: string;
+  };
+  limit?: number;  // Default: 100 per chain
+}
+
+interface TripleChainQueryResponse {
+  query: string;
+  queryType: string;
+  
+  incidents: {
+    total: number;
+    items: Incident[];
+  };
+  
+  timeline: {
+    total: number;
+    items: TimelineEvent[];
+  };
+  
+  audit: {
+    total: number;
+    items: AuditLog[];
+  };
+  
+  correlations: {
+    incident_to_timeline: Array<{incident_id: string, event_ids: string[]}>;
+    incident_to_audit: Array<{incident_id: string, log_ids: string[]}>;
+    timeline_to_audit: Array<{event_id: string, log_ids: string[]}>;
+  };
+}
+```
+
+#### 联动高亮
+
+```typescript
+// GET /api/v1/triple-chain/correlations
+interface CorrelationsRequest {
+  source_chain: 'incident' | 'timeline' | 'audit';
+  source_id: string;
+  target_chains: Array<'incident' | 'timeline' | 'audit'>;
+}
+
+interface CorrelationsResponse {
+  correlations: Array<{
+    target_chain: string;
+    target_ids: string[];
+    relationship: string;
+  }>;
+}
+```
+
+### 只读优先策略
+
+**Gray 10% 期间**: 🔒 **只读模式**
+
+| 功能 | 状态 | 说明 |
+|------|------|------|
+| 查询 | ✅ 启用 | 完整查询能力 |
+| 筛选 | ✅ 启用 | 完整筛选能力 |
+| 导出 | ✅ 启用 | CSV/JSON 导出 |
+| 写操作 | ❌ 禁用 | 不修改数据 |
+| 删除 | ❌ 禁用 | 不删除数据 |
+| 配置修改 | ❌ 禁用 | 不修改配置 |
+
+**写操作解锁条件**:
+- Gray 10% 观察期完成
+- Gate 2 批准
+- 完整测试验证
+
+---
+
 ## 五、待办事项
 
 ### 设计 (Track D)
