@@ -1,10 +1,24 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "isolatedModules": true,
+    "target": "ES2022",
+    "module": "ES2022",
     "moduleResolution": "node",
-    "module": "ES2022"
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "downlevelIteration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "src/*": ["src/*"],
+      "tests/*": ["tests/*"]
+    }
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]

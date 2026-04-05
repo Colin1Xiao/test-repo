@@ -4,20 +4,20 @@ export default {
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
-    // Map .js imports to .ts files for Jest resolution (exclude node_modules)
-    '^\\.{1,2}/(?!node_modules/)(.*)\\.js$': '<rootDir>/$1.ts',
+    // Only map source code imports, not node_modules
+    '^(\\.{1,2}/(src|tests)/.*)\\.js$': '<rootDir>/$1',
   },
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
         useESM: true,
-        diagnostics: false, // Disable TypeScript diagnostics - let Jest runtime handle module resolution
+        tsconfig: 'tsconfig.test.json',
       },
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/',
+    'node_modules/(?!(.*\\.mjs$))',
   ],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
@@ -36,7 +36,6 @@ export default {
   },
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  // setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'], // Temporarily disabled for ESM compatibility
   testTimeout: 30000,
   verbose: true,
   forceExit: true,
