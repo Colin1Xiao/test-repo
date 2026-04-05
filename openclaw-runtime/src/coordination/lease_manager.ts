@@ -78,7 +78,7 @@ export type ReleaseLeaseResult =
 
 export type ReclaimLeaseResult =
   | { success: true; lease: LeaseRecord }
-  | { success: false; error: 'NOT_STALE' | 'NOT_FOUND'; message: string };
+  | { success: false; error: 'NOT_STALE' | 'NOT_FOUND' | 'ALREADY_RECLAIMED'; message: string };
 
 export interface LeaseConfig {
   default_ttl_ms: number;
@@ -356,6 +356,15 @@ export class LeaseManager {
         success: false,
         error: 'NOT_STALE',
         message: 'Lease is not stale',
+      };
+    }
+
+    // CAS check: lease status must still be 'active' (not already reclaimed)
+    if (lease.status !== 'active') {
+      return {
+        success: false,
+        error: 'ALREADY_RECLAIMED',
+        message: 'Lease has already been reclaimed',
       };
     }
 
