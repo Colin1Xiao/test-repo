@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { bootstrap } from '../../src/bootstrap.js';
-import type { Runtime } from '../../src/types.js';
+import { bootstrap } from 'src/bootstrap.js';
+import type { Runtime } from 'src/types.js';
 
 describe('Bootstrap Endpoints', () => {
   let runtime: Runtime;

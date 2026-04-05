@@ -3,10 +3,8 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
-  moduleNameMapper: {
-    // Only map source code imports, not node_modules
-    '^(\\.{1,2}/(src|tests)/.*)\\.js$': '<rootDir>/$1',
-  },
+  
+  // Transform TypeScript to ESM using tsconfig paths
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
@@ -16,11 +14,22 @@ export default {
       },
     ],
   },
+  
+  // Use tsconfig paths for module resolution - remove .js extension
+  moduleNameMapper: {
+    // Absolute imports
+    '^src/(.*)\\.js$': '<rootDir>/src/$1.ts',
+    '^tests/(.*)\\.js$': '<rootDir>/tests/$1.ts',
+  },
+  
+  // Don't transform or map node_modules
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$))',
+    'node_modules/',
   ],
+  
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
+  
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -36,6 +45,7 @@ export default {
   },
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  
   testTimeout: 30000,
   verbose: true,
   forceExit: true,

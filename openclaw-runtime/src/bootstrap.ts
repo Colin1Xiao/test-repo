@@ -14,12 +14,12 @@
  * ```
  */
 
-import { InstanceRegistry } from './coordination/instance_registry.js';
-import { LeaseManager } from './coordination/lease_manager.js';
-import { WorkItemCoordinator } from './coordination/work_item_coordinator.js';
-import { DuplicateSuppressionManager } from './coordination/duplicate_suppression_manager.js';
+import { InstanceRegistry } from 'src/coordination/instance_registry.js';
+import { LeaseManager } from 'src/coordination/lease_manager.js';
+import { WorkItemCoordinator } from 'src/coordination/work_item_coordinator.js';
+import { DuplicateSuppressionManager } from 'src/coordination/duplicate_suppression_manager.js';
 
-import type { RuntimeConfig, Runtime } from './types.js';
+import type { RuntimeConfig, Runtime } from 'src/types.js';
 
 // ==================== Default Configuration ====================
 
