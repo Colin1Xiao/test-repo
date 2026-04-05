@@ -1,0 +1,86 @@
+# Prometheus Alert Rules - Phase 4.x Runtime
+# Gray 10% Alerting Thresholds
+
+groups:
+  - name: runtime_alerts
+    interval: 30s
+    rules:
+      # P0: Error Rate > 1%
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: P0
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+
+      # P0: Service Unavailable
+      - alert: ServiceUnavailable
+        expr: up{job=~"runtime-instance-.*"} == 0
+        for: 5m
+        labels:
+          severity: P0
+        annotations:
+          summary: "Runtime instance unavailable"
+          description: "Instance {{ $labels.instance }} has been down for more than 5 minutes"
+
+      # P1: P99 Latency > 500ms
+      - alert: HighLatency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: P1
+        annotations:
+          summary: "High latency detected"
+          description: "P99 latency is {{ $value | humanizeDuration }} (threshold: 500ms)"
+
+      # P1: Memory Growth > 50MB/h
+      - alert: HighMemoryGrowth
+        expr: (process_resident_memory_bytes - process_resident_memory_bytes offset 1h) / (1024 * 1024) > 50
+        for: 1h
+        labels:
+          severity: P1
+        annotations:
+          summary: "High memory growth detected"
+          description: "Memory grew by {{ $value }}MB in the last hour (threshold: 50MB/h)"
+
+      # P1: Owner Drift Detected
+      - alert: OwnerDriftDetected
+        expr: owner_drift_total > 0
+        for: 0m
+        labels:
+          severity: P1
+        annotations:
+          summary: "Owner drift detected"
+          description: "{{ $value }} owner drift events detected"
+
+      # P1: Stale Cleanup Failure
+      - alert: StaleCleanupFailure
+        expr: stale_cleanup_failures_total > 0
+        for: 10m
+        labels:
+          severity: P1
+        annotations:
+          summary: "Stale cleanup failures detected"
+          description: "{{ $value }} stale cleanup failures in the last 10 minutes"
+
+      # P2: Snapshot Growth > 100KB/h
+      - alert: HighSnapshotGrowth
+        expr: (snapshot_size_bytes - snapshot_size_bytes offset 1h) / (1024) > 100
+        for: 1h
+        labels:
+          severity: P2
+        annotations:
+          summary: "High snapshot growth detected"
+          description: "Snapshot grew by {{ $value }}KB in the last hour (threshold: 100KB/h)"
+
+      # P2: Log Growth > 200KB/h
+      - alert: HighLogGrowth
+        expr: (log_size_bytes - log_size_bytes offset 1h) / (1024) > 200
+        for: 1h
+        labels:
+          severity: P2
+        annotations:
+          summary: "High log growth detected"
+          description: "Log grew by {{ $value }}KB in the last hour (threshold: 200KB/h)"

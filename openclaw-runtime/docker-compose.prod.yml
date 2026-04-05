@@ -1,0 +1,198 @@
+# Phase 4.x Runtime - Production Cluster (3 instances)
+# Gray 10% Deployment Configuration
+
+version: '3.8'
+
+services:
+  # Shared Storage (NFS simulation for local testing)
+  shared-storage:
+    image: alpine:latest
+    container_name: runtime-shared-storage
+    volumes:
+      - ./data/shared:/data/shared
+    command: tail -f /dev/null
+    networks:
+      - runtime-network
+
+  # Instance 1
+  runtime-instance-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: runtime-instance-1
+    environment:
+      - NODE_ENV=production
+      - INSTANCE_ID=instance-1
+      - INSTANCE_NAME=runtime-prod-1
+      - PORT=3001
+      - SHARED_DATA_DIR=/data/shared
+      - INSTANCE_DATA_DIR=/data/instance-1
+      - GRAY_RATIO=0.1
+      - FEATURE_FLAGS_STALE_CLEANUP_ENABLED=true
+      - FEATURE_FLAGS_AUTO_HEARTBEAT_ENABLED=true
+      - FEATURE_FLAGS_METRICS_ENABLED=true
+      - FEATURE_FLAGS_DIAGNOSTICS_ENABLED=true
+    volumes:
+      - ./data/instance-1:/data/instance-1
+      - ./data/shared:/data/shared
+    ports:
+      - "3001:3001"
+    depends_on:
+      - shared-storage
+    networks:
+      - runtime-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Instance 2
+  runtime-instance-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: runtime-instance-2
+    environment:
+      - NODE_ENV=production
+      - INSTANCE_ID=instance-2
+      - INSTANCE_NAME=runtime-prod-2
+      - PORT=3002
+      - SHARED_DATA_DIR=/data/shared
+      - INSTANCE_DATA_DIR=/data/instance-2
+      - GRAY_RATIO=0.1
+      - FEATURE_FLAGS_STALE_CLEANUP_ENABLED=true
+      - FEATURE_FLAGS_AUTO_HEARTBEAT_ENABLED=true
+      - FEATURE_FLAGS_METRICS_ENABLED=true
+      - FEATURE_FLAGS_DIAGNOSTICS_ENABLED=true
+    volumes:
+      - ./data/instance-2:/data/instance-2
+      - ./data/shared:/data/shared
+    ports:
+      - "3002:3002"
+    depends_on:
+      - shared-storage
+    networks:
+      - runtime-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Instance 3
+  runtime-instance-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: runtime-instance-3
+    environment:
+      - NODE_ENV=production
+      - INSTANCE_ID=instance-3
+      - INSTANCE_NAME=runtime-prod-3
+      - PORT=3003
+      - SHARED_DATA_DIR=/data/shared
+      - INSTANCE_DATA_DIR=/data/instance-3
+      - GRAY_RATIO=0.1
+      - FEATURE_FLAGS_STALE_CLEANUP_ENABLED=true
+      - FEATURE_FLAGS_AUTO_HEARTBEAT_ENABLED=true
+      - FEATURE_FLAGS_METRICS_ENABLED=true
+      - FEATURE_FLAGS_DIAGNOSTICS_ENABLED=true
+    volumes:
+      - ./data/instance-3:/data/instance-3
+      - ./data/shared:/data/shared
+    ports:
+      - "3003:3003"
+    depends_on:
+      - shared-storage
+    networks:
+      - runtime-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Prometheus for metrics scraping
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: runtime-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    depends_on:
+      - runtime-instance-1
+      - runtime-instance-2
+      - runtime-instance-3
+    networks:
+      - runtime-network
+    restart: unless-stopped
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: runtime-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - runtime-network
+    restart: unless-stopped
+
+networks:
+  runtime-network:
+    driver: bridge
+
+volumes:
+  shared:
+  instance-1:
+  instance-2:
+  instance-3:
+  prometheus:
+  grafana:

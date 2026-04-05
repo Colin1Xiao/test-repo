@@ -1,0 +1,35 @@
+# Prometheus Configuration - Phase 4.x Runtime
+# Gray 10% Monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'runtime-instance-1'
+    static_configs:
+      - targets: ['runtime-instance-1:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'runtime-instance-2'
+    static_configs:
+      - targets: ['runtime-instance-2:3002']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'runtime-instance-3'
+    static_configs:
+      - targets: ['runtime-instance-3:3003']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+# Alerting rules
+rule_files:
+  - 'alerts.yml'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
