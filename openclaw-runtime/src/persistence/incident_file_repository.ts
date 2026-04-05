@@ -10,8 +10,9 @@
 
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
-import { Incident, IncidentUpdateRequest, IncidentQuery, IncidentStatus, IncidentUpdateResult } from '../alerting/incident_repository.js';
+import { Incident, IncidentUpdateRequest, IncidentQuery, IncidentStatus, IncidentUpdateResult, ConflictAuditEvent, ConflictTimelineEvent } from '../alerting/incident_repository.js';
 import { getTimelineStore } from '../alerting/timeline_integration.js';
+import { getAuditLogFileService } from './audit_log_file_service.js';
 import { getFileLock } from './file_lock.js';
 
 // ==================== Types ====================
@@ -287,8 +288,12 @@ export class IncidentFileRepository {
       }
       
       // Phase 4.x-A1: Optional version check (backward compatible)
+      // Phase 4.x-A1-3: Record conflict on version mismatch
       if (update.version !== undefined) {
         if (incident.version !== update.version) {
+          // Record conflict to audit
+          await this.recordConflict(incident, update);
+          
           return {
             success: false,
             error: 'VERSION_MISMATCH',
@@ -497,6 +502,65 @@ export class IncidentFileRepository {
       total: this.incidents.size,
       by_status,
     };
+  }
+
+  /**
+   * Phase 4.x-A1-3: Record conflict to audit and timeline
+   */
+  private async recordConflict(
+    incident: Incident,
+    update: IncidentUpdateRequest
+  ): Promise<void> {
+    const now = Date.now();
+    const correlationId = incident.correlation_id || `conflict-${incident.id}-${now}`;
+    
+    // Build attempted change info
+    const attemptedChange = {
+      field: update.status ? 'status' : 'description',
+      from: incident.status,
+      to: update.status || update.description,
+    };
+    
+    // Record to audit
+    try {
+      const auditService = getAuditLogFileService();
+      await auditService.log({
+        event_type: 'write_conflict',
+        object_type: 'incident',
+        object_id: incident.id,
+        timestamp: now,
+        actor_id: update.updated_by,
+        metadata: {
+          expected_version: update.version!,
+          actual_version: incident.version,
+          attempted_change: attemptedChange,
+          correlation_id: correlationId,
+          explanation: `Version mismatch: expected ${update.version}, got ${incident.version}`,
+        },
+      });
+    } catch (error) {
+      console.warn(`[IncidentFileRepository] Failed to record conflict audit: ${error}`);
+    }
+    
+    // Record to timeline (critical path)
+    try {
+      const timelineStore = getTimelineStore();
+      await timelineStore.addEvent({
+        id: `timeline-${now}-${incident.id}`,
+        type: 'update_conflict',
+        timestamp: now,
+        incident_id: incident.id,
+        correlation_id: correlationId,
+        metadata: {
+          reason: 'VERSION_MISMATCH',
+          expected_version: update.version!,
+          actual_version: incident.version,
+          actor: update.updated_by,
+        },
+      });
+    } catch (error) {
+      console.warn(`[IncidentFileRepository] Failed to record conflict timeline: ${error}`);
+    }
   }
 }
 

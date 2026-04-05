@@ -1,0 +1,217 @@
+/* 🐉 小龙 Control UI 主题 - 直接注入版 */
+/* 应用于 /usr/local/lib/node_modules/openclaw/dist/control-ui/index.html */
+
+:root {
+  /* 小龙主题色 */
+  --xl-primary: #7c5cfc;
+  --xl-primary-light: #a78bfa;
+  --xl-success: #2dd4a0;
+  --xl-warning: #f5a623;
+  --xl-danger: #f85149;
+  --xl-info: #58a6ff;
+  --xl-bg: #06080e;
+  --xl-card: #0d1117;
+  --xl-border: #1a1f2e;
+}
+
+/* 深色模式覆盖 */
+[data-theme="dark"],
+[data-theme="claw"],
+[data-theme="claw:dark"] {
+  --background-primary: var(--xl-bg) !important;
+  --background-secondary: var(--xl-card) !important;
+  --background-tertiary: #0a0d14 !important;
+  --border-color: var(--xl-border) !important;
+  --text-primary: #e6edf3 !important;
+  --text-secondary: #8b949e !important;
+  --accent-primary: var(--xl-primary) !important;
+  --accent-secondary: var(--xl-primary-light) !important;
+  --status-online: var(--xl-success) !important;
+  --status-away: var(--xl-warning) !important;
+  --status-busy: var(--xl-danger) !important;
+}
+
+/* 玻璃拟态效果 */
+.sidebar,
+.chat-panel,
+.settings-panel,
+.agent-panel,
+.config-panel {
+  background: rgba(13, 17, 23, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* 强调色 */
+button.primary,
+.btn-primary,
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--xl-primary), var(--xl-primary-light)) !important;
+  border: none !important;
+}
+
+button.primary:hover,
+.btn-primary:hover {
+  background: linear-gradient(135deg, #6b4ce6, #9174f5) !important;
+  box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4) !important;
+}
+
+/* 在线状态脉冲 */
+.status-dot.online,
+.status-online,
+.agent-status.online {
+  background: var(--xl-success) !important;
+  box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4) !important;
+  animation: pulse-green 2s infinite !important;
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(45, 212, 160, 0); }
+}
+
+/* 用户消息气泡 */
+.message-bubble.user,
+.message.user .message-content {
+  background: linear-gradient(135deg, var(--xl-primary), var(--xl-primary-light)) !important;
+  color: white !important;
+}
+
+/* 代码块样式 */
+pre code,
+.code-block {
+  background: var(--xl-card) !important;
+  border: 1px solid var(--xl-border) !important;
+  border-radius: 8px !important;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--xl-bg) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--xl-border) !important;
+  border-radius: 4px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--xl-primary) !important;
+}
+
+/* 侧边栏 Logo */
+.app-logo::before {
+  content: "🐉 " !important;
+}
+
+.app-title,
+.brand-name {
+  background: linear-gradient(135deg, var(--xl-primary), var(--xl-primary-light), var(--xl-info)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* 标签页激活态 */
+.tab.active,
+.nav-item.active,
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--xl-primary), var(--xl-primary-light)) !important;
+  color: white !important;
+}
+
+/* 卡片悬停效果 */
+.card,
+.glass-card,
+.info-card {
+  transition: all 0.3s ease !important;
+}
+
+.card:hover,
+.glass-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(124, 92, 252, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(124, 92, 252, 0.15) !important;
+}
+
+/* 加载动画 */
+.loading-shimmer {
+  background: linear-gradient(90deg, var(--xl-card) 25%, var(--xl-border) 50%, var(--xl-card) 75%) !important;
+  background-size: 200% 100% !important;
+  animation: shimmer 1.5s infinite !important;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+/* 徽章样式 */
+.badge,
+.status-badge {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  padding: 4px 10px !important;
+}
+
+.badge-success,
+.status-ok {
+  background: rgba(45, 212, 160, 0.15) !important;
+  color: var(--xl-success) !important;
+  border: 1px solid rgba(45, 212, 160, 0.25) !important;
+}
+
+.badge-warning,
+.status-warn {
+  background: rgba(245, 166, 35, 0.15) !important;
+  color: var(--xl-warning) !important;
+  border: 1px solid rgba(245, 166, 35, 0.25) !important;
+}
+
+.badge-error,
+.status-err {
+  background: rgba(248, 81, 73, 0.15) !important;
+  color: var(--xl-danger) !important;
+  border: 1px solid rgba(248, 81, 73, 0.25) !important;
+}
+
+/* 输入框焦点 */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--xl-primary) !important;
+  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15) !important;
+}
+
+/* 小龙 Dashboard 悬浮按钮 */
+.xiaolong-fab {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #7c5cfc, #a78bfa) !important;
+  border: none !important;
+  color: white !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4) !important;
+  z-index: 9999 !important;
+  transition: all 0.3s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.xiaolong-fab:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 30px rgba(124, 92, 252, 0.6) !important;
+}
+
+.xiaolong-fab:active {
+  transform: scale(0.95) !important;
+}

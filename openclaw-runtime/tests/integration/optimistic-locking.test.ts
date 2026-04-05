@@ -7,6 +7,8 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { createTestIncident } from '../factories/incident.factory.js';
 import { IncidentFileRepository } from '../../src/persistence/incident_file_repository.js';
+import { getAuditLogFileService } from '../../src/persistence/audit_log_file_service.js';
+import { getTimelineStore, resetTimelineStore } from '../../src/alerting/timeline_integration.js';
 import { TEST_DATA_DIR } from '../setup/jest.setup.js';
 
 describe('Phase 4.x-A1: Optimistic Locking', () => {
@@ -250,6 +252,167 @@ describe('Phase 4.x-A1: Optimistic Locking', () => {
       if (result2.success) {
         expect(result2.incident.status).toBe('resolved');
         expect(result2.incident.version).toBe(3);
+      }
+    });
+  });
+
+  describe('A1-3: Conflict Traceability', () => {
+    beforeEach(async () => {
+      // Initialize audit and timeline services
+      const auditService = getAuditLogFileService();
+      await auditService.initialize();
+      resetTimelineStore();
+    });
+
+    it('应该在 version 冲突时写入 audit 记录', async () => {
+      await repo.initialize();
+      
+      const incident = createTestIncident();
+      await repo.create(incident);
+      
+      // First update succeeds
+      await repo.update(incident.id, {
+        status: 'investigating',
+        updated_by: 'user1',
+        version: 1,
+      });
+      
+      // Second update with stale version fails
+      const result = await repo.update(incident.id, {
+        status: 'resolved',
+        updated_by: 'user2',
+        version: 1, // Stale version
+      });
+      
+      expect(result.success).toBe(false);
+      
+      // Verify audit record exists
+      const auditService = getAuditLogFileService();
+      const auditEvents = await auditService.query({
+        object_id: incident.id,
+        event_type: 'write_conflict',
+      });
+      
+      expect(auditEvents.length).toBeGreaterThanOrEqual(1);
+      const conflictEvent = auditEvents.find(e => e.event_type === 'write_conflict');
+      expect(conflictEvent).toBeDefined();
+      if (conflictEvent) {
+        expect(conflictEvent.metadata?.expected_version).toBe(1);
+        expect(conflictEvent.metadata?.actual_version).toBe(2);
+        expect(conflictEvent.actor_id).toBe('user2');
+      }
+    });
+
+    it('应该在 version 冲突时写入 timeline 记录', async () => {
+      await repo.initialize();
+      
+      const incident = createTestIncident();
+      await repo.create(incident);
+      
+      // First update succeeds
+      await repo.update(incident.id, {
+        status: 'investigating',
+        updated_by: 'user1',
+        version: 1,
+      });
+      
+      // Second update with stale version fails
+      await repo.update(incident.id, {
+        status: 'resolved',
+        updated_by: 'user2',
+        version: 1, // Stale version
+      });
+      
+      // Verify timeline record exists
+      const timelineStore = getTimelineStore();
+      const timelineEvents = await timelineStore.query({ incident_id: incident.id });
+      
+      const conflictEvent = timelineEvents.find(e => e.type === 'update_conflict');
+      expect(conflictEvent).toBeDefined();
+      if (conflictEvent) {
+        expect(conflictEvent.metadata?.reason).toBe('VERSION_MISMATCH');
+        expect(conflictEvent.metadata?.expected_version).toBe(1);
+        expect(conflictEvent.metadata?.actual_version).toBe(2);
+        expect(conflictEvent.metadata?.actor).toBe('user2');
+      }
+    });
+
+    it('应该验证 conflict 记录包含完整字段', async () => {
+      await repo.initialize();
+      
+      const incident = createTestIncident();
+      await repo.create(incident);
+      
+      // Trigger conflict
+      await repo.update(incident.id, {
+        status: 'investigating',
+        updated_by: 'user1',
+        version: 1,
+      });
+      
+      await repo.update(incident.id, {
+        status: 'resolved',
+        updated_by: 'user2',
+        version: 1, // Stale
+      });
+      
+      // Verify audit fields
+      const auditService = getAuditLogFileService();
+      const auditEvents = await auditService.query({ object_id: incident.id });
+      const conflictAudit = auditEvents.find(e => e.event_type === 'write_conflict');
+      
+      expect(conflictAudit).toBeDefined();
+      if (conflictAudit) {
+        expect(conflictAudit.object_type).toBe('incident');
+        expect(conflictAudit.object_id).toBe(incident.id);
+        expect(conflictAudit.metadata?.attempted_change).toBeDefined();
+        expect(conflictAudit.metadata?.correlation_id).toBeDefined();
+      }
+      
+      // Verify timeline fields
+      const timelineStore = getTimelineStore();
+      const timelineEvents = await timelineStore.query({ incident_id: incident.id });
+      const conflictTimeline = timelineEvents.find(e => e.type === 'update_conflict');
+      
+      expect(conflictTimeline).toBeDefined();
+      if (conflictTimeline) {
+        expect(conflictTimeline.incident_id).toBe(incident.id);
+        expect(conflictTimeline.correlation_id).toBeDefined();
+        expect(conflictTimeline.timestamp).toBeGreaterThan(0);
+      }
+    });
+
+    it('应该验证 conflict 记录与 incident 关联', async () => {
+      await repo.initialize();
+      
+      const incident = createTestIncident();
+      await repo.create(incident);
+      
+      // Trigger conflict
+      await repo.update(incident.id, {
+        status: 'investigating',
+        updated_by: 'user1',
+        version: 1,
+      });
+      
+      await repo.update(incident.id, {
+        status: 'resolved',
+        updated_by: 'user2',
+        version: 1, // Stale
+      });
+      
+      // Verify correlation_id consistency
+      const auditService = getAuditLogFileService();
+      const auditEvents = await auditService.query({ object_id: incident.id });
+      const conflictAudit = auditEvents.find(e => e.event_type === 'write_conflict');
+      
+      const timelineStore = getTimelineStore();
+      const timelineEvents = await timelineStore.query({ incident_id: incident.id });
+      const conflictTimeline = timelineEvents.find(e => e.type === 'update_conflict');
+      
+      // Both should have same correlation_id
+      if (conflictAudit && conflictTimeline) {
+        expect(conflictTimeline.correlation_id).toBe(conflictAudit.metadata?.correlation_id);
       }
     });
   });

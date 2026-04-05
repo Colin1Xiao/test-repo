@@ -24,6 +24,7 @@ export type TimelineEventType =
   | 'incident_linked'
   | 'incident_created'
   | 'incident_updated'
+  | 'update_conflict'  // Phase 4.x-A1-3: Conflict tracking
   | 'runbook_opened'
   | 'runbook_action'
   | 'runbook_completed'

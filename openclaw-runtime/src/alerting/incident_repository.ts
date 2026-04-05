@@ -76,6 +76,38 @@ export interface IncidentRepositoryConfig {
   strict_version_check?: boolean;  // Default: false (backward compatible)
 }
 
+// Phase 4.x-A1-3: Conflict event types
+export interface ConflictAuditEvent {
+  type: 'write_conflict';
+  object_type: 'incident';
+  object_id: string;
+  timestamp: number;
+  actor: string;
+  metadata: {
+    expected_version: number;
+    actual_version: number;
+    attempted_change: {
+      field: string;
+      from: any;
+      to: any;
+    };
+    correlation_id?: string;
+  };
+}
+
+export interface ConflictTimelineEvent {
+  type: 'update_conflict';
+  incident_id: string;
+  timestamp: number;
+  correlation_id?: string;
+  metadata: {
+    reason: 'VERSION_MISMATCH';
+    expected_version: number;
+    actual_version: number;
+    actor: string;
+  };
+}
+
 export interface IncidentQuery {
   type?: string;
   status?: IncidentStatus;

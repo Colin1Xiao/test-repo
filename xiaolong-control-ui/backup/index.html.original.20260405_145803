@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenClaw Control</title>
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <!-- 🐉 小龙主题注入 -->
+    <style>
+    :root{--xl-primary:#7c5cfc;--xl-primary-light:#a78bfa;--xl-success:#2dd4a0;--xl-warning:#f5a623;--xl-danger:#f85149;--xl-info:#58a6ff;--xl-bg:#06080e;--xl-card:#0d1117;--xl-border:#1a1f2e}[data-theme="dark"],[data-theme="claw"],[data-theme="claw:dark"]{--background-primary:var(--xl-bg)!important;--background-secondary:var(--xl-card)!important;--background-tertiary:#0a0d14!important;--border-color:var(--xl-border)!important;--text-primary:#e6edf3!important;--text-secondary:#8b949e!important;--accent-primary:var(--xl-primary)!important;--accent-secondary:var(--xl-primary-light)!important;--status-online:var(--xl-success)!important}.sidebar,.chat-panel,.settings-panel{background:rgba(13,17,23,.85)!important;backdrop-filter:blur(16px)!important}button.primary,.btn-primary{background:linear-gradient(135deg,var(--xl-primary),var(--xl-primary-light))!important;border:none!important}button.primary:hover{background:linear-gradient(135deg,#6b4ce6,#9174f5)!important;box-shadow:0 4px 20px rgba(124,92,252,.4)!important}.status-dot.online{background:var(--xl-success)!important;animation:pulse-green 2s infinite!important}@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(45,212,160,.4)}50%{box-shadow:0 0 0 6px rgba(45,212,160,0)}}.message-bubble.user{background:linear-gradient(135deg,var(--xl-primary),var(--xl-primary-light))!important;color:#fff!important}::-webkit-scrollbar{width:8px!important;height:8px!important}::-webkit-scrollbar-track{background:var(--xl-bg)!important}::-webkit-scrollbar-thumb{background:var(--xl-border)!important;border-radius:4px!important}::-webkit-scrollbar-thumb:hover{background:var(--xl-primary)!important}.tab.active,.nav-item.active{background:linear-gradient(135deg,var(--xl-primary),var(--xl-primary-light))!important;color:#fff!important}.card:hover{transform:translateY(-2px)!important;border-color:rgba(124,92,252,.3)!important;box-shadow:0 8px 32px rgba(124,92,252,.15)!important}.xiaolong-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7c5cfc,#a78bfa);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(124,92,252,.4);z-index:9999;transition:all .3s;display:flex;align-items:center;justify-content:center}.xiaolong-fab:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(124,92,252,.6)}
+    </style>
+    <script>
+      (function () {
+        var THEMES = { claw: 1, knot: 1, dash: 1 };
+        var MODES = { system: 1, light: 1, dark: 1 };
+        var LEGACY = {
+          dark: "claw:dark",
+          light: "claw:light",
+          openknot: "knot:dark",
+          fieldmanual: "dash:dark",
+          clawdash: "dash:light",
+          system: "claw:system",
+        };
+        try {
+          var keys = Object.keys(localStorage);
+          var raw;
+          for (var i = 0; i < keys.length; i++) {
+            if (keys[i].indexOf("openclaw.control.settings.v1") === 0) {
+              raw = localStorage.getItem(keys[i]);
+              if (raw) break;
+            }
+          }
+          if (!raw) return;
+          var s = JSON.parse(raw);
+          var t = s && s.theme;
+          var m = s && s.themeMode;
+          if (typeof t !== "string") t = "";
+          if (typeof m !== "string") m = "";
+          var legacy = LEGACY[t];
+          var theme = THEMES[t] ? t : legacy ? legacy.split(":")[0] : "claw";
+          var mode = MODES[m] ? m : legacy ? legacy.split(":")[1] : "system";
+          if (mode === "system") {
+            mode = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+          }
+          var resolved =
+            theme === "knot"
+              ? mode === "light"
+                ? "openknot-light"
+                : "openknot"
+              : theme === "dash"
+                ? mode === "light"
+                  ? "dash-light"
+                  : "dash"
+                : mode === "light"
+                  ? "light"
+                  : "dark";
+          document.documentElement.setAttribute("data-theme", resolved);
+          document.documentElement.setAttribute(
+            "data-theme-mode",
+            resolved.indexOf("light") !== -1 ? "light" : "dark",
+          );
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-Bx1QDj3a.js"></script>
+    <!-- 🐉 小龙 Dashboard -->
+    <script>
+    (function(){"use strict";function createPanel(){const btn=document.createElement("button");btn.className="xiaolong-fab";btn.innerHTML="🐉";btn.title="小龙 Dashboard";btn.onclick=togglePanel;document.body.appendChild(btn);const overlay=document.createElement("div");overlay.id="xl-overlay";overlay.style.cssText="position:fixed;inset:0;background:rgba(6,8,14,.8);backdrop-filter:blur(8px);z-index:9998;display:none";overlay.onclick=togglePanel;const panel=document.createElement("div");panel.id="xiaolong-panel";panel.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;max-width:800px;max-height:80vh;background:#0d1117;border:1px solid #1a1f2e;border-radius:20px;z-index:9999;overflow:hidden;display:none";panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #1a1f2e;background:linear-gradient(135deg,rgba(124,92,252,.1),transparent)"><h2 style="margin:0;font-size:1.3rem;background:linear-gradient(135deg,#7c5cfc,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🐉 小龙 Dashboard</h2><button onclick="togglePanel()" style="background:transparent;border:none;color:#8b949e;font-size:24px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px">×</button></div><div style="padding:20px 24px;max-height:calc(80vh - 80px);overflow-y:auto"><div style="display:flex;gap:8px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #1a1f2e"><button class="xl-tab active" data-tab="health" onclick="switchTab(\'health\')" style="padding:10px 20px;border-radius:10px;border:none;background:transparent;color:#8b949e;font-family:inherit;font-size:14px;cursor:pointer">健康</button><button class="xl-tab" data-tab="trading" onclick="switchTab(\'trading\')" style="padding:10px 20px;border-radius:10px;border:none;background:transparent;color:#8b949e;font-family:inherit;font-size:14px;cursor:pointer">交易</button><button class="xl-tab" data-tab="ocnmps" onclick="switchTab(\'ocnmps\')" style="padding:10px 20px;border-radius:10px;border:none;background:transparent;color:#8b949e;font-family:inherit;font-size:14px;cursor:pointer">路由</button><button class="xl-tab" data-tab="recovery" onclick="switchTab(\'recovery\')" style="padding:10px 20px;border-radius:10px;border:none;background:transparent;color:#8b949e;font-family:inherit;font-size:14px;cursor:pointer">自愈</button></div><div id="xl-content" style="color:#8b949e;text-align:center;padding:40px">点击标签加载数据...</div></div>';document.body.appendChild(overlay);document.body.appendChild(panel);window.togglePanel=function(){const o=document.getElementById('xl-overlay'),p=document.getElementById('xiaolong-panel');if(o.style.display==='block'){o.style.display='none';p.style.display='none'}else{o.style.display='block';p.style.display='block';switchTab('health')}};window.switchTab=function(tab){document.querySelectorAll('.xl-tab').forEach(t=>{t.style.background=t.dataset.tab===tab?'linear-gradient(135deg,#7c5cfc,#a78bfa)':'transparent';t.style.color=t.dataset.tab===tab?'#fff':'#8b949e'});loadData(tab)}}function getToken(){const p=new URLSearchParams(window.location.search);return p.get('token')||'test123'}function loadData(tab){const c=document.getElementById('xl-content');c.innerHTML='<div style="color:#8b949e;text-align:center;padding:40px">加载中...</div>';const t=getToken(),b=window.location.origin;fetch(b+'/api/'+tab+'?token='+t).then(r=>r.json()).then(d=>{if(tab==='health')renderHealth(d,c);else if(tab==='trading')renderTrading(d,c);else if(tab==='ocnmps')renderOcnmps(d,c);else if(tab==='recovery')renderRecovery(d,c)}).catch(e=>{c.innerHTML='<div style="color:#f85149;text-align:center;padding:40px">错误：'+e.message+'</div>'})}function renderHealth(d,c){const comps=[{name:'Gateway',key:'gateway',icon:'🚪'},{name:'Telegram',key:'telegram',icon:'✈️'},{name:'Memory',key:'memorySearch',icon:'🧠'},{name:'Cron',key:'cron',icon:'⏰'},{name:'交易系统',key:'trading',icon:'💰'}];let h='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">';for(const comp of comps){const s=d.components?.[comp.key]||{status:'unknown'};const bc=s.status==='ok'||s.status==='running'?'ok':s.status==='warning'?'warn':'err';const st=s.status==='ok'||s.status==='running'?'正常':s.status==='warning'?'警告':s.status||'未知';const colors={ok:'#2dd4a0',warn:'#f5a623',err:'#f85149'};h+='<div style="background:rgba(13,17,23,.7);border:1px solid #1a1f2e;border-radius:16px;padding:16px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;text-transform:uppercase;color:#8b949e">'+comp.icon+' '+comp.name+'</div><div style="font-size:1.5rem;font-weight:700;margin-bottom:4px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba('+hexToRgb(colors[bc])+',.15);color:'+colors[bc]+'">'+st+'</span></div><div style="font-size:12px;color:#8b949e">'+(s.message||'-')+'</div></div>'}h+='</div>';c.innerHTML=h}function renderTrading(d,c){const p=d.position||{},b=d.balance||{};let h='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">';h+='<div style="background:rgba(13,17,23,.7);border:1px solid #1a1f2e;border-radius:16px;padding:16px"><div style="font-size:12px;text-transform:uppercase;color:#8b949e;margin-bottom:8px">💰 持仓</div><div style="font-size:1.8rem;font-weight:700">'+(p.side||'无')+' '+(p.size||0)+'</div><div style="font-size:12px;color:#8b949e;margin-top:4px">均价：'+(p.avg_price||0)+'</div></div>';h+='<div style="background:rgba(13,17,23,.7);border:1px solid #1a1f2e;border-radius:16px;padding:16px"><div style="font-size:12px;text-transform:uppercase;color:#8b949e;margin-bottom:8px">💵 余额</div><div style="font-size:1.8rem;font-weight:700">'+(b.usdt_total||0)+' USDT</div><div style="font-size:12px;color:#8b949e;margin-top:4px">可用：'+(b.usdt_free||0)+'</div></div>';h+='<div style="background:rgba(13,17,23,.7);border:1px solid #1a1f2e;border-radius:16px;padding:16px"><div style="font-size:12px;text-transform:uppercase;color:#8b949e;margin-bottom:8px">📊 统计</div><div style="font-size:1.8rem;font-weight:700">'+(d.stats?.total_trades||0)+'</div><div style="font-size:12px;color:#8b949e;margin-top:4px">总盈亏：'+(d.stats?.total_pnl||0)+'</div></div>';h+='</div>';c.innerHTML=h}function renderOcnmps(d,c){const t=d.total_requests||0,gh=d.gray_hit_count||0,r=t>0?((gh/t)*100).toFixed(2):0;let h='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">';h+='<div style="background:rgba(13,17,23,.7);border:1px solid #1a1f2e;border-radius:16px;padding:16px"><div style="font-size:12px;text-transform:uppercase;color:#8b949e;margin-bottom:8px">📊 总请求</div><div style="font-size:1.8rem;font-weight:700">'+t+'</div><div style="font-size:12px;color:#8b949e;margin-top:4px">灰度命中：'+gh+' ('+r+'%)</div></div>';h+='<div style="background:rgba(13,17,23,.7);border:1px solid #1a1f2e;border-radius:16px;padding:16px"><div style="font-size:12px;text-transform:uppercase;color:#8b949e;margin-bottom:8px">⚠️ Fallback</div><div style="font-size:1.8rem;font-weight:700">'+(d.fallback_count||0)+'</div><div style="font-size:12px;color:#8b949e;margin-top:4px">异常降级次数</div></div>';h+='</div>';c.innerHTML=h}function renderRecovery(d,c){const r=d.recoveries||[];if(!r||r.length===0){c.innerHTML='<div style="color:#8b949e;text-align:center;padding:40px">暂无自愈记录</div>';return}let h='<div style="max-height:300px;overflow-y:auto">';for(const rec of r.slice(-10).reverse()){const bc=rec.success?'ok':'err';const colors={ok:'#2dd4a0',err:'#f85149'};h+='<div style="padding:12px;border-bottom:1px solid #1a1f2e;display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">'+(rec.component||'-')+'</div><div style="font-size:12px;color:#8b949e">'+(rec.strategy||'-')+'</div></div><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba('+hexToRgb(colors[bc])+',.15);color:'+colors[bc]+'">'+(rec.success?'成功':'失败')+'</span></div>'}h+='</div>';c.innerHTML=h}function hexToRgb(hex){const n=parseInt(hex.replace('#',''),16);return(n>>16)+','+((n>>8)&255)+','+(n&255)}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',createPanel)}else{createPanel()}})();
+    </script>
+    <link rel="modulepreload" crossorigin href="./assets/event-stream-B8X6sYaV.js">
+    <link rel="modulepreload" crossorigin href="./assets/preload-helper-xBbMyY7u.js">
+    <link rel="modulepreload" crossorigin href="./assets/lit-zdTgzAJI.js">
+    <link rel="modulepreload" crossorigin href="./assets/directive-C6NBp6xJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/format-nUIQxx1z.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-D-SPkk8b.css">
+  </head>
+  <body>
+    <openclaw-app></openclaw-app>
+  </body>
+</html>

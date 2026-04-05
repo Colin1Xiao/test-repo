@@ -1,0 +1,22 @@
+{
+  "snapshot_at": 1775372009103,
+  "incidents": {
+    "incident-1775372009099-test-1": {
+      "id": "incident-1775372009099-test-1",
+      "type": "test_incident",
+      "severity": "P0",
+      "status": "open",
+      "title": "Test Incident",
+      "description": "Test incident for testing",
+      "created_at": 1775372009099,
+      "created_by": "test",
+      "updated_at": 1775372009099,
+      "correlation_id": "test-correlation-1",
+      "resource": "test-resource",
+      "related_alerts": [],
+      "related_incidents": [],
+      "metadata": {},
+      "version": 1
+    }
+  }
+}
