@@ -1,0 +1,140 @@
+/* 🐉 小龙 Control UI 主题
+ * 覆盖 OpenClaw Control UI 的 CSS 变量
+ * 使用方法：在 Control UI 设置中加载此 CSS 文件
+ */
+
+:root {
+  /* 小龙主题色 */
+  --xl-primary: #7c5cfc;
+  --xl-primary-light: #a78bfa;
+  --xl-success: #2dd4a0;
+  --xl-warning: #f5a623;
+  --xl-danger: #f85149;
+  --xl-info: #58a6ff;
+  
+  /* 背景色 */
+  --xl-bg-dark: #06080e;
+  --xl-bg-card: #0d1117;
+  --xl-border: #1a1f2e;
+  
+  /* 覆盖 OpenClaw 默认变量 */
+  --color-primary: var(--xl-primary);
+  --color-success: var(--xl-success);
+  --color-warning: var(--xl-warning);
+  --color-danger: var(--xl-danger);
+  --color-info: var(--xl-info);
+  
+  /* 字体 */
+  --font-family-base: 'Outfit', 'Noto Sans SC', system-ui, sans-serif;
+  --font-family-mono: 'Space Mono', monospace;
+}
+
+/* 深色模式覆盖 */
+[data-theme="dark"],
+[data-theme="claw"],
+[data-theme="openclaw"] {
+  --background-primary: var(--xl-bg-dark);
+  --background-secondary: var(--xl-bg-card);
+  --background-tertiary: #0a0d14;
+  
+  --border-color: var(--xl-border);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  
+  /* 强调色 */
+  --accent-primary: var(--xl-primary);
+  --accent-secondary: var(--xl-primary-light);
+  
+  /* 状态色 */
+  --status-online: var(--xl-success);
+  --status-away: var(--xl-warning);
+  --status-busy: var(--xl-danger);
+}
+
+/* 玻璃拟态效果 */
+.glass-panel,
+.sidebar,
+.chat-panel {
+  background: rgba(13, 17, 23, 0.7) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--xl-border) !important;
+}
+
+/* Logo 替换 */
+.app-logo::before {
+  content: "🐉 ";
+}
+
+.app-title {
+  background: linear-gradient(135deg, var(--xl-primary), var(--xl-primary-light), var(--xl-info));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 按钮样式 */
+button.primary,
+.btn-primary {
+  background: var(--xl-primary) !important;
+  border-color: var(--xl-primary) !important;
+}
+
+button.primary:hover,
+.btn-primary:hover {
+  background: #6b4ce6 !important;
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.3) !important;
+}
+
+/* 状态指示器 */
+.status-dot.online {
+  background: var(--xl-success);
+  box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(45, 212, 160, 0); }
+}
+
+/* 消息气泡 */
+.message-bubble.user {
+  background: linear-gradient(135deg, var(--xl-primary), var(--xl-primary-light)) !important;
+}
+
+/* 代码块 */
+pre code {
+  background: var(--xl-bg-card) !important;
+  border: 1px solid var(--xl-border) !important;
+  border-radius: 8px !important;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--xl-bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--xl-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--xl-primary);
+}
+
+/* 动画 */
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, var(--xl-bg-card) 25%, var(--xl-border) 50%, var(--xl-bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

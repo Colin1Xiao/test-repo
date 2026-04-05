@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "🐉 小龙 Control UI 主题",
+  "version": "1.0.0",
+  "description": "小龙主题 for OpenClaw Control UI - 紫色渐变 + 中文优化",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:18789/*",
+        "http://127.0.0.1:18789/*",
+        "https://*.tail*.ts.net/*"
+      ],
+      "css": [
+        "xiaolong-theme.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
